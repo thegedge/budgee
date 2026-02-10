@@ -19,9 +19,11 @@
   },
   "dependencies": {
     "dexie": "^4.3.0",
-    "lit": "^3.3.2"
+    "lit": "^3.3.2",
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.5.2",
     "@vitest/ui": "^4.0.18",
     "fake-indexeddb": "^6.2.5",
     "happy-dom": "^20.6.0",
