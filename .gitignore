@@ -1,0 +1,14 @@
+# Node
+node_modules
+dist
+coverage
+
+# Editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# Budgee
+.oxlintignore
+.ignore
