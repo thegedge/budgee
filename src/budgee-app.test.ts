@@ -10,6 +10,7 @@ describe("BudgeeApp", () => {
     const el = new BudgeeApp();
     document.body.appendChild(el);
     await el.updateComplete;
-    expect(el.shadowRoot?.querySelector("h1")?.textContent).toContain("Hello, Budgee!");
+
+    expect(el.shadowRoot?.querySelector("h1")?.textContent).toContain("Budgee");
   });
 });

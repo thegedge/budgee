@@ -1,31 +1,93 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { LitElement, css, html } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { db } from "./database/db";
+import type { Transaction } from "./types";
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "budgee-app": BudgeeApp;
+  }
+}
 
 @customElement("budgee-app")
 export class BudgeeApp extends LitElement {
-  @property()
-  title = "Budgee";
+  @state()
+  private _transactions: Transaction[] = [];
 
   static styles = css`
     :host {
       display: block;
       padding: 16px;
       color: var(--budgee-text-color, #000);
+      font-family: sans-serif;
     }
+
     h1 {
       font-size: 1.5rem;
+      margin-top: 0;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    pre {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
     }
   `;
 
   render() {
     return html`
-      <h1>Hello, ${this.title}!</h1>
+      <div class="container">
+        <h1>Budgee</h1>
+        <p>A simple transaction manager.</p>
+
+        <button @click=${this.#seedDatabase}>Seed Database with Sample Data</button>
+
+        <h2>Transactions (${this._transactions.length})</h2>
+        ${
+          this._transactions.length === 0
+            ? html`
+                <p>No transactions found. Click "Seed Database" to add some.</p>
+              `
+            : html`<pre>${JSON.stringify(this._transactions, null, 2)}</pre>`
+        }
+      </div>
     `;
   }
-}
 
-declare global {
-  interface HTMLElementTagNameMap {
-    "budgee-app": BudgeeApp;
+  connectedCallback() {
+    super.connectedCallback();
+    this.#refreshTransactions();
+  }
+
+  async #refreshTransactions() {
+    this._transactions = await db.transactions.toArray();
+  }
+
+  async #seedDatabase() {
+    const { seed } = await import("../scripts/seed");
+    await seed();
+    await this.#refreshTransactions();
   }
 }

@@ -5,7 +5,7 @@ export interface Transaction {
   originalDescription: string;
   memo?: string;
   merchantId?: number;
-  sourceId?: number;
+  accountId?: number;
   tagIds: number[];
 }
 
@@ -19,7 +19,8 @@ export interface Merchant {
   name: string;
 }
 
-export interface Source {
+export interface Account {
   id?: number;
   name: string;
+  type?: string;
 }
