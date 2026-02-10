@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BudgeeApp } from "./budgee-app";
+import { Application } from "./application";
 
 describe("BudgeeApp", () => {
   it("should be defined", () => {
@@ -7,7 +7,7 @@ describe("BudgeeApp", () => {
   });
 
   it("renders with default title", async () => {
-    const el = new BudgeeApp();
+    const el = new Application();
     document.body.appendChild(el);
     await el.updateComplete;
 

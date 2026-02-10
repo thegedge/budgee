@@ -1,16 +1,16 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { db } from "./database/db";
-import type { Transaction } from "./types";
+import { db } from "../database/db";
+import type { Transaction } from "../database/types";
 
 declare global {
   interface HTMLElementTagNameMap {
-    "budgee-app": BudgeeApp;
+    "budgee-app": Application;
   }
 }
 
 @customElement("budgee-app")
-export class BudgeeApp extends LitElement {
+export class Application extends LitElement {
   @state()
   private _transactions: Transaction[] = [];
 
@@ -86,7 +86,7 @@ export class BudgeeApp extends LitElement {
   }
 
   async #seedDatabase() {
-    const { seed } = await import("../scripts/seed");
+    const { seed } = await import("../../scripts/seed");
     await seed();
     await this.#refreshTransactions();
   }
