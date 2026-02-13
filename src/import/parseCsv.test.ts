@@ -46,26 +46,26 @@ describe("parseCsv", () => {
     expect(result.suggestedMapping.date).toBe("Transaction Time");
     expect(result.suggestedMapping.amount).toBe("Cost");
     expect(result.suggestedMapping.description).toBe("Merchant Name");
-    expect(result.suggestedMapping.account).toBe("Payment Method");
+    expect(result.suggestedMapping.account).toBe("Card");
 
     expect(result.data).toEqual([
       {
         "Transaction Time": "2023-10-25",
         Cost: "-150.25",
         "Merchant Name": "Whole Foods",
-        "Payment Method": "Visa",
+        Card: "Visa",
       },
       {
         "Transaction Time": "2023-10-26",
         Cost: "-5.75",
         "Merchant Name": "Starbucks",
-        "Payment Method": "Visa",
+        Card: "Visa",
       },
       {
         "Transaction Time": "2023-10-29",
         Cost: "2500.00",
         "Merchant Name": "Payroll",
-        "Payment Method": "Checking",
+        Card: "Checking",
       },
     ]);
   });

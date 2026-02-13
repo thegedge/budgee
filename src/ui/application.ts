@@ -3,6 +3,8 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../database/db";
 import type { Transaction } from "../database/types";
 
+import "./import/importer";
+
 declare global {
   interface HTMLElementTagNameMap {
     "budgee-app": Application;
@@ -13,6 +15,9 @@ declare global {
 export class Application extends LitElement {
   @state()
   private _transactions: Transaction[] = [];
+
+  @state()
+  private _showImporter = false;
 
   static styles = css`
     :host {
@@ -35,6 +40,7 @@ export class Application extends LitElement {
       border: none;
       border-radius: 4px;
       font-size: 1rem;
+      margin-right: 0.5rem;
     }
 
     button:hover {
@@ -54,6 +60,10 @@ export class Application extends LitElement {
       max-width: 800px;
       margin: 0 auto;
     }
+    
+    .actions {
+      margin-bottom: 1rem;
+    }
   `;
 
   render() {
@@ -62,7 +72,14 @@ export class Application extends LitElement {
         <h1>Budgee</h1>
         <p>A simple transaction manager.</p>
 
-        <button @click=${this.#seedDatabase}>Seed Database with Sample Data</button>
+        <div class="actions">
+          <button @click=${() => this._showImporter = !this._showImporter}>
+            ${this._showImporter ? "Close Importer" : "Import Transactions"}
+          </button>
+          <button @click=${this.#seedDatabase}>Seed Database</button>
+        </div>
+        
+        ${this._showImporter ? html`<trans-importer></trans-importer>` : ""}
 
         <h2>Transactions (${this._transactions.length})</h2>
         ${

@@ -1,4 +1,4 @@
-Transaction Time,Cost,Merchant Name,Payment Method
+Transaction Time,Cost,Merchant Name,Card
 2023-10-25,-150.25,Whole Foods,Visa
 2023-10-26,-5.75,Starbucks,Visa
 2023-10-29,2500.00,Payroll,Checking
