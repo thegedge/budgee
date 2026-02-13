@@ -4,6 +4,7 @@ import { db } from "../database/db";
 import type { Transaction } from "../database/types";
 
 import "./import/importer";
+import "./transactions/transactionList";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -47,15 +48,6 @@ export class Application extends LitElement {
       background-color: #0056b3;
     }
 
-    pre {
-      background: #f8f9fa;
-      padding: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
-
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -88,13 +80,7 @@ export class Application extends LitElement {
         }
 
         <h2>Transactions (${this._transactions.length})</h2>
-        ${
-          this._transactions.length === 0
-            ? html`
-                <p>No transactions found. Click "Seed Database" to add some.</p>
-              `
-            : html`<pre>${JSON.stringify(this._transactions, null, 2)}</pre>`
-        }
+        <transaction-list .transactions=${this._transactions}></transaction-list>
       </div>
     `;
   }
