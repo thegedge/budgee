@@ -4,6 +4,7 @@ import { db } from "../database/db";
 import type { Tag, Transaction } from "../database/types";
 
 import "./import/importer";
+import "./rules/ruleManager";
 import "./tags/tagManager";
 import "./transactions/transactionList";
 
@@ -84,6 +85,7 @@ export class Application extends LitElement {
         }
 
         <tag-manager></tag-manager>
+        <rule-manager></rule-manager>
 
         <h2>Transactions (${this._transactions.length})</h2>
         <transaction-list

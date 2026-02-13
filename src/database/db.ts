@@ -1,11 +1,12 @@
 import Dexie, { type Table } from "dexie";
-import type { Account, Merchant, Tag, Transaction } from "./types";
+import type { Account, Merchant, MerchantRule, Tag, Transaction } from "./types";
 
 export class Database extends Dexie {
   transactions!: Table<Transaction, number>;
   tags!: Table<Tag, number>;
   merchants!: Table<Merchant, number>;
   accounts!: Table<Account, number>;
+  merchantRules!: Table<MerchantRule, number>;
 
   constructor() {
     super("BudgeeDatabase");
@@ -15,6 +16,10 @@ export class Database extends Dexie {
       tags: "++id, &name",
       merchants: "++id, &name",
       accounts: "++id, &name",
+    });
+
+    this.version(2).stores({
+      merchantRules: "++id, pattern",
     });
   }
 }

@@ -6,6 +6,7 @@ import { importTransactions } from "./importTransactions";
 describe("importTransactions", () => {
   beforeEach(async () => {
     await db.transactions.clear();
+    await db.merchantRules.clear();
   });
 
   const rows = [
@@ -47,5 +48,16 @@ describe("importTransactions", () => {
     const bad = [{ Date: "2024-01-01", Amount: "not-a-number", Description: "Bad" }];
     const count = await importTransactions(bad, mapping);
     expect(count).toBe(0);
+  });
+
+  it("should apply merchant rules during import", async () => {
+    await db.merchantRules.add({ pattern: "groceries", tagIds: [42] });
+
+    const count = await importTransactions(rows, mapping);
+    expect(count).toBe(2);
+
+    const stored = await db.transactions.toArray();
+    expect(stored[0].tagIds).toEqual([42]);
+    expect(stored[1].tagIds).toEqual([]);
   });
 });

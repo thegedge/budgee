@@ -24,3 +24,10 @@ export interface Account {
   name: string;
   type?: string;
 }
+
+export interface MerchantRule {
+  id?: number;
+  pattern: string; // substring to match in description (case-insensitive)
+  merchantName?: string;
+  tagIds: number[];
+}
