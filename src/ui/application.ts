@@ -60,7 +60,7 @@ export class Application extends LitElement {
       max-width: 800px;
       margin: 0 auto;
     }
-    
+
     .actions {
       margin-bottom: 1rem;
     }
@@ -73,13 +73,19 @@ export class Application extends LitElement {
         <p>A simple transaction manager.</p>
 
         <div class="actions">
-          <button @click=${() => this._showImporter = !this._showImporter}>
+          <button @click=${() => (this._showImporter = !this._showImporter)}>
             ${this._showImporter ? "Close Importer" : "Import Transactions"}
           </button>
           <button @click=${this.#seedDatabase}>Seed Database</button>
         </div>
         
-        ${this._showImporter ? html`<trans-importer></trans-importer>` : ""}
+        ${
+          this._showImporter
+            ? html`
+                <trans-importer @imported=${this.#onImported}></trans-importer>
+              `
+            : ""
+        }
 
         <h2>Transactions (${this._transactions.length})</h2>
         ${
@@ -100,6 +106,11 @@ export class Application extends LitElement {
 
   async #refreshTransactions() {
     this._transactions = await db.transactions.toArray();
+  }
+
+  async #onImported() {
+    this._showImporter = false;
+    await this.#refreshTransactions();
   }
 
   async #seedDatabase() {

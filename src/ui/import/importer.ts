@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 
 declare global {
@@ -80,6 +81,15 @@ export class Importer extends LitElement {
     this._mapping = { ...this._mapping, [field]: value };
   }
 
+  async #onImport() {
+    if (!this._result) return;
+    const count = await importTransactions(this._result.data, this._mapping);
+    this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
+    this._step = "upload";
+    this._result = undefined;
+    this._mapping = {};
+  }
+
   render() {
     return html`
       <h2>Import Transactions</h2>
@@ -117,6 +127,8 @@ export class Importer extends LitElement {
         `,
         )}
       </div>
+
+      <button @click=${this.#onImport}>Import</button>
 
       <h3>Preview</h3>
       <div class="preview">
