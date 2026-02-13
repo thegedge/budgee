@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../database/db";
 import type { Tag, Transaction } from "../database/types";
 
+import "./dashboard/dashboard";
 import "./import/importer";
 import "./rules/ruleManager";
 import "./tags/tagManager";
@@ -83,6 +84,11 @@ export class Application extends LitElement {
               `
             : ""
         }
+
+        <budgee-dashboard
+          .transactions=${this._transactions}
+          .tags=${this._tags}
+        ></budgee-dashboard>
 
         <tag-manager></tag-manager>
         <rule-manager></rule-manager>
