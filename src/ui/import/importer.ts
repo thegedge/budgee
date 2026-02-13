@@ -1,6 +1,6 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { CsvParseResult, parseCsv } from "../../import/parseCsv";
+import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -8,13 +8,23 @@ declare global {
   }
 }
 
+const MAPPING_FIELDS: { key: keyof ColumnMapping; label: string }[] = [
+  { key: "date", label: "Date" },
+  { key: "amount", label: "Amount" },
+  { key: "description", label: "Description" },
+  { key: "account", label: "Account" },
+];
+
 @customElement("trans-importer")
 export class Importer extends LitElement {
   @state()
-  private _step: "upload" | "preview" = "upload";
+  private _step: "upload" | "mapping" = "upload";
 
   @state()
   private _result?: CsvParseResult;
+
+  @state()
+  private _mapping: ColumnMapping = {};
 
   static styles = css`
     :host {
@@ -28,7 +38,8 @@ export class Importer extends LitElement {
       width: 100%;
       border-collapse: collapse;
     }
-    th, td {
+    th,
+    td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: left;
@@ -40,6 +51,16 @@ export class Importer extends LitElement {
       max-height: 200px;
       overflow-y: auto;
     }
+    .mapping-form {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.5rem;
+      align-items: center;
+      max-width: 400px;
+    }
+    select {
+      padding: 4px 8px;
+    }
   `;
 
   async #onFileChange(e: Event) {
@@ -49,13 +70,20 @@ export class Importer extends LitElement {
     }
     const file = input.files[0];
     this._result = await parseCsv(file);
-    this._step = "preview";
+    this._mapping = { ...this._result.suggestedMapping };
+    this._step = "mapping";
+  }
+
+  #onMappingChange(field: keyof ColumnMapping, e: Event) {
+    const select = e.target as HTMLSelectElement;
+    const value = select.value || undefined;
+    this._mapping = { ...this._mapping, [field]: value };
   }
 
   render() {
     return html`
       <h2>Import Transactions</h2>
-      ${this._step === "upload" ? this.#renderUpload() : this.#renderPreview()}
+      ${this._step === "upload" ? this.#renderUpload() : this.#renderMapping()}
     `;
   }
 
@@ -66,32 +94,45 @@ export class Importer extends LitElement {
     `;
   }
 
-  #renderPreview() {
-    if (!this._result) return html`<p>No data to preview.</p>`;
-    
-    const headers = this._result.meta.fields || [];
+  #renderMapping() {
+    if (!this._result) return nothing;
+
+    const headers = this._result.meta.fields ?? [];
     const previewData = this._result.data.slice(0, 5);
 
     return html`
-      <h3>Preview Data</h3>
+      <h3>Column Mapping</h3>
+      <div class="mapping-form">
+        ${MAPPING_FIELDS.map(
+          ({ key, label }) => html`
+          <label>${label}:</label>
+          <select @change=${(e: Event) => this.#onMappingChange(key, e)}>
+            <option value="">-- Unmapped --</option>
+            ${headers.map(
+              (h) => html`
+              <option value=${h} ?selected=${this._mapping[key] === h}>${h}</option>
+            `,
+            )}
+          </select>
+        `,
+        )}
+      </div>
+
+      <h3>Preview</h3>
       <div class="preview">
         <table>
           <thead>
-            <tr>${headers.map(h => html`<th>${h}</th>`)}</tr>
+            <tr>${headers.map((h) => html`<th>${h}</th>`)}</tr>
           </thead>
           <tbody>
-            ${previewData.map(row => html`
-              <tr>${headers.map(h => html`<td>${row[h]}</td>`)}</tr>
-            `)}
+            ${previewData.map(
+              (row) => html`
+              <tr>${headers.map((h) => html`<td>${row[h]}</td>`)}</tr>
+            `,
+            )}
           </tbody>
         </table>
       </div>
-      <h3>Suggested Column Mapping</h3>
-      <ul>
-        ${Object.entries(this._result.suggestedMapping).map(([key, value]) => html`
-          <li><strong>${key}:</strong> ${value || 'Not found'}</li>
-        `)}
-      </ul>
     `;
   }
 }
