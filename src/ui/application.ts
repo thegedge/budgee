@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../database/db";
-import type { Transaction } from "../database/types";
+import type { Tag, Transaction } from "../database/types";
 
 import "./import/importer";
 import "./tags/tagManager";
@@ -17,6 +17,9 @@ declare global {
 export class Application extends LitElement {
   @state()
   private _transactions: Transaction[] = [];
+
+  @state()
+  private _tags: Tag[] = [];
 
   @state()
   private _showImporter = false;
@@ -83,14 +86,23 @@ export class Application extends LitElement {
         <tag-manager></tag-manager>
 
         <h2>Transactions (${this._transactions.length})</h2>
-        <transaction-list .transactions=${this._transactions}></transaction-list>
+        <transaction-list
+          .transactions=${this._transactions}
+          .tags=${this._tags}
+          @tags-changed=${this.#refreshTransactions}
+        ></transaction-list>
       </div>
     `;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.#refreshTransactions();
+    this.#refresh();
+  }
+
+  async #refresh() {
+    this._transactions = await db.transactions.toArray();
+    this._tags = await db.tags.toArray();
   }
 
   async #refreshTransactions() {
@@ -99,12 +111,12 @@ export class Application extends LitElement {
 
   async #onImported() {
     this._showImporter = false;
-    await this.#refreshTransactions();
+    await this.#refresh();
   }
 
   async #seedDatabase() {
     const { seed } = await import("../../scripts/seed");
     await seed();
-    await this.#refreshTransactions();
+    await this.#refresh();
   }
 }
