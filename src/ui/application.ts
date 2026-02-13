@@ -4,6 +4,7 @@ import { db } from "../database/db";
 import type { Transaction } from "../database/types";
 
 import "./import/importer";
+import "./tags/tagManager";
 import "./transactions/transactionList";
 
 declare global {
@@ -78,6 +79,8 @@ export class Application extends LitElement {
               `
             : ""
         }
+
+        <tag-manager></tag-manager>
 
         <h2>Transactions (${this._transactions.length})</h2>
         <transaction-list .transactions=${this._transactions}></transaction-list>
