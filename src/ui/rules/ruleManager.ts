@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
-import type { MerchantRule, Tag, Transaction } from "../../database/types";
+import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
 import "../modal";
 import "../paginatedTable";
@@ -21,6 +21,9 @@ export class RuleManager extends LitElement {
 
   @state()
   private _tags: Tag[] = [];
+
+  @state()
+  private _merchants: Merchant[] = [];
 
   @state()
   private _unmerchanted: Transaction[] = [];
@@ -133,6 +136,7 @@ export class RuleManager extends LitElement {
   async #refresh() {
     this._rules = await db.merchantRules.toArray();
     this._tags = await db.tags.toArray();
+    this._merchants = await db.merchants.toArray();
     const allTx = await db.transactions.toArray();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
   }
@@ -311,6 +315,7 @@ export class RuleManager extends LitElement {
             >
               <rule-editor
                 .tags=${this._tags}
+                .merchants=${this._merchants}
                 .prefillDescription=${this._prefillDescription}
                 .editingRule=${this._editingRule}
                 .editingMerchantName=${this._editingMerchantName}

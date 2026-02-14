@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { MerchantRule, RuleCondition, Tag } from "../../database/types";
+import type { Merchant, MerchantRule, RuleCondition, Tag } from "../../database/types";
+import "../merchants/merchantAutocomplete";
 import "../tags/tagAutocomplete";
 import "./conditionRow";
 
@@ -14,6 +15,9 @@ declare global {
 export class RuleEditor extends LitElement {
   @property({ type: Array })
   tags: Tag[] = [];
+
+  @property({ type: Array })
+  merchants: Merchant[] = [];
 
   @property({ type: String })
   prefillDescription = "";
@@ -203,14 +207,13 @@ export class RuleEditor extends LitElement {
       <button class="add-condition" @click=${this.#addCondition}>+ Add Condition</button>
       <div class="form-row">
         <label>Merchant:</label>
-        <input
-          type="text"
-          placeholder="Merchant name (optional)"
+        <merchant-autocomplete
+          .merchants=${this.merchants}
           .value=${this._merchantName}
-          @input=${(e: Event) => {
-            this._merchantName = (e.target as HTMLInputElement).value;
+          @merchant-changed=${(e: CustomEvent) => {
+            this._merchantName = e.detail.name;
           }}
-        />
+        ></merchant-autocomplete>
       </div>
       <div class="form-row tags-row">
         <label>Tags:</label>
