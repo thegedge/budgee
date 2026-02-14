@@ -4,9 +4,11 @@ A single-page app for transaction management and budgeting.
 
 ## Disclaimer
 
-This application was built with support from LLMs, but meticulously reviewed at each and every step
-of the way. I'm not a huge LLM person, but I think these greenfield projects that are largely meant
-for personal use are, at the very least, great use cases for an LLM.
+This application was coded primarily by LLMs. I generally like to build everything myself, but this
+was one of those little things that I never found the time to work on and thought it would be a
+great option for a mostly "vibe-coded" app.
+
+If you're curious: I didn't particularly _enjoy_ the experience, but am happy with the end result.
 
 ## Features
 
