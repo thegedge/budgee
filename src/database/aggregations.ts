@@ -1,6 +1,7 @@
 import type { Transaction } from "./types";
 
-export type Granularity = "day" | "month" | "year";
+export type PeriodGranularity = "day" | "month" | "year";
+export type Granularity = PeriodGranularity | "byTag";
 
 interface FilterOptions {
   tagId?: number;
@@ -9,7 +10,7 @@ interface FilterOptions {
   endDate?: string;
 }
 
-function periodKey(date: string, granularity: Granularity): string {
+function periodKey(date: string, granularity: PeriodGranularity): string {
   switch (granularity) {
     case "day":
       return date.slice(0, 10);
@@ -20,9 +21,30 @@ function periodKey(date: string, granularity: Granularity): string {
   }
 }
 
+export function aggregateByTag(
+  transactions: Transaction[],
+  tags: { id?: number; name: string }[],
+): Map<string, number> {
+  const totals = new Map<number, number>();
+  for (const tx of transactions) {
+    for (const tagId of tx.tagIds) {
+      totals.set(tagId, (totals.get(tagId) ?? 0) + tx.amount);
+    }
+  }
+
+  const result = new Map<string, number>();
+  for (const tag of tags) {
+    const total = totals.get(tag.id!);
+    if (total !== undefined) {
+      result.set(tag.name, total);
+    }
+  }
+  return result;
+}
+
 export function aggregateByPeriod(
   transactions: Transaction[],
-  granularity: Granularity,
+  granularity: PeriodGranularity,
 ): Map<string, number> {
   const result = new Map<string, number>();
   for (const tx of transactions) {

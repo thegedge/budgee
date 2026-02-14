@@ -25,13 +25,10 @@ describe("budgee-dashboard", () => {
     el.remove();
   });
 
-  it("should display totals by tag", async () => {
-    const foodId = await db.tags.add({ name: "Food" });
-    const incomeId = await db.tags.add({ name: "Income" });
+  it("should display recent transactions", async () => {
     await db.transactions.bulkAdd([
-      { date: "2024-01-01", amount: -50, originalDescription: "Groceries", tagIds: [foodId] },
-      { date: "2024-01-02", amount: -25, originalDescription: "Restaurant", tagIds: [foodId] },
-      { date: "2024-01-03", amount: 2500, originalDescription: "Payroll", tagIds: [incomeId] },
+      { date: "2024-01-01", amount: -50, originalDescription: "Groceries", tagIds: [] },
+      { date: "2024-01-02", amount: -25, originalDescription: "Restaurant", tagIds: [] },
     ]);
 
     const el = document.createElement("budgee-dashboard") as Dashboard;
@@ -40,23 +37,11 @@ describe("budgee-dashboard", () => {
     await el.updateComplete;
 
     const cards = el.shadowRoot!.querySelectorAll(".card");
-    const tagCard = Array.from(cards).find(
-      (c) => c.querySelector("h3")?.textContent === "Spending by Tag",
+    const recentCard = Array.from(cards).find(
+      (c) => c.querySelector("h3")?.textContent === "Recent Transactions",
     )!;
-    const rows = tagCard.querySelectorAll("tbody tr");
-    expect(rows).toHaveLength(3);
-
-    const firstCells = rows[0].querySelectorAll("td");
-    expect(firstCells[0].textContent).toBe("Food");
-    expect(firstCells[1].textContent!.trim()).toBe("-75.00");
-
-    const secondCells = rows[1].querySelectorAll("td");
-    expect(secondCells[0].textContent).toBe("Income");
-    expect(secondCells[1].textContent!.trim()).toBe("2500.00");
-
-    const totalCells = rows[2].querySelectorAll("td");
-    expect(totalCells[0].textContent).toBe("Total");
-    expect(totalCells[1].textContent!.trim()).toBe("2425.00");
+    const rows = recentCard.querySelectorAll("tbody tr");
+    expect(rows).toHaveLength(2);
 
     el.remove();
   });

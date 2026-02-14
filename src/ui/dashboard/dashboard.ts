@@ -15,25 +15,6 @@ declare global {
   }
 }
 
-interface TagTotal {
-  tag: Tag;
-  total: number;
-}
-
-function computeTotals(transactions: Transaction[], tags: Tag[]): TagTotal[] {
-  const totals = new Map<number, number>();
-  for (const tx of transactions) {
-    for (const tagId of tx.tagIds) {
-      totals.set(tagId, (totals.get(tagId) ?? 0) + tx.amount);
-    }
-  }
-
-  return tags
-    .filter((t) => totals.has(t.id!))
-    .map((tag) => ({ tag, total: totals.get(tag.id!)! }))
-    .sort((a, b) => a.total - b.total);
-}
-
 @customElement("budgee-dashboard")
 export class Dashboard extends LitElement {
   @state()
@@ -109,9 +90,6 @@ export class Dashboard extends LitElement {
     }
     .clickable-row:hover {
       background-color: var(--budgee-bg, #fafafa);
-    }
-    .total-row {
-      font-weight: bold;
     }
     button {
       padding: 0.5rem 1rem;
@@ -247,8 +225,6 @@ export class Dashboard extends LitElement {
       `;
     }
 
-    const tagTotals = computeTotals(this._transactions, this._tags);
-    const grandTotal = this._transactions.reduce((sum, t) => sum + t.amount, 0);
     const recentTransactions = [...this._transactions]
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 10);
@@ -274,6 +250,7 @@ export class Dashboard extends LitElement {
                   data-chart-id=${chart.id!}
                   .config=${chart}
                   .transactions=${this._transactions}
+                  .tags=${this._tags}
                   @chart-edit=${this.#onChartEdit}
                   @chart-deleted=${this.#onChartDeleted}
                 ></dashboard-chart-card>
@@ -304,36 +281,6 @@ export class Dashboard extends LitElement {
           `
           : nothing
       }
-
-      <div class="card">
-        <h3>Spending by Tag</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Tag</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tagTotals.map(
-              ({ tag, total }) => html`
-              <tr>
-                <td>${tag.name}</td>
-                <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
-                  ${total.toFixed(2)}
-                </td>
-              </tr>
-            `,
-            )}
-            <tr class="total-row">
-              <td>Total</td>
-              <td class=${grandTotal < 0 ? "amount-negative" : "amount-positive"}>
-                ${grandTotal.toFixed(2)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
 
       ${
         recentTransactions.length > 0

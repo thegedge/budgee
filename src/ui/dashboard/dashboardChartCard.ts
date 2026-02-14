@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { aggregateByPeriod, filterTransactions } from "../../database/aggregations";
-import type { DashboardChart, Transaction } from "../../database/types";
+import { aggregateByPeriod, aggregateByTag, filterTransactions } from "../../database/aggregations";
+import type { DashboardChart, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
 import "../charts/chartWrapper";
 
@@ -18,6 +18,9 @@ export class DashboardChartCard extends LitElement {
 
   @property({ type: Array })
   transactions: Transaction[] = [];
+
+  @property({ type: Array })
+  tags: Tag[] = [];
 
   static styles = css`
     :host {
@@ -70,7 +73,10 @@ export class DashboardChartCard extends LitElement {
       endDate: this.config.endDate,
     });
 
-    const aggregated = aggregateByPeriod(filtered, this.config.granularity);
+    const aggregated =
+      this.config.granularity === "byTag"
+        ? aggregateByTag(filtered, this.tags)
+        : aggregateByPeriod(filtered, this.config.granularity);
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
 
     return {

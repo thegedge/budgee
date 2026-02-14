@@ -45,7 +45,7 @@ export interface DashboardChart {
   id?: number;
   title: string;
   chartType: "bar" | "line" | "pie" | "doughnut";
-  granularity: "day" | "month" | "year";
+  granularity: "day" | "month" | "year" | "byTag";
   startDate?: string;
   endDate?: string;
   tagId?: number;

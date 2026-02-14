@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { aggregateByPeriod, filterTransactions } from "../../database/aggregations";
+import { aggregateByPeriod, aggregateByTag, filterTransactions } from "../../database/aggregations";
 import type { Granularity } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
@@ -117,7 +117,10 @@ export class ChartConfigurator extends LitElement {
       endDate: this._endDate || undefined,
     });
 
-    const aggregated = aggregateByPeriod(filtered, this._granularity);
+    const aggregated =
+      this._granularity === "byTag"
+        ? aggregateByTag(filtered, this.tags)
+        : aggregateByPeriod(filtered, this._granularity);
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
 
     return {
@@ -186,6 +189,7 @@ export class ChartConfigurator extends LitElement {
           <option value="day" ?selected=${this._granularity === "day"}>Day</option>
           <option value="month" ?selected=${this._granularity === "month"}>Month</option>
           <option value="year" ?selected=${this._granularity === "year"}>Year</option>
+          <option value="byTag" ?selected=${this._granularity === "byTag"}>By Tag</option>
         </select>
         <label>Start date:</label>
         <input
