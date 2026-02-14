@@ -119,6 +119,20 @@ export class TransactionDetail extends LitElement {
     tbody tr:nth-child(even) {
       background-color: var(--budgee-bg, #fafafa);
     }
+    .create-rule {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background-color: var(--budgee-primary, #7eb8da);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .create-rule:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
+    }
     .back-link {
       color: var(--budgee-primary, #7eb8da);
       cursor: pointer;
@@ -240,6 +254,12 @@ export class TransactionDetail extends LitElement {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
+  #createRule(tx: Transaction) {
+    const params = new URLSearchParams({ description: tx.originalDescription });
+    window.history.pushState({}, "", `/rules?${params}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
+
   #navigateBack() {
     window.history.pushState({}, "", "/transactions");
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -285,6 +305,16 @@ export class TransactionDetail extends LitElement {
           ></tag-autocomplete>
         </div>
       </div>
+
+      ${
+        !tx.merchantId
+          ? html`
+            <button class="create-rule" @click=${() => this.#createRule(tx)}>
+              Create Merchant Rule
+            </button>
+          `
+          : nothing
+      }
 
       <div class="section">
         <h3>Notes</h3>

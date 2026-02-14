@@ -88,6 +88,11 @@ export class RuleManager extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    const params = new URLSearchParams(window.location.search);
+    const description = params.get("description");
+    if (description) {
+      this._prefillDescription = description;
+    }
     this.#refresh();
   }
 

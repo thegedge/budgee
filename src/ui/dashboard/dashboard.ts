@@ -101,6 +101,12 @@ export class Dashboard extends LitElement {
     .amount-positive {
       color: var(--budgee-positive, #7ec8a0);
     }
+    .clickable-row {
+      cursor: pointer;
+    }
+    .clickable-row:hover {
+      background-color: var(--budgee-bg, #fafafa);
+    }
     .total-row {
       font-weight: bold;
     }
@@ -185,6 +191,12 @@ export class Dashboard extends LitElement {
   async #onChartDeleted(e: CustomEvent) {
     await db.dashboardCharts.delete(e.detail.id);
     await this.#refresh();
+  }
+
+  #createRuleFrom(transaction: Transaction) {
+    const params = new URLSearchParams({ description: transaction.originalDescription });
+    window.history.pushState({}, "", `/rules?${params}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
   get #monthlyChartData(): ChartData {
@@ -315,7 +327,7 @@ export class Dashboard extends LitElement {
                 <tbody>
                   ${recentTransactions.map(
                     (t) => html`
-                    <tr>
+                    <tr class="clickable-row" @click=${() => this.#createRuleFrom(t)}>
                       <td>${t.date}</td>
                       <td>${t.originalDescription}</td>
                       <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
