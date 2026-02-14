@@ -141,8 +141,15 @@ export class Dashboard extends LitElement {
 
   #initSortable() {
     const grid = this.shadowRoot?.querySelector(".chart-grid") as HTMLElement | null;
-    if (!grid || this._sortable) return;
+    if (!grid) {
+      this._sortable?.destroy();
+      this._sortable = undefined;
+      return;
+    }
 
+    if (this._sortable?.el === grid) return;
+
+    this._sortable?.destroy();
     this._sortable = Sortable.create(grid, {
       animation: 150,
       onEnd: () => this.#persistOrder(),

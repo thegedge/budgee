@@ -26,10 +26,7 @@ export class ChartWrapper extends LitElement {
   static styles = css`
     :host {
       display: block;
-    }
-    canvas {
-      width: 100% !important;
-      max-height: 300px;
+      position: relative;
     }
   `;
 
@@ -73,7 +70,11 @@ export class ChartWrapper extends LitElement {
     this._chart = new Chart(ctx, {
       type: this.chartType,
       data: this.data,
-      options: this.options,
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        ...this.options,
+      },
     });
   }
 }
