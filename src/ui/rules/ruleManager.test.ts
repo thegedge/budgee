@@ -15,18 +15,22 @@ describe("rule-manager", () => {
     expect(customElements.get("rule-manager")).toBe(RuleManager);
   });
 
-  it("should add a rule via rule-editor", async () => {
+  it("should add a rule via clicking an unmerchanted transaction", async () => {
     await db.tags.add({ name: "Coffee" });
+    await db.transactions.add({
+      date: "2024-01-01",
+      originalDescription: "STARBUCKS",
+      amount: 5.0,
+      tagIds: [],
+    });
 
     const el = document.createElement("rule-manager") as RuleManager;
     document.body.appendChild(el);
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const createBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Create Rule",
-    )!;
-    createBtn.click();
+    const row = el.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
+    row.click();
     await el.updateComplete;
 
     const modal = el.shadowRoot!.querySelector("budgee-modal")!;

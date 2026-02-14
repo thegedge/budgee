@@ -143,12 +143,6 @@ export class RuleManager extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    const params = new URLSearchParams(window.location.search);
-    const description = params.get("description");
-    if (description) {
-      this._prefillDescription = description;
-      this._showEditor = true;
-    }
     this.#refresh();
   }
 
@@ -392,11 +386,6 @@ export class RuleManager extends LitElement {
               <p>No rules defined.</p>
             `
       }
-
-      <button @click=${() => {
-        this._editingRule = null;
-        this._showEditor = true;
-      }}>Create Rule</button>
 
       ${
         this._showEditor
