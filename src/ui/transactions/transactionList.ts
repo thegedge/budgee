@@ -12,6 +12,9 @@ declare global {
   }
 }
 
+type SortColumn = "date" | "description" | "amount" | "tags";
+type SortDir = "asc" | "desc";
+
 @customElement("transaction-list")
 export class TransactionList extends LitElement {
   @state()
@@ -29,6 +32,12 @@ export class TransactionList extends LitElement {
   @state()
   private _filter = "";
 
+  @state()
+  private _sortCol: SortColumn = "date";
+
+  @state()
+  private _sortDir: SortDir = "desc";
+
   static styles = css`
     table {
       width: 100%;
@@ -43,6 +52,13 @@ export class TransactionList extends LitElement {
     th {
       background-color: var(--budgee-primary, #7eb8da);
       color: white;
+    }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
     }
     tbody tr:nth-child(even) {
       background-color: var(--budgee-bg, #fafafa);
@@ -126,6 +142,41 @@ export class TransactionList extends LitElement {
     return false;
   }
 
+  #onSortClick(col: SortColumn) {
+    if (this._sortCol === col) {
+      this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
+    } else {
+      this._sortCol = col;
+      this._sortDir = "asc";
+    }
+    this._currentPage = 1;
+  }
+
+  #sortIndicator(col: SortColumn): string {
+    if (this._sortCol !== col) return "";
+    return this._sortDir === "asc" ? " ▲" : " ▼";
+  }
+
+  #sorted(transactions: Transaction[]): Transaction[] {
+    const col = this._sortCol;
+    const dir = this._sortDir === "asc" ? 1 : -1;
+    return [...transactions].sort((a, b) => {
+      let cmp = 0;
+      if (col === "date") {
+        cmp = a.date.localeCompare(b.date);
+      } else if (col === "description") {
+        cmp = a.originalDescription.localeCompare(b.originalDescription);
+      } else if (col === "amount") {
+        cmp = a.amount - b.amount;
+      } else if (col === "tags") {
+        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+        cmp = aNames.localeCompare(bNames);
+      }
+      return cmp * dir;
+    });
+  }
+
   #navigateToTransaction(id: number) {
     window.history.pushState({}, "", `/transactions/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -145,8 +196,9 @@ export class TransactionList extends LitElement {
     }
 
     const filtered = this._transactions.filter((t) => this.#matchesFilter(t));
+    const sorted = this.#sorted(filtered);
     const start = (this._currentPage - 1) * this._pageSize;
-    const pageTransactions = filtered.slice(start, start + this._pageSize);
+    const pageTransactions = sorted.slice(start, start + this._pageSize);
 
     return html`
       <paginated-table
@@ -160,10 +212,18 @@ export class TransactionList extends LitElement {
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Tags</th>
+              <th class="sortable" @click=${() => this.#onSortClick("date")}>
+                Date${this.#sortIndicator("date")}
+              </th>
+              <th class="sortable" @click=${() => this.#onSortClick("description")}>
+                Description${this.#sortIndicator("description")}
+              </th>
+              <th class="sortable" @click=${() => this.#onSortClick("amount")}>
+                Amount${this.#sortIndicator("amount")}
+              </th>
+              <th class="sortable" @click=${() => this.#onSortClick("tags")}>
+                Tags${this.#sortIndicator("tags")}
+              </th>
             </tr>
           </thead>
           <tbody>

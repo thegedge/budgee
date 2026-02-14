@@ -11,6 +11,8 @@ declare global {
   }
 }
 
+type SortDir = "asc" | "desc";
+
 @customElement("tag-manager")
 export class TagManager extends LitElement {
   @state()
@@ -30,6 +32,9 @@ export class TagManager extends LitElement {
 
   @state()
   private _pageSize = 25;
+
+  @state()
+  private _sortDir: SortDir = "asc";
 
   static styles = css`
     :host {
@@ -68,23 +73,33 @@ export class TagManager extends LitElement {
     .delete-btn:hover {
       background-color: var(--budgee-danger-hover, #d07070);
     }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 0;
-      border-bottom: 1px solid var(--budgee-border, #e0e0e0);
-    }
-    li:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
     .error {
       color: var(--budgee-danger-hover, #d07070);
       font-size: 0.85rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th,
+    td {
+      border: 1px solid var(--budgee-border, #e0e0e0);
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: var(--budgee-primary, #7eb8da);
+      color: white;
+    }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
+    }
+    tbody tr:nth-child(even) {
+      background-color: var(--budgee-bg, #fafafa);
     }
   `;
 
@@ -134,6 +149,16 @@ export class TagManager extends LitElement {
     this._currentPage = 1;
   }
 
+  #onNameSortClick() {
+    this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
+    this._currentPage = 1;
+  }
+
+  #sorted(tags: Tag[]): Tag[] {
+    const dir = this._sortDir === "asc" ? 1 : -1;
+    return [...tags].sort((a, b) => a.name.localeCompare(b.name) * dir);
+  }
+
   render() {
     return html`
       <h3>Tags</h3>
@@ -153,8 +178,10 @@ export class TagManager extends LitElement {
         const filtered = lower
           ? this._tags.filter((t) => t.name.toLowerCase().includes(lower))
           : this._tags;
+        const sorted = this.#sorted(filtered);
         const start = (this._currentPage - 1) * this._pageSize;
-        const pageTags = filtered.slice(start, start + this._pageSize);
+        const pageTags = sorted.slice(start, start + this._pageSize);
+        const indicator = this._sortDir === "asc" ? " ▲" : " ▼";
         return html`
           <paginated-table
             .totalItems=${filtered.length}
@@ -164,18 +191,28 @@ export class TagManager extends LitElement {
             @page-change=${this.#onPageChange}
             @filter-change=${this.#onFilterChange}
           >
-            <ul>
-              ${pageTags.map(
-                (tag) => html`
-                <li>
-                  <span>${tag.name}</span>
-                  <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
-                    Remove
-                  </button>
-                </li>
-              `,
-              )}
-            </ul>
+            <table>
+              <thead>
+                <tr>
+                  <th class="sortable" @click=${this.#onNameSortClick}>Name${indicator}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pageTags.map(
+                  (tag) => html`
+                  <tr>
+                    <td>${tag.name}</td>
+                    <td>
+                      <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                `,
+                )}
+              </tbody>
+            </table>
           </paginated-table>
         `;
       })()}

@@ -14,6 +14,9 @@ declare global {
   }
 }
 
+type RulesSortColumn = "conditions" | "merchant" | "tags";
+type SortDir = "asc" | "desc";
+
 @customElement("rule-manager")
 export class RuleManager extends LitElement {
   @state()
@@ -51,6 +54,12 @@ export class RuleManager extends LitElement {
 
   @state()
   private _rulesFilter = "";
+
+  @state()
+  private _rulesSortCol: RulesSortColumn = "conditions";
+
+  @state()
+  private _rulesSortDir: SortDir = "asc";
 
   @state()
   private _unmerchantedPage = 1;
@@ -104,6 +113,13 @@ export class RuleManager extends LitElement {
     th {
       background-color: var(--budgee-primary, #7eb8da);
       color: white;
+    }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
     }
     tbody tr:nth-child(even) {
       background-color: var(--budgee-bg, #fafafa);
@@ -225,6 +241,11 @@ export class RuleManager extends LitElement {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
+  #merchantName(merchantId: number | undefined): string {
+    if (!merchantId) return "";
+    return this._merchants.find((m) => m.id === merchantId)?.name ?? "";
+  }
+
   #formatConditions(rule: MerchantRule): string {
     return rule.conditions
       .map((c) => `${c.operator} "${c.value}"`)
@@ -253,6 +274,41 @@ export class RuleManager extends LitElement {
     return false;
   }
 
+  #onRulesSortClick(col: RulesSortColumn) {
+    if (this._rulesSortCol === col) {
+      this._rulesSortDir = this._rulesSortDir === "asc" ? "desc" : "asc";
+    } else {
+      this._rulesSortCol = col;
+      this._rulesSortDir = "asc";
+    }
+    this._rulesPage = 1;
+  }
+
+  #rulesSortIndicator(col: RulesSortColumn): string {
+    if (this._rulesSortCol !== col) return "";
+    return this._rulesSortDir === "asc" ? " ▲" : " ▼";
+  }
+
+  #sortedRules(rules: MerchantRule[]): MerchantRule[] {
+    const col = this._rulesSortCol;
+    const dir = this._rulesSortDir === "asc" ? 1 : -1;
+    return [...rules].sort((a, b) => {
+      let cmp = 0;
+      if (col === "conditions") {
+        const aVal = a.conditions[0]?.value ?? "";
+        const bVal = b.conditions[0]?.value ?? "";
+        cmp = aVal.localeCompare(bVal);
+      } else if (col === "merchant") {
+        cmp = this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId));
+      } else if (col === "tags") {
+        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+        cmp = aNames.localeCompare(bNames);
+      }
+      return cmp * dir;
+    });
+  }
+
   #onUnmerchantedPageChange(e: CustomEvent<PageChangeDetail>) {
     this._unmerchantedPage = e.detail.page;
     this._unmerchantedPageSize = e.detail.pageSize;
@@ -274,6 +330,7 @@ export class RuleManager extends LitElement {
               <h3>Existing Rules</h3>
               ${(() => {
                 const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));
+                const sortedRules = this.#sortedRules(filteredRules);
                 return html`
                   <paginated-table
                     .totalItems=${filteredRules.length}
@@ -286,13 +343,20 @@ export class RuleManager extends LitElement {
                     <table>
                       <thead>
                         <tr>
-                          <th>Conditions</th>
-                          <th>Tags</th>
+                          <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
+                            Conditions${this.#rulesSortIndicator("conditions")}
+                          </th>
+                          <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
+                            Merchant${this.#rulesSortIndicator("merchant")}
+                          </th>
+                          <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
+                            Tags${this.#rulesSortIndicator("tags")}
+                          </th>
                           <th></th>
                         </tr>
                       </thead>
                       <tbody>
-                        ${filteredRules
+                        ${sortedRules
                           .slice(
                             (this._rulesPage - 1) * this._rulesPageSize,
                             this._rulesPage * this._rulesPageSize,
@@ -301,6 +365,7 @@ export class RuleManager extends LitElement {
                             (rule) => html`
                               <tr>
                                 <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                                <td>${this.#merchantName(rule.merchantId)}</td>
                                 <td>
                                   ${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}
                                 </td>
