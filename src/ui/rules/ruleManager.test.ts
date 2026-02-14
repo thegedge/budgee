@@ -23,7 +23,14 @@ describe("rule-manager", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const editor = el.shadowRoot!.querySelector("rule-editor")!;
+    const createBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Create Rule",
+    )!;
+    createBtn.click();
+    await el.updateComplete;
+
+    const modal = el.shadowRoot!.querySelector("budgee-modal")!;
+    const editor = modal.querySelector("rule-editor")!;
     editor.dispatchEvent(
       new CustomEvent("rule-saved", {
         detail: {

@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { MerchantRule, Tag, Transaction } from "../../database/types";
+import "../modal";
 import "./ruleEditor";
 
 declare global {
@@ -23,6 +24,9 @@ export class RuleManager extends LitElement {
 
   @state()
   private _prefillDescription = "";
+
+  @state()
+  private _showEditor = false;
 
   static styles = css`
     :host {
@@ -92,6 +96,7 @@ export class RuleManager extends LitElement {
     const description = params.get("description");
     if (description) {
       this._prefillDescription = description;
+      this._showEditor = true;
     }
     this.#refresh();
   }
@@ -113,6 +118,8 @@ export class RuleManager extends LitElement {
     }
 
     await db.merchantRules.add({ logic, conditions, merchantId, tagIds });
+    this._showEditor = false;
+    this._prefillDescription = "";
     await this.#refresh();
   }
 
@@ -133,6 +140,7 @@ export class RuleManager extends LitElement {
 
   #selectTransaction(tx: Transaction) {
     this._prefillDescription = tx.originalDescription;
+    this._showEditor = true;
   }
 
   render() {
@@ -170,11 +178,29 @@ export class RuleManager extends LitElement {
           : nothing
       }
 
-      <rule-editor
-        .tags=${this._tags}
-        .prefillDescription=${this._prefillDescription}
-        @rule-saved=${this.#onRuleSaved}
-      ></rule-editor>
+      <button @click=${() => {
+        this._showEditor = true;
+      }}>Create Rule</button>
+
+      ${
+        this._showEditor
+          ? html`
+            <budgee-modal
+              heading="Create Rule"
+              @modal-close=${() => {
+                this._showEditor = false;
+                this._prefillDescription = "";
+              }}
+            >
+              <rule-editor
+                .tags=${this._tags}
+                .prefillDescription=${this._prefillDescription}
+                @rule-saved=${this.#onRuleSaved}
+              ></rule-editor>
+            </budgee-modal>
+          `
+          : nothing
+      }
 
       ${
         this._rules.length > 0

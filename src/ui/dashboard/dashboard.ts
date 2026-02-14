@@ -7,6 +7,7 @@ import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/
 import type { ChartData } from "chart.js";
 import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
+import "../modal";
 import "./dashboardChartCard";
 
 declare global {
@@ -262,22 +263,30 @@ export class Dashboard extends LitElement {
       }
 
       <button @click=${() => {
-        this._showConfigurator = !this._showConfigurator;
-        if (!this._showConfigurator) this._editingChart = undefined;
+        this._showConfigurator = true;
+        this._editingChart = undefined;
       }}>
-        ${this._showConfigurator ? "Cancel" : "Add Chart"}
+        Add Chart
       </button>
 
       ${
         this._showConfigurator
           ? html`
-            <chart-configurator
-              .transactions=${this._transactions}
-              .tags=${this._tags}
-              .merchants=${this._merchants}
-              .editingChart=${this._editingChart}
-              @chart-saved=${this.#onChartSaved}
-            ></chart-configurator>
+            <budgee-modal
+              heading=${this._editingChart ? "Edit Chart" : "Add Chart"}
+              @modal-close=${() => {
+                this._showConfigurator = false;
+                this._editingChart = undefined;
+              }}
+            >
+              <chart-configurator
+                .transactions=${this._transactions}
+                .tags=${this._tags}
+                .merchants=${this._merchants}
+                .editingChart=${this._editingChart}
+                @chart-saved=${this.#onChartSaved}
+              ></chart-configurator>
+            </budgee-modal>
           `
           : nothing
       }
