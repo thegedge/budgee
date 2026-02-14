@@ -14,7 +14,7 @@ function matchesCondition(description: string, condition: RuleCondition): boolea
   }
 }
 
-function matchesRule(description: string, rule: MerchantRule): boolean {
+export function matchesRule(description: string, rule: MerchantRule): boolean {
   const method = rule.logic === "and" ? "every" : "some";
   return rule.conditions[method]((c) => matchesCondition(description, c));
 }

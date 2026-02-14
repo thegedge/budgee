@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { MerchantRule, Tag, Transaction } from "../../database/types";
+import { matchesRule } from "../../import/applyRules";
 import "../modal";
 import "./ruleEditor";
 
@@ -33,6 +34,9 @@ export class RuleManager extends LitElement {
 
   @state()
   private _editingMerchantName = "";
+
+  @state()
+  private _pendingRerunRule: MerchantRule | null = null;
 
   static styles = css`
     :host {
@@ -90,6 +94,11 @@ export class RuleManager extends LitElement {
     .clickable-row:hover {
       background-color: var(--budgee-bg, #fafafa);
     }
+    .confirm-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
     .condition-summary {
       font-size: 0.85rem;
       color: var(--budgee-text-muted, #888);
@@ -123,17 +132,56 @@ export class RuleManager extends LitElement {
       merchantId = existing?.id ?? (await db.merchants.add({ name: merchantName }));
     }
 
+    const rule: MerchantRule = id
+      ? { id, logic, conditions, merchantId, tagIds }
+      : ({ logic, conditions, merchantId, tagIds } as MerchantRule);
+
     if (id) {
-      await db.merchantRules.put({ id, logic, conditions, merchantId, tagIds });
+      await db.merchantRules.put(rule);
+      this._showEditor = false;
+      this._editingRule = null;
+      this._editingMerchantName = "";
+      this._prefillDescription = "";
+      this._pendingRerunRule = rule;
     } else {
-      await db.merchantRules.add({ logic, conditions, merchantId, tagIds });
+      rule.id = await db.merchantRules.add(rule);
+      await this.#applyRuleToExisting(rule);
+      this._showEditor = false;
+      this._editingRule = null;
+      this._editingMerchantName = "";
+      this._prefillDescription = "";
     }
 
-    this._showEditor = false;
-    this._editingRule = null;
-    this._editingMerchantName = "";
-    this._prefillDescription = "";
     await this.#refresh();
+  }
+
+  async #applyRuleToExisting(rule: MerchantRule) {
+    const allTx = await db.transactions.toArray();
+    const updates: Transaction[] = [];
+    for (const tx of allTx) {
+      const description = tx.originalDescription.toLowerCase();
+      if (matchesRule(description, rule)) {
+        updates.push({
+          ...tx,
+          merchantId: rule.merchantId ?? tx.merchantId,
+          tagIds: [...new Set([...tx.tagIds, ...rule.tagIds])],
+        });
+      }
+    }
+    if (updates.length > 0) {
+      await db.transactions.bulkPut(updates);
+    }
+  }
+
+  async #onTagCreated(e: CustomEvent) {
+    const name = e.detail.name as string;
+    const tagId = await db.tags.add({ name });
+    this._tags = await db.tags.toArray();
+    const editor = this.shadowRoot!.querySelector("rule-editor");
+    if (editor) {
+      editor.tags = this._tags;
+      editor.addTag(tagId);
+    }
   }
 
   async #deleteRule(id: number) {
@@ -231,7 +279,33 @@ export class RuleManager extends LitElement {
                 .editingRule=${this._editingRule}
                 .editingMerchantName=${this._editingMerchantName}
                 @rule-saved=${this.#onRuleSaved}
+                @tag-created=${this.#onTagCreated}
               ></rule-editor>
+            </budgee-modal>
+          `
+          : nothing
+      }
+
+      ${
+        this._pendingRerunRule
+          ? html`
+            <budgee-modal
+              heading="Apply Rule"
+              @modal-close=${() => {
+                this._pendingRerunRule = null;
+              }}
+            >
+              <p>Apply this rule to existing unmerchanted transactions?</p>
+              <div class="confirm-actions">
+                <button @click=${async () => {
+                  await this.#applyRuleToExisting(this._pendingRerunRule!);
+                  this._pendingRerunRule = null;
+                  await this.#refresh();
+                }}>Apply</button>
+                <button class="delete-btn" @click=${() => {
+                  this._pendingRerunRule = null;
+                }}>Skip</button>
+              </div>
             </budgee-modal>
           `
           : nothing
