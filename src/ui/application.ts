@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { Router } from "@lit-labs/router";
 
+import { exportDatabase } from "../database/exportDb";
 import "./dashboard/dashboard";
 import "./import/importer";
 import "./rules/ruleManager";
@@ -94,6 +95,25 @@ export class Application extends LitElement {
       border-bottom-color: var(--budgee-primary);
     }
 
+    nav button {
+      background: none;
+      border: none;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      color: var(--budgee-text-muted);
+      font-size: 0.9rem;
+      font-family: inherit;
+      border-bottom: 2px solid transparent;
+      transition:
+        color 0.15s,
+        border-color 0.15s;
+    }
+
+    nav button:hover {
+      color: var(--budgee-text);
+      border-bottom-color: var(--budgee-primary);
+    }
+
     .container {
       max-width: 900px;
       margin: 0 auto;
@@ -109,6 +129,7 @@ export class Application extends LitElement {
         <a href="/tags">Tags</a>
         <a href="/rules">Rules</a>
         <a href="/import">Import</a>
+        <button @click=${exportDatabase}>Export</button>
       </nav>
       <div class="container">
         ${this._router.outlet()}
