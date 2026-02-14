@@ -1,10 +1,22 @@
+:root {
+  --budgee-primary: #7eb8da;
+  --budgee-primary-hover: #5a9cbf;
+  --budgee-danger: #e8a0a0;
+  --budgee-danger-hover: #d07070;
+  --budgee-positive: #7ec8a0;
+  --budgee-negative: #d09090;
+  --budgee-bg: #fafafa;
+  --budgee-surface: #ffffff;
+  --budgee-border: #e0e0e0;
+  --budgee-text: #333;
+  --budgee-text-muted: #888;
+}
+
 body {
   margin: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: var(--budgee-bg);
+  color: var(--budgee-text);
 }
-
-/* Basic utility or reset can go here later */

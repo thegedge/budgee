@@ -18,12 +18,17 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@lit-labs/router": "^0.1.4",
+    "chart.js": "^4.5.1",
     "dexie": "^4.3.0",
     "lit": "^3.3.2",
-    "papaparse": "^5.5.3"
+    "papaparse": "^5.5.3",
+    "sortablejs": "^1.15.7",
+    "urlpattern-polyfill": "^10.1.0"
   },
   "devDependencies": {
     "@types/papaparse": "^5.5.2",
+    "@types/sortablejs": "^1.15.9",
     "@vitest/ui": "^4.0.18",
     "fake-indexeddb": "^6.2.5",
     "happy-dom": "^20.6.0",

@@ -23,10 +23,11 @@ export class TagManager extends LitElement {
   static styles = css`
     :host {
       display: block;
-      border: 1px solid #ccc;
+      border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
+      background: var(--budgee-surface, #fff);
     }
     .tag-form {
       display: flex;
@@ -40,15 +41,21 @@ export class TagManager extends LitElement {
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: #007bff;
+      background-color: var(--budgee-primary, #7eb8da);
       color: white;
       border: none;
       border-radius: 4px;
     }
+    button:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
+    }
     .delete-btn {
-      background-color: #dc3545;
+      background-color: var(--budgee-danger, #e8a0a0);
       font-size: 0.8rem;
       padding: 2px 8px;
+    }
+    .delete-btn:hover {
+      background-color: var(--budgee-danger-hover, #d07070);
     }
     ul {
       list-style: none;
@@ -59,10 +66,10 @@ export class TagManager extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 4px 0;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--budgee-border, #e0e0e0);
     }
     .error {
-      color: #dc3545;
+      color: var(--budgee-danger-hover, #d07070);
       font-size: 0.85rem;
     }
   `;

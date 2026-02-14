@@ -30,10 +30,11 @@ export class Importer extends LitElement {
   static styles = css`
     :host {
       display: block;
-      border: 1px solid #ccc;
+      border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
+      background: var(--budgee-surface, #fff);
     }
     table {
       width: 100%;
@@ -41,12 +42,12 @@ export class Importer extends LitElement {
     }
     th,
     td {
-      border: 1px solid #ddd;
+      border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 8px;
       text-align: left;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: var(--budgee-bg, #fafafa);
     }
     .preview {
       max-height: 200px;
@@ -61,6 +62,17 @@ export class Importer extends LitElement {
     }
     select {
       padding: 4px 8px;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background-color: var(--budgee-primary, #7eb8da);
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
     }
   `;
 
