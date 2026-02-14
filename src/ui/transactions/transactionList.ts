@@ -13,7 +13,7 @@ declare global {
 @customElement("transaction-list")
 export class TransactionList extends LitElement {
   @state()
-  private _transactions: Transaction[] = [];
+  private _transactions: Transaction[] | null = null;
 
   @state()
   private _tags: Tag[] = [];
@@ -103,6 +103,12 @@ export class TransactionList extends LitElement {
   }
 
   render() {
+    if (this._transactions === null) {
+      return html`
+        <p>Loading…</p>
+      `;
+    }
+
     if (this._transactions.length === 0) {
       return html`
         <p>No transactions found.</p>

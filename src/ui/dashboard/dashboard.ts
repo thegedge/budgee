@@ -19,7 +19,7 @@ declare global {
 @customElement("budgee-dashboard")
 export class Dashboard extends LitElement {
   @state()
-  private _transactions: Transaction[] = [];
+  private _transactions: Transaction[] | null = null;
 
   @state()
   private _tags: Tag[] = [];
@@ -200,7 +200,7 @@ export class Dashboard extends LitElement {
   }
 
   get #monthlyChartData(): ChartData {
-    const aggregated = aggregateByPeriod(this._transactions, "month");
+    const aggregated = aggregateByPeriod(this._transactions!, "month");
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
     return {
       labels: entries.map(([key]) => key),
@@ -219,6 +219,13 @@ export class Dashboard extends LitElement {
   }
 
   render() {
+    if (this._transactions === null) {
+      return html`
+        <h3>Dashboard</h3>
+        <p>Loading…</p>
+      `;
+    }
+
     if (this._transactions.length === 0) {
       return html`
         <h3>Dashboard</h3>
