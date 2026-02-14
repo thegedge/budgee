@@ -2,6 +2,8 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag, Transaction } from "../../database/types";
+import type { PageChangeDetail } from "../paginatedTable";
+import "../paginatedTable";
 import "../tags/tagAutocomplete";
 
 declare global {
@@ -17,6 +19,12 @@ export class TransactionList extends LitElement {
 
   @state()
   private _tags: Tag[] = [];
+
+  @state()
+  private _currentPage = 1;
+
+  @state()
+  private _pageSize = 50;
 
   static styles = css`
     table {
@@ -97,6 +105,11 @@ export class TransactionList extends LitElement {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
+  #onPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._currentPage = e.detail.page;
+    this._pageSize = e.detail.pageSize;
+  }
+
   #navigateToTransaction(id: number) {
     window.history.pushState({}, "", `/transactions/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -115,45 +128,54 @@ export class TransactionList extends LitElement {
       `;
     }
 
+    const start = (this._currentPage - 1) * this._pageSize;
+    const pageTransactions = this._transactions.slice(start, start + this._pageSize);
+
     return html`
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Tags</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${this._transactions.map(
-            (t) => html`
-            <tr @click=${() => this.#navigateToTransaction(t.id!)}>
-              <td>${t.date}</td>
-              <td>${t.originalDescription}</td>
-              <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
-                ${t.amount.toFixed(2)}
-              </td>
-              <td @click=${(e: Event) => e.stopPropagation()}>
-                ${t.tagIds.map(
-                  (tagId) => html`
-                  <span class="tag-badge" @click=${(e: Event) => this.#removeTag(t, tagId, e)}>
-                    ${this.#tagName(tagId)} &times;
-                  </span>
-                `,
-                )}
-                <tag-autocomplete
-                  .tags=${this._tags}
-                  .excludeIds=${t.tagIds}
-                  @tag-selected=${(e: CustomEvent) => this.#onTagSelected(t, e)}
-                  @tag-created=${(e: CustomEvent) => this.#onTagCreated(t, e)}
-                ></tag-autocomplete>
-              </td>
+      <paginated-table
+        .totalItems=${this._transactions.length}
+        .defaultPageSize=${50}
+        @page-change=${this.#onPageChange}
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Tags</th>
             </tr>
-          `,
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${pageTransactions.map(
+              (t) => html`
+              <tr @click=${() => this.#navigateToTransaction(t.id!)}>
+                <td>${t.date}</td>
+                <td>${t.originalDescription}</td>
+                <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                  ${t.amount.toFixed(2)}
+                </td>
+                <td @click=${(e: Event) => e.stopPropagation()}>
+                  ${t.tagIds.map(
+                    (tagId) => html`
+                    <span class="tag-badge" @click=${(e: Event) => this.#removeTag(t, tagId, e)}>
+                      ${this.#tagName(tagId)} &times;
+                    </span>
+                  `,
+                  )}
+                  <tag-autocomplete
+                    .tags=${this._tags}
+                    .excludeIds=${t.tagIds}
+                    @tag-selected=${(e: CustomEvent) => this.#onTagSelected(t, e)}
+                    @tag-created=${(e: CustomEvent) => this.#onTagCreated(t, e)}
+                  ></tag-autocomplete>
+                </td>
+              </tr>
+            `,
+            )}
+          </tbody>
+        </table>
+      </paginated-table>
     `;
   }
 }

@@ -8,6 +8,8 @@ import type { ChartData } from "chart.js";
 import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
 import "../modal";
+import "../paginatedTable";
+import type { PageChangeDetail } from "../paginatedTable";
 import "./dashboardChartCard";
 
 declare global {
@@ -35,6 +37,12 @@ export class Dashboard extends LitElement {
 
   @state()
   private _editingChart?: DashboardChart;
+
+  @state()
+  private _recentPage = 1;
+
+  @state()
+  private _recentPageSize = 10;
 
   private _sortable?: Sortable;
 
@@ -193,6 +201,11 @@ export class Dashboard extends LitElement {
     await this.#refresh();
   }
 
+  #onRecentPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._recentPage = e.detail.page;
+    this._recentPageSize = e.detail.pageSize;
+  }
+
   #createRuleFrom(transaction: Transaction) {
     const params = new URLSearchParams({ description: transaction.originalDescription });
     window.history.pushState({}, "", `/rules?${params}`);
@@ -233,9 +246,12 @@ export class Dashboard extends LitElement {
       `;
     }
 
-    const recentTransactions = [...this._transactions]
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 10);
+    const sortedTransactions = [...this._transactions].sort((a, b) => b.date.localeCompare(a.date));
+    const recentStart = (this._recentPage - 1) * this._recentPageSize;
+    const recentTransactions = sortedTransactions.slice(
+      recentStart,
+      recentStart + this._recentPageSize,
+    );
 
     return html`
       <h3>Dashboard</h3>
@@ -299,32 +315,38 @@ export class Dashboard extends LitElement {
       }
 
       ${
-        recentTransactions.length > 0
+        sortedTransactions.length > 0
           ? html`
             <div class="card">
               <h3>Recent Transactions</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${recentTransactions.map(
-                    (t) => html`
-                    <tr class="clickable-row" @click=${() => this.#createRuleFrom(t)}>
-                      <td>${t.date}</td>
-                      <td>${t.originalDescription}</td>
-                      <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
-                        ${t.amount.toFixed(2)}
-                      </td>
+              <paginated-table
+                .totalItems=${sortedTransactions.length}
+                .defaultPageSize=${10}
+                @page-change=${this.#onRecentPageChange}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
                     </tr>
-                  `,
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    ${recentTransactions.map(
+                      (t) => html`
+                      <tr class="clickable-row" @click=${() => this.#createRuleFrom(t)}>
+                        <td>${t.date}</td>
+                        <td>${t.originalDescription}</td>
+                        <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                          ${t.amount.toFixed(2)}
+                        </td>
+                      </tr>
+                    `,
+                    )}
+                  </tbody>
+                </table>
+              </paginated-table>
             </div>
           `
           : nothing

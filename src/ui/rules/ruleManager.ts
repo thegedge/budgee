@@ -4,6 +4,8 @@ import { db } from "../../database/db";
 import type { MerchantRule, Tag, Transaction } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
 import "../modal";
+import "../paginatedTable";
+import type { PageChangeDetail } from "../paginatedTable";
 import "./ruleEditor";
 
 declare global {
@@ -37,6 +39,18 @@ export class RuleManager extends LitElement {
 
   @state()
   private _pendingRerunRule: MerchantRule | null = null;
+
+  @state()
+  private _rulesPage = 1;
+
+  @state()
+  private _rulesPageSize = 10;
+
+  @state()
+  private _unmerchantedPage = 1;
+
+  @state()
+  private _unmerchantedPageSize = 20;
 
   static styles = css`
     :host {
@@ -210,6 +224,16 @@ export class RuleManager extends LitElement {
       .join(rule.logic === "and" ? " AND " : " OR ");
   }
 
+  #onRulesPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._rulesPage = e.detail.page;
+    this._rulesPageSize = e.detail.pageSize;
+  }
+
+  #onUnmerchantedPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._unmerchantedPage = e.detail.page;
+    this._unmerchantedPageSize = e.detail.pageSize;
+  }
+
   #selectTransaction(tx: Transaction) {
     this._prefillDescription = tx.originalDescription;
     this._showEditor = true;
@@ -224,31 +248,42 @@ export class RuleManager extends LitElement {
           ? html`
             <div class="section">
               <h3>Existing Rules</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Conditions</th>
-                    <th>Tags</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${this._rules.map(
-                    (rule) => html`
+              <paginated-table
+                .totalItems=${this._rules.length}
+                .defaultPageSize=${10}
+                @page-change=${this.#onRulesPageChange}
+              >
+                <table>
+                  <thead>
                     <tr>
-                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
-                      <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
-                      <td>
-                        <button @click=${() => this.#editRule(rule)}>Edit</button>
-                        <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
-                          Remove
-                        </button>
-                      </td>
+                      <th>Conditions</th>
+                      <th>Tags</th>
+                      <th></th>
                     </tr>
-                  `,
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    ${this._rules
+                      .slice(
+                        (this._rulesPage - 1) * this._rulesPageSize,
+                        this._rulesPage * this._rulesPageSize,
+                      )
+                      .map(
+                        (rule) => html`
+                      <tr>
+                        <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                        <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
+                        <td>
+                          <button @click=${() => this.#editRule(rule)}>Edit</button>
+                          <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    `,
+                      )}
+                  </tbody>
+                </table>
+              </paginated-table>
             </div>
           `
           : html`
@@ -317,26 +352,37 @@ export class RuleManager extends LitElement {
             <div class="section">
               <h3>Unmerchanted Transactions</h3>
               <p>Click a transaction to pre-fill a rule.</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${this._unmerchanted.slice(0, 20).map(
-                    (tx) => html`
-                    <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
-                      <td>${tx.date}</td>
-                      <td>${tx.originalDescription}</td>
-                      <td>${tx.amount.toFixed(2)}</td>
+              <paginated-table
+                .totalItems=${this._unmerchanted.length}
+                .defaultPageSize=${20}
+                @page-change=${this.#onUnmerchantedPageChange}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
                     </tr>
-                  `,
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    ${this._unmerchanted
+                      .slice(
+                        (this._unmerchantedPage - 1) * this._unmerchantedPageSize,
+                        this._unmerchantedPage * this._unmerchantedPageSize,
+                      )
+                      .map(
+                        (tx) => html`
+                      <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+                        <td>${tx.date}</td>
+                        <td>${tx.originalDescription}</td>
+                        <td>${tx.amount.toFixed(2)}</td>
+                      </tr>
+                    `,
+                      )}
+                  </tbody>
+                </table>
+              </paginated-table>
             </div>
           `
           : nothing
