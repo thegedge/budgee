@@ -28,6 +28,12 @@ export class RuleManager extends LitElement {
   @state()
   private _showEditor = false;
 
+  @state()
+  private _editingRule: MerchantRule | null = null;
+
+  @state()
+  private _editingMerchantName = "";
+
   static styles = css`
     :host {
       display: block;
@@ -109,7 +115,7 @@ export class RuleManager extends LitElement {
   }
 
   async #onRuleSaved(e: CustomEvent) {
-    const { logic, conditions, tagIds, merchantName } = e.detail;
+    const { id, logic, conditions, tagIds, merchantName } = e.detail;
 
     let merchantId: number | undefined;
     if (merchantName) {
@@ -117,8 +123,15 @@ export class RuleManager extends LitElement {
       merchantId = existing?.id ?? (await db.merchants.add({ name: merchantName }));
     }
 
-    await db.merchantRules.add({ logic, conditions, merchantId, tagIds });
+    if (id) {
+      await db.merchantRules.put({ id, logic, conditions, merchantId, tagIds });
+    } else {
+      await db.merchantRules.add({ logic, conditions, merchantId, tagIds });
+    }
+
     this._showEditor = false;
+    this._editingRule = null;
+    this._editingMerchantName = "";
     this._prefillDescription = "";
     await this.#refresh();
   }
@@ -126,6 +139,17 @@ export class RuleManager extends LitElement {
   async #deleteRule(id: number) {
     await db.merchantRules.delete(id);
     await this.#refresh();
+  }
+
+  async #editRule(rule: MerchantRule) {
+    let merchantName = "";
+    if (rule.merchantId) {
+      const merchant = await db.merchants.get(rule.merchantId);
+      merchantName = merchant?.name ?? "";
+    }
+    this._editingRule = rule;
+    this._editingMerchantName = merchantName;
+    this._showEditor = true;
   }
 
   #tagName(tagId: number): string {
@@ -146,6 +170,72 @@ export class RuleManager extends LitElement {
   render() {
     return html`
       <h2>Merchant Rules</h2>
+
+      ${
+        this._rules.length > 0
+          ? html`
+            <div class="section">
+              <h3>Existing Rules</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Conditions</th>
+                    <th>Tags</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this._rules.map(
+                    (rule) => html`
+                    <tr>
+                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                      <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
+                      <td>
+                        <button @click=${() => this.#editRule(rule)}>Edit</button>
+                        <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  `,
+                  )}
+                </tbody>
+              </table>
+            </div>
+          `
+          : html`
+              <p>No rules defined.</p>
+            `
+      }
+
+      <button @click=${() => {
+        this._editingRule = null;
+        this._showEditor = true;
+      }}>Create Rule</button>
+
+      ${
+        this._showEditor
+          ? html`
+            <budgee-modal
+              heading=${this._editingRule ? "Edit Rule" : "Create Rule"}
+              @modal-close=${() => {
+                this._showEditor = false;
+                this._editingRule = null;
+                this._editingMerchantName = "";
+                this._prefillDescription = "";
+              }}
+            >
+              <rule-editor
+                .tags=${this._tags}
+                .prefillDescription=${this._prefillDescription}
+                .editingRule=${this._editingRule}
+                .editingMerchantName=${this._editingMerchantName}
+                @rule-saved=${this.#onRuleSaved}
+              ></rule-editor>
+            </budgee-modal>
+          `
+          : nothing
+      }
 
       ${
         this._unmerchanted.length > 0
@@ -176,66 +266,6 @@ export class RuleManager extends LitElement {
             </div>
           `
           : nothing
-      }
-
-      <button @click=${() => {
-        this._showEditor = true;
-      }}>Create Rule</button>
-
-      ${
-        this._showEditor
-          ? html`
-            <budgee-modal
-              heading="Create Rule"
-              @modal-close=${() => {
-                this._showEditor = false;
-                this._prefillDescription = "";
-              }}
-            >
-              <rule-editor
-                .tags=${this._tags}
-                .prefillDescription=${this._prefillDescription}
-                @rule-saved=${this.#onRuleSaved}
-              ></rule-editor>
-            </budgee-modal>
-          `
-          : nothing
-      }
-
-      ${
-        this._rules.length > 0
-          ? html`
-            <div class="section">
-              <h3>Existing Rules</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Conditions</th>
-                    <th>Tags</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${this._rules.map(
-                    (rule) => html`
-                    <tr>
-                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
-                      <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
-                      <td>
-                        <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  `,
-                  )}
-                </tbody>
-              </table>
-            </div>
-          `
-          : html`
-              <p>No rules defined.</p>
-            `
       }
     `;
   }

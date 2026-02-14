@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { RuleCondition, Tag } from "../../database/types";
+import type { MerchantRule, RuleCondition, Tag } from "../../database/types";
 import "./conditionRow";
 
 declare global {
@@ -16,6 +16,12 @@ export class RuleEditor extends LitElement {
 
   @property({ type: String })
   prefillDescription = "";
+
+  @property({ attribute: false })
+  editingRule: MerchantRule | null = null;
+
+  @property({ type: String })
+  editingMerchantName = "";
 
   @state()
   private _logic: "and" | "or" = "and";
@@ -74,7 +80,12 @@ export class RuleEditor extends LitElement {
   `;
 
   updated(changed: Map<string, unknown>) {
-    if (changed.has("prefillDescription") && this.prefillDescription) {
+    if (changed.has("editingRule") && this.editingRule) {
+      this._conditions = [...this.editingRule.conditions];
+      this._logic = this.editingRule.logic;
+      this._selectedTagId = this.editingRule.tagIds[0] ?? 0;
+      this._merchantName = this.editingMerchantName;
+    } else if (changed.has("prefillDescription") && this.prefillDescription) {
       this._conditions = [
         { field: "description", operator: "contains", value: this.prefillDescription },
       ];
@@ -105,6 +116,7 @@ export class RuleEditor extends LitElement {
     this.dispatchEvent(
       new CustomEvent("rule-saved", {
         detail: {
+          id: this.editingRule?.id,
           logic: this._logic,
           conditions: validConditions,
           tagIds: this._selectedTagId ? [this._selectedTagId] : [],
@@ -121,7 +133,7 @@ export class RuleEditor extends LitElement {
 
   render() {
     return html`
-      <h4>Create Rule</h4>
+      <h4>${this.editingRule ? "Edit Rule" : "Create Rule"}</h4>
       <div class="conditions">
         ${this._conditions.map(
           (condition, i) => html`
