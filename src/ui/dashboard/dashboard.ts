@@ -322,6 +322,7 @@ export class Dashboard extends LitElement {
               <paginated-table
                 .totalItems=${sortedTransactions.length}
                 .defaultPageSize=${10}
+                storageKey="dashboard-recent"
                 @page-change=${this.#onRecentPageChange}
               >
                 <table>

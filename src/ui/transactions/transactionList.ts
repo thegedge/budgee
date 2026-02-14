@@ -135,6 +135,7 @@ export class TransactionList extends LitElement {
       <paginated-table
         .totalItems=${this._transactions.length}
         .defaultPageSize=${50}
+        storageKey="transactions"
         @page-change=${this.#onPageChange}
       >
         <table>

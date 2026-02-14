@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PaginatedTable } from "./paginatedTable";
 
 function createTable(totalItems: number, defaultPageSize = 10): PaginatedTable {
@@ -9,7 +9,23 @@ function createTable(totalItems: number, defaultPageSize = 10): PaginatedTable {
   return el;
 }
 
+const storage = new Map<string, string>();
+const mockLocalStorage = {
+  getItem: (key: string) => storage.get(key) ?? null,
+  setItem: (key: string, value: string) => storage.set(key, value),
+  removeItem: (key: string) => storage.delete(key),
+  clear: () => storage.clear(),
+};
+
 describe("PaginatedTable", () => {
+  beforeEach(() => {
+    Object.defineProperty(globalThis, "localStorage", { value: mockLocalStorage, writable: true });
+  });
+
+  afterEach(() => {
+    storage.clear();
+  });
+
   it("should be defined", () => {
     expect(customElements.get("paginated-table")).toBeDefined();
   });
@@ -156,6 +172,49 @@ describe("PaginatedTable", () => {
     el.reset();
     await el.updateComplete;
     expect(el.shadowRoot?.textContent).toContain("Showing 1–10 of 30");
+
+    el.remove();
+  });
+
+  it("persists page size to localStorage when storageKey is set", async () => {
+    const el = createTable(100, 10);
+    el.storageKey = "test-table";
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const select = el.shadowRoot?.querySelector("select");
+    select!.value = "50";
+    select?.dispatchEvent(new Event("change"));
+
+    expect(localStorage.getItem("budgee:pageSize:test-table")).toBe("50");
+
+    el.remove();
+  });
+
+  it("restores page size from localStorage on connect", async () => {
+    localStorage.setItem("budgee:pageSize:test-restore", "25");
+
+    const el = new PaginatedTable();
+    el.totalItems = 100;
+    el.defaultPageSize = 10;
+    el.storageKey = "test-restore";
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot?.textContent).toContain("Showing 1–25 of 100");
+
+    el.remove();
+  });
+
+  it("does not use localStorage when storageKey is empty", async () => {
+    const el = createTable(100, 10);
+    await el.updateComplete;
+
+    const select = el.shadowRoot?.querySelector("select");
+    select!.value = "50";
+    select?.dispatchEvent(new Event("change"));
+
+    expect(localStorage.getItem("budgee:pageSize:")).toBeNull();
 
     el.remove();
   });

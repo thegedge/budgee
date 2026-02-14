@@ -20,6 +20,9 @@ export class PaginatedTable extends LitElement {
   @property({ type: Number })
   defaultPageSize = 10;
 
+  @property()
+  storageKey = "";
+
   @state()
   private _currentPage = 1;
 
@@ -63,6 +66,20 @@ export class PaginatedTable extends LitElement {
     }
   `;
 
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.storageKey) {
+      try {
+        const stored = localStorage.getItem(`budgee:pageSize:${this.storageKey}`);
+        if (stored) {
+          this._pageSize = Number(stored);
+        }
+      } catch {
+        // localStorage unavailable
+      }
+    }
+  }
+
   private get _effectivePageSize() {
     return this._pageSize || this.defaultPageSize;
   }
@@ -98,6 +115,13 @@ export class PaginatedTable extends LitElement {
   #onPageSizeChange(e: Event) {
     this._pageSize = Number((e.target as HTMLSelectElement).value);
     this._currentPage = 1;
+    if (this.storageKey) {
+      try {
+        localStorage.setItem(`budgee:pageSize:${this.storageKey}`, String(this._pageSize));
+      } catch {
+        // localStorage unavailable
+      }
+    }
     this.#firePageChange();
   }
 

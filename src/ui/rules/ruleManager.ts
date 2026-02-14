@@ -251,6 +251,7 @@ export class RuleManager extends LitElement {
               <paginated-table
                 .totalItems=${this._rules.length}
                 .defaultPageSize=${10}
+                storageKey="rules"
                 @page-change=${this.#onRulesPageChange}
               >
                 <table>
@@ -355,6 +356,7 @@ export class RuleManager extends LitElement {
               <paginated-table
                 .totalItems=${this._unmerchanted.length}
                 .defaultPageSize=${20}
+                storageKey="unmerchanted"
                 @page-change=${this.#onUnmerchantedPageChange}
               >
                 <table>
