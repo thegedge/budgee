@@ -28,9 +28,9 @@ describe("importTransactions", () => {
     const stored = await db.transactions.toArray();
     expect(stored).toHaveLength(2);
     expect(stored[0].date).toBe("2024-01-01");
-    expect(stored[0].amount).toBe(-50);
+    expect(stored[0].amount).toBe(50);
     expect(stored[0].originalDescription).toBe("Groceries");
-    expect(stored[1].amount).toBe(2500);
+    expect(stored[1].amount).toBe(-2500);
   });
 
   it("should skip rows with missing required fields", async () => {

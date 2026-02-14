@@ -36,7 +36,7 @@ function rowToTransaction(
 
   return {
     date: dateStr,
-    amount,
+    amount: -amount,
     originalDescription: description,
     tagIds: [],
   };
