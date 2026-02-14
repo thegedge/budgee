@@ -2,7 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag, Transaction } from "../../database/types";
-import type { PageChangeDetail } from "../paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../tags/tagAutocomplete";
 
@@ -25,6 +25,9 @@ export class TransactionList extends LitElement {
 
   @state()
   private _pageSize = 50;
+
+  @state()
+  private _filter = "";
 
   static styles = css`
     table {
@@ -110,6 +113,19 @@ export class TransactionList extends LitElement {
     this._pageSize = e.detail.pageSize;
   }
 
+  #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
+    this._filter = e.detail.filter;
+    this._currentPage = 1;
+  }
+
+  #matchesFilter(t: Transaction): boolean {
+    if (!this._filter) return true;
+    const lower = this._filter.toLowerCase();
+    if (t.originalDescription.toLowerCase().includes(lower)) return true;
+    if (t.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
+    return false;
+  }
+
   #navigateToTransaction(id: number) {
     window.history.pushState({}, "", `/transactions/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -128,15 +144,18 @@ export class TransactionList extends LitElement {
       `;
     }
 
+    const filtered = this._transactions.filter((t) => this.#matchesFilter(t));
     const start = (this._currentPage - 1) * this._pageSize;
-    const pageTransactions = this._transactions.slice(start, start + this._pageSize);
+    const pageTransactions = filtered.slice(start, start + this._pageSize);
 
     return html`
       <paginated-table
-        .totalItems=${this._transactions.length}
+        .totalItems=${filtered.length}
         .defaultPageSize=${50}
         storageKey="transactions"
+        ?filterable=${true}
         @page-change=${this.#onPageChange}
+        @filter-change=${this.#onFilterChange}
       >
         <table>
           <thead>

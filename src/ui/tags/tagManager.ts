@@ -2,6 +2,8 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag } from "../../database/types";
+import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
+import "../paginatedTable";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -19,6 +21,15 @@ export class TagManager extends LitElement {
 
   @state()
   private _error = "";
+
+  @state()
+  private _filter = "";
+
+  @state()
+  private _currentPage = 1;
+
+  @state()
+  private _pageSize = 25;
 
   static styles = css`
     :host {
@@ -113,6 +124,16 @@ export class TagManager extends LitElement {
     if (e.key === "Enter") this.#addTag();
   }
 
+  #onPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._currentPage = e.detail.page;
+    this._pageSize = e.detail.pageSize;
+  }
+
+  #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
+    this._filter = e.detail.filter;
+    this._currentPage = 1;
+  }
+
   render() {
     return html`
       <h3>Tags</h3>
@@ -127,16 +148,37 @@ export class TagManager extends LitElement {
         <button @click=${this.#addTag}>Add</button>
       </div>
       ${this._error ? html`<p class="error">${this._error}</p>` : ""}
-      <ul>
-        ${this._tags.map(
-          (tag) => html`
-          <li>
-            <span>${tag.name}</span>
-            <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>Remove</button>
-          </li>
-        `,
-        )}
-      </ul>
+      ${(() => {
+        const lower = this._filter.toLowerCase();
+        const filtered = lower
+          ? this._tags.filter((t) => t.name.toLowerCase().includes(lower))
+          : this._tags;
+        const start = (this._currentPage - 1) * this._pageSize;
+        const pageTags = filtered.slice(start, start + this._pageSize);
+        return html`
+          <paginated-table
+            .totalItems=${filtered.length}
+            .defaultPageSize=${25}
+            storageKey="tags"
+            ?filterable=${true}
+            @page-change=${this.#onPageChange}
+            @filter-change=${this.#onFilterChange}
+          >
+            <ul>
+              ${pageTags.map(
+                (tag) => html`
+                <li>
+                  <span>${tag.name}</span>
+                  <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
+                    Remove
+                  </button>
+                </li>
+              `,
+              )}
+            </ul>
+          </paginated-table>
+        `;
+      })()}
     `;
   }
 }

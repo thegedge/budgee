@@ -6,6 +6,10 @@ export interface PageChangeDetail {
   pageSize: number;
 }
 
+export interface FilterChangeDetail {
+  filter: string;
+}
+
 declare global {
   interface HTMLElementTagNameMap {
     "paginated-table": PaginatedTable;
@@ -23,11 +27,16 @@ export class PaginatedTable extends LitElement {
   @property()
   storageKey = "";
 
+  @property({ type: Boolean })
+  filterable = false;
+
   @state()
   private _currentPage = 1;
 
   @state()
   private _pageSize = 0;
+
+  private _filterDebounce: ReturnType<typeof setTimeout> | null = null;
 
   static styles = css`
     .pagination-bar {
@@ -48,6 +57,13 @@ export class PaginatedTable extends LitElement {
       border: 1px solid var(--budgee-border, #e0e0e0);
       border-radius: 4px;
       background: var(--budgee-surface, #fff);
+    }
+    .filter-input {
+      padding: 4px 8px;
+      border: 1px solid var(--budgee-border, #e0e0e0);
+      border-radius: 4px;
+      background: var(--budgee-surface, #fff);
+      font-size: 0.875rem;
     }
     button {
       padding: 4px 12px;
@@ -139,6 +155,24 @@ export class PaginatedTable extends LitElement {
     }
   }
 
+  #onFilterInput(e: Event) {
+    const filter = (e.target as HTMLInputElement).value;
+    if (this._filterDebounce !== null) {
+      clearTimeout(this._filterDebounce);
+    }
+    this._filterDebounce = setTimeout(() => {
+      this._filterDebounce = null;
+      this._currentPage = 1;
+      this.dispatchEvent(
+        new CustomEvent<FilterChangeDetail>("filter-change", {
+          detail: { filter },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }, 200);
+  }
+
   render() {
     const size = this._effectivePageSize;
     const start = (this._currentPage - 1) * size + 1;
@@ -147,6 +181,16 @@ export class PaginatedTable extends LitElement {
     return html`
       <div class="pagination-bar">
         <div class="pagination-controls">
+          ${
+            this.filterable
+              ? html`<input
+                class="filter-input"
+                type="text"
+                placeholder="Filter..."
+                @input=${this.#onFilterInput}
+              />`
+              : ""
+          }
           <label>
             Rows per page:
             <select @change=${this.#onPageSizeChange}>

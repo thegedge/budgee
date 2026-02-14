@@ -5,7 +5,7 @@ import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/ty
 import { matchesRule } from "../../import/applyRules";
 import "../modal";
 import "../paginatedTable";
-import type { PageChangeDetail } from "../paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "./ruleEditor";
 
 declare global {
@@ -48,6 +48,9 @@ export class RuleManager extends LitElement {
 
   @state()
   private _rulesPageSize = 10;
+
+  @state()
+  private _rulesFilter = "";
 
   @state()
   private _unmerchantedPage = 1;
@@ -233,6 +236,23 @@ export class RuleManager extends LitElement {
     this._rulesPageSize = e.detail.pageSize;
   }
 
+  #onRulesFilterChange(e: CustomEvent<FilterChangeDetail>) {
+    this._rulesFilter = e.detail.filter;
+    this._rulesPage = 1;
+  }
+
+  #ruleMatchesFilter(rule: MerchantRule): boolean {
+    if (!this._rulesFilter) return true;
+    const lower = this._rulesFilter.toLowerCase();
+    if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
+    if (rule.merchantId) {
+      const merchant = this._merchants.find((m) => m.id === rule.merchantId);
+      if (merchant?.name.toLowerCase().includes(lower)) return true;
+    }
+    if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
+    return false;
+  }
+
   #onUnmerchantedPageChange(e: CustomEvent<PageChangeDetail>) {
     this._unmerchantedPage = e.detail.page;
     this._unmerchantedPageSize = e.detail.pageSize;
@@ -252,43 +272,55 @@ export class RuleManager extends LitElement {
           ? html`
             <div class="section">
               <h3>Existing Rules</h3>
-              <paginated-table
-                .totalItems=${this._rules.length}
-                .defaultPageSize=${10}
-                storageKey="rules"
-                @page-change=${this.#onRulesPageChange}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Conditions</th>
-                      <th>Tags</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${this._rules
-                      .slice(
-                        (this._rulesPage - 1) * this._rulesPageSize,
-                        this._rulesPage * this._rulesPageSize,
-                      )
-                      .map(
-                        (rule) => html`
-                      <tr>
-                        <td class="condition-summary">${this.#formatConditions(rule)}</td>
-                        <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
-                        <td>
-                          <button @click=${() => this.#editRule(rule)}>Edit</button>
-                          <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    `,
-                      )}
-                  </tbody>
-                </table>
-              </paginated-table>
+              ${(() => {
+                const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));
+                return html`
+                  <paginated-table
+                    .totalItems=${filteredRules.length}
+                    .defaultPageSize=${10}
+                    storageKey="rules"
+                    ?filterable=${true}
+                    @page-change=${this.#onRulesPageChange}
+                    @filter-change=${this.#onRulesFilterChange}
+                  >
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Conditions</th>
+                          <th>Tags</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${filteredRules
+                          .slice(
+                            (this._rulesPage - 1) * this._rulesPageSize,
+                            this._rulesPage * this._rulesPageSize,
+                          )
+                          .map(
+                            (rule) => html`
+                              <tr>
+                                <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                                <td>
+                                  ${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}
+                                </td>
+                                <td>
+                                  <button @click=${() => this.#editRule(rule)}>Edit</button>
+                                  <button
+                                    class="delete-btn"
+                                    @click=${() => this.#deleteRule(rule.id!)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            `,
+                          )}
+                      </tbody>
+                    </table>
+                  </paginated-table>
+                `;
+              })()}
             </div>
           `
           : html`
