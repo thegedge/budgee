@@ -1,4 +1,23 @@
-import type { MerchantRule, Transaction } from "../database/types";
+import type { MerchantRule, RuleCondition, Transaction } from "../database/types";
+
+function matchesCondition(description: string, condition: RuleCondition): boolean {
+  const value = condition.value.toLowerCase();
+  switch (condition.operator) {
+    case "contains":
+      return description.includes(value);
+    case "startsWith":
+      return description.startsWith(value);
+    case "equals":
+      return description === value;
+    case "regex":
+      return new RegExp(condition.value, "i").test(description);
+  }
+}
+
+function matchesRule(description: string, rule: MerchantRule): boolean {
+  const method = rule.logic === "and" ? "every" : "some";
+  return rule.conditions[method]((c) => matchesCondition(description, c));
+}
 
 export function applyRules(
   transaction: Omit<Transaction, "id">,
@@ -6,12 +25,13 @@ export function applyRules(
 ): Omit<Transaction, "id"> {
   const description = transaction.originalDescription.toLowerCase();
   for (const rule of rules) {
-    if (!description.includes(rule.pattern.toLowerCase())) {
+    if (!matchesRule(description, rule)) {
       continue;
     }
 
     const mergedTagIds = [...new Set([...transaction.tagIds, ...rule.tagIds])];
-    return { ...transaction, tagIds: mergedTagIds };
+    const merchantId = rule.merchantId ?? transaction.merchantId;
+    return { ...transaction, tagIds: mergedTagIds, merchantId };
   }
   return transaction;
 }

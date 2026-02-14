@@ -5,12 +5,10 @@ describe("BudgeeDatabase", () => {
   let db: Database;
 
   beforeEach(() => {
-    // Create a new in-memory database for each test
     db = new Database();
   });
 
   afterEach(async () => {
-    // Clean up the database
     await db.delete();
   });
 
@@ -20,6 +18,8 @@ describe("BudgeeDatabase", () => {
     expect(db.tags).toBeDefined();
     expect(db.merchants).toBeDefined();
     expect(db.accounts).toBeDefined();
+    expect(db.merchantRules).toBeDefined();
+    expect(db.dashboardCharts).toBeDefined();
   });
 
   it("should create and retrieve a tag", async () => {

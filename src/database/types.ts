@@ -25,9 +25,30 @@ export interface Account {
   type?: string;
 }
 
+export type RuleOperator = "contains" | "startsWith" | "equals" | "regex";
+
+export interface RuleCondition {
+  field: "description";
+  operator: RuleOperator;
+  value: string;
+}
+
 export interface MerchantRule {
   id?: number;
-  pattern: string; // substring to match in description (case-insensitive)
-  merchantName?: string;
+  logic: "and" | "or";
+  conditions: RuleCondition[];
+  merchantId?: number;
   tagIds: number[];
+}
+
+export interface DashboardChart {
+  id?: number;
+  title: string;
+  chartType: "bar" | "line" | "pie" | "doughnut";
+  granularity: "day" | "month" | "year";
+  startDate?: string;
+  endDate?: string;
+  tagId?: number;
+  merchantId?: number;
+  position: number;
 }

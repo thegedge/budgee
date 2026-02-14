@@ -1,7 +1,8 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
-import type { MerchantRule, Tag } from "../../database/types";
+import type { MerchantRule, Tag, Transaction } from "../../database/types";
+import "./ruleEditor";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -18,43 +19,43 @@ export class RuleManager extends LitElement {
   private _tags: Tag[] = [];
 
   @state()
-  private _pattern = "";
+  private _unmerchanted: Transaction[] = [];
 
   @state()
-  private _selectedTagId = 0;
+  private _prefillDescription = "";
 
   static styles = css`
     :host {
       display: block;
-      border: 1px solid #ccc;
+    }
+    .section {
+      border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
+      background: var(--budgee-surface, #fff);
     }
-    .rule-form {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      align-items: center;
-    }
-    input {
-      padding: 4px 8px;
-    }
-    select {
-      padding: 4px 8px;
+    .section h3 {
+      margin-top: 0;
     }
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: #007bff;
+      background-color: var(--budgee-primary, #7eb8da);
       color: white;
       border: none;
       border-radius: 4px;
     }
+    button:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
+    }
     .delete-btn {
-      background-color: #dc3545;
+      background-color: var(--budgee-danger, #e8a0a0);
       font-size: 0.8rem;
       padding: 2px 8px;
+    }
+    .delete-btn:hover {
+      background-color: var(--budgee-danger-hover, #d07070);
     }
     table {
       width: 100%;
@@ -62,12 +63,22 @@ export class RuleManager extends LitElement {
     }
     th,
     td {
-      border: 1px solid #ddd;
+      border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 8px;
       text-align: left;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: var(--budgee-bg, #fafafa);
+    }
+    .clickable-row {
+      cursor: pointer;
+    }
+    .clickable-row:hover {
+      background-color: var(--budgee-bg, #fafafa);
+    }
+    .condition-summary {
+      font-size: 0.85rem;
+      color: var(--budgee-text-muted, #888);
     }
   `;
 
@@ -79,16 +90,20 @@ export class RuleManager extends LitElement {
   async #refresh() {
     this._rules = await db.merchantRules.toArray();
     this._tags = await db.tags.toArray();
+    const allTx = await db.transactions.toArray();
+    this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
   }
 
-  async #addRule() {
-    const pattern = this._pattern.trim();
-    if (!pattern) return;
+  async #onRuleSaved(e: CustomEvent) {
+    const { logic, conditions, tagIds, merchantName } = e.detail;
 
-    const tagIds = this._selectedTagId ? [this._selectedTagId] : [];
-    await db.merchantRules.add({ pattern, tagIds });
-    this._pattern = "";
-    this._selectedTagId = 0;
+    let merchantId: number | undefined;
+    if (merchantName) {
+      const existing = await db.merchants.where("name").equalsIgnoreCase(merchantName).first();
+      merchantId = existing?.id ?? (await db.merchants.add({ name: merchantName }));
+    }
+
+    await db.merchantRules.add({ logic, conditions, merchantId, tagIds });
     await this.#refresh();
   }
 
@@ -101,64 +116,92 @@ export class RuleManager extends LitElement {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
+  #formatConditions(rule: MerchantRule): string {
+    return rule.conditions
+      .map((c) => `${c.operator} "${c.value}"`)
+      .join(rule.logic === "and" ? " AND " : " OR ");
+  }
+
+  #selectTransaction(tx: Transaction) {
+    this._prefillDescription = tx.originalDescription;
+  }
+
   render() {
     return html`
-      <h3>Merchant Rules</h3>
-      <div class="rule-form">
-        <input
-          type="text"
-          placeholder="Description contains..."
-          .value=${this._pattern}
-          @input=${(e: Event) => {
-            this._pattern = (e.target as HTMLInputElement).value;
-          }}
-        />
-        <select
-          @change=${(e: Event) => {
-            this._selectedTagId = Number((e.target as HTMLSelectElement).value);
-          }}
-        >
-          <option value="0">No tag</option>
-          ${this._tags.map((t) => html`<option value=${t.id!}>${t.name}</option>`)}
-        </select>
-        <button @click=${this.#addRule}>Add Rule</button>
-      </div>
+      <h2>Merchant Rules</h2>
+
+      ${
+        this._unmerchanted.length > 0
+          ? html`
+            <div class="section">
+              <h3>Unmerchanted Transactions</h3>
+              <p>Click a transaction to pre-fill a rule.</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this._unmerchanted.slice(0, 20).map(
+                    (tx) => html`
+                    <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+                      <td>${tx.date}</td>
+                      <td>${tx.originalDescription}</td>
+                      <td>${tx.amount.toFixed(2)}</td>
+                    </tr>
+                  `,
+                  )}
+                </tbody>
+              </table>
+            </div>
+          `
+          : nothing
+      }
+
+      <rule-editor
+        .tags=${this._tags}
+        .prefillDescription=${this._prefillDescription}
+        @rule-saved=${this.#onRuleSaved}
+      ></rule-editor>
+
       ${
         this._rules.length > 0
-          ? this.#renderRulesTable()
+          ? html`
+            <div class="section">
+              <h3>Existing Rules</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Conditions</th>
+                    <th>Tags</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this._rules.map(
+                    (rule) => html`
+                    <tr>
+                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                      <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
+                      <td>
+                        <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  `,
+                  )}
+                </tbody>
+              </table>
+            </div>
+          `
           : html`
               <p>No rules defined.</p>
             `
       }
-    `;
-  }
-
-  #renderRulesTable() {
-    return html`
-      <table>
-        <thead>
-          <tr>
-            <th>Pattern</th>
-            <th>Tags</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${this._rules.map(
-            (rule) => html`
-            <tr>
-              <td>${rule.pattern}</td>
-              <td>${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}</td>
-              <td>
-                <button class="delete-btn" @click=${() => this.#deleteRule(rule.id!)}>
-                  Remove
-                </button>
-              </td>
-            </tr>
-          `,
-          )}
-        </tbody>
-      </table>
     `;
   }
 }

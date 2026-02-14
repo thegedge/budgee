@@ -51,7 +51,11 @@ describe("importTransactions", () => {
   });
 
   it("should apply merchant rules during import", async () => {
-    await db.merchantRules.add({ pattern: "groceries", tagIds: [42] });
+    await db.merchantRules.add({
+      logic: "and",
+      conditions: [{ field: "description", operator: "contains", value: "groceries" }],
+      tagIds: [42],
+    });
 
     const count = await importTransactions(rows, mapping);
     expect(count).toBe(2);
