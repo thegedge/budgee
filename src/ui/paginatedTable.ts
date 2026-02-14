@@ -145,7 +145,6 @@ export class PaginatedTable extends LitElement {
     const end = Math.min(this._currentPage * size, this.totalItems);
 
     return html`
-      <slot></slot>
       <div class="pagination-bar">
         <div class="pagination-controls">
           <label>
@@ -163,6 +162,7 @@ export class PaginatedTable extends LitElement {
           <button ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
         </div>
       </div>
+      <slot></slot>
     `;
   }
 }
