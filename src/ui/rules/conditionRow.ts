@@ -18,7 +18,7 @@ const OPERATORS: { value: RuleOperator; label: string }[] = [
 @customElement("condition-row")
 export class ConditionRow extends LitElement {
   @property({ type: Object })
-  condition: RuleCondition = { field: "description", operator: "contains", value: "" };
+  condition: RuleCondition = { field: "description", operator: "equals", value: "" };
 
   @property({ type: Number })
   index = 0;

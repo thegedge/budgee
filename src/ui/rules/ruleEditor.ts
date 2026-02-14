@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { MerchantRule, RuleCondition, Tag } from "../../database/types";
+import "../tags/tagAutocomplete";
 import "./conditionRow";
 
 declare global {
@@ -27,12 +28,10 @@ export class RuleEditor extends LitElement {
   private _logic: "and" | "or" = "and";
 
   @state()
-  private _conditions: RuleCondition[] = [
-    { field: "description", operator: "contains", value: "" },
-  ];
+  private _conditions: RuleCondition[] = [{ field: "description", operator: "equals", value: "" }];
 
   @state()
-  private _selectedTagId = 0;
+  private _selectedTagIds: number[] = [];
 
   @state()
   private _merchantName = "";
@@ -74,6 +73,18 @@ export class RuleEditor extends LitElement {
       font-size: 0.85rem;
       margin-bottom: 0.5rem;
     }
+    .tags-row {
+      flex-wrap: wrap;
+    }
+    .tag-badge {
+      display: inline-block;
+      background: var(--budgee-primary, #7eb8da);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
     h4 {
       margin: 0 0 0.5rem;
     }
@@ -83,11 +94,11 @@ export class RuleEditor extends LitElement {
     if (changed.has("editingRule") && this.editingRule) {
       this._conditions = [...this.editingRule.conditions];
       this._logic = this.editingRule.logic;
-      this._selectedTagId = this.editingRule.tagIds[0] ?? 0;
+      this._selectedTagIds = [...this.editingRule.tagIds];
       this._merchantName = this.editingMerchantName;
     } else if (changed.has("prefillDescription") && this.prefillDescription) {
       this._conditions = [
-        { field: "description", operator: "contains", value: this.prefillDescription },
+        { field: "description", operator: "equals", value: this.prefillDescription },
       ];
     }
   }
@@ -105,8 +116,36 @@ export class RuleEditor extends LitElement {
   #addCondition() {
     this._conditions = [
       ...this._conditions,
-      { field: "description" as const, operator: "contains" as const, value: "" },
+      { field: "description" as const, operator: "equals" as const, value: "" },
     ];
+  }
+
+  addTag(tagId: number) {
+    if (!this._selectedTagIds.includes(tagId)) {
+      this._selectedTagIds = [...this._selectedTagIds, tagId];
+    }
+  }
+
+  #onTagSelected(e: CustomEvent) {
+    const tag = e.detail.tag as Tag;
+    if (!this._selectedTagIds.includes(tag.id!)) {
+      this._selectedTagIds = [...this._selectedTagIds, tag.id!];
+    }
+  }
+
+  #onTagCreated(e: CustomEvent) {
+    const name = e.detail.name as string;
+    this.dispatchEvent(
+      new CustomEvent("tag-created", { detail: { name }, bubbles: true, composed: true }),
+    );
+  }
+
+  #removeTag(tagId: number) {
+    this._selectedTagIds = this._selectedTagIds.filter((id) => id !== tagId);
+  }
+
+  #tagName(tagId: number): string {
+    return this.tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
   #onSave() {
@@ -119,14 +158,14 @@ export class RuleEditor extends LitElement {
           id: this.editingRule?.id,
           logic: this._logic,
           conditions: validConditions,
-          tagIds: this._selectedTagId ? [this._selectedTagId] : [],
+          tagIds: this._selectedTagIds,
           merchantName: this._merchantName.trim() || undefined,
         },
       }),
     );
 
-    this._conditions = [{ field: "description", operator: "contains", value: "" }];
-    this._selectedTagId = 0;
+    this._conditions = [{ field: "description", operator: "equals", value: "" }];
+    this._selectedTagIds = [];
     this._merchantName = "";
     this._logic = "and";
   }
@@ -173,14 +212,21 @@ export class RuleEditor extends LitElement {
           }}
         />
       </div>
-      <div class="form-row">
-        <label>Tag:</label>
-        <select @change=${(e: Event) => {
-          this._selectedTagId = Number((e.target as HTMLSelectElement).value);
-        }}>
-          <option value="0">No tag</option>
-          ${this.tags.map((t) => html`<option value=${t.id!}>${t.name}</option>`)}
-        </select>
+      <div class="form-row tags-row">
+        <label>Tags:</label>
+        ${this._selectedTagIds.map(
+          (tagId) => html`
+          <span class="tag-badge" @click=${() => this.#removeTag(tagId)}>
+            ${this.#tagName(tagId)} &times;
+          </span>
+        `,
+        )}
+        <tag-autocomplete
+          .tags=${this.tags}
+          .excludeIds=${this._selectedTagIds}
+          @tag-selected=${this.#onTagSelected}
+          @tag-created=${this.#onTagCreated}
+        ></tag-autocomplete>
       </div>
       <button @click=${this.#onSave}>Save Rule</button>
     `;
