@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
+import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../tags/tagAutocomplete";
 import "../charts/chartWrapper";
 
@@ -236,16 +237,32 @@ export class TransactionDetail extends LitElement {
 
   get #merchantChartData(): ChartData {
     const entries = [...this._monthlySpend].reverse();
+    const values = entries.map((e) => e.total);
+    const window = movingAverageWindow(values.length);
     return {
       labels: entries.map((e) => e.month),
       datasets: [
         {
           label: this._merchant?.name ?? "Merchant",
-          data: entries.map((e) => e.total),
+          data: values,
           backgroundColor: "rgba(126, 184, 218, 0.5)",
           borderColor: "#7eb8da",
           borderWidth: 1,
         },
+        ...(values.length >= 2
+          ? [
+              {
+                type: "line" as const,
+                label: `Moving Avg (${window}-mo)`,
+                data: movingAverage(values, window),
+                borderColor: "rgba(80, 80, 80, 0.5)",
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.3,
+              } as ChartData["datasets"][number],
+            ]
+          : []),
       ],
     };
   }

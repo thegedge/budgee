@@ -5,6 +5,7 @@ import { db } from "../../database/db";
 import { aggregateByPeriod } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
+import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
 import "../modal";
@@ -215,18 +216,34 @@ export class Dashboard extends LitElement {
   get #monthlyChartData(): ChartData {
     const aggregated = aggregateByPeriod(this._transactions!, "month");
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const values = entries.map(([, val]) => val);
+    const window = movingAverageWindow(values.length);
     return {
       labels: entries.map(([key]) => key),
       datasets: [
         {
           label: "Monthly Spending",
-          data: entries.map(([, val]) => val),
-          backgroundColor: entries.map(([, val]) =>
+          data: values,
+          backgroundColor: values.map((val) =>
             val < 0 ? "rgba(208, 144, 144, 0.5)" : "rgba(126, 200, 160, 0.5)",
           ),
-          borderColor: entries.map(([, val]) => (val < 0 ? "#d09090" : "#7ec8a0")),
+          borderColor: values.map((val) => (val < 0 ? "#d09090" : "#7ec8a0")),
           borderWidth: 1,
         },
+        ...(values.length >= 2
+          ? [
+              {
+                type: "line" as const,
+                label: `Moving Avg (${window}-mo)`,
+                data: movingAverage(values, window),
+                borderColor: "rgba(80, 80, 80, 0.5)",
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.3,
+              } as ChartData["datasets"][number],
+            ]
+          : []),
       ],
     };
   }

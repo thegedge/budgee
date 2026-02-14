@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { aggregateByPeriod, aggregateByTag, filterTransactions } from "../../database/aggregations";
 import type { DashboardChart, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
+import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../charts/chartWrapper";
 
 declare global {
@@ -73,23 +74,41 @@ export class DashboardChartCard extends LitElement {
       endDate: this.config.endDate,
     });
 
-    const aggregated =
-      this.config.granularity === "byTag"
-        ? aggregateByTag(filtered, this.tags)
-        : aggregateByPeriod(filtered, this.config.granularity);
+    const { granularity } = this.config;
+    const isByTag = granularity === "byTag";
+    const aggregated = isByTag
+      ? aggregateByTag(filtered, this.tags)
+      : aggregateByPeriod(filtered, granularity);
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const values = entries.map(([, val]) => val);
+
+    const datasets: ChartData["datasets"] = [
+      {
+        label: this.config.title,
+        data: values,
+        backgroundColor: "rgba(126, 184, 218, 0.5)",
+        borderColor: "#7eb8da",
+        borderWidth: 1,
+      },
+    ];
+
+    if (!isByTag && this.config.chartType === "bar" && values.length >= 2) {
+      const window = movingAverageWindow(values.length);
+      datasets.push({
+        type: "line",
+        label: `${this.config.title} (${window}-pt avg)`,
+        data: movingAverage(values, window),
+        borderColor: "rgba(80, 80, 80, 0.5)",
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.3,
+      } as ChartData["datasets"][number]);
+    }
 
     return {
       labels: entries.map(([key]) => key),
-      datasets: [
-        {
-          label: this.config.title,
-          data: entries.map(([, val]) => val),
-          backgroundColor: "rgba(126, 184, 218, 0.5)",
-          borderColor: "#7eb8da",
-          borderWidth: 1,
-        },
-      ],
+      datasets,
     };
   }
 
