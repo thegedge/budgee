@@ -26,7 +26,7 @@ export class Modal extends LitElement {
       background: var(--budgee-surface, #fff);
       border-radius: 8px;
       padding: 1.5rem;
-      max-width: 600px;
+      max-width: 800px;
       width: 90%;
       max-height: 80vh;
       overflow-y: auto;
