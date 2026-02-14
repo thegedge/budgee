@@ -51,6 +51,9 @@ export class Dashboard extends LitElement {
   @state()
   private _showConfigurator = false;
 
+  @state()
+  private _editingChart?: DashboardChart;
+
   private _sortable?: Sortable;
 
   static styles = css`
@@ -180,12 +183,30 @@ export class Dashboard extends LitElement {
 
   async #onChartSaved(e: CustomEvent) {
     const detail = e.detail;
-    await db.dashboardCharts.add({
-      ...detail,
-      position: this._charts.length,
-    });
+    if (detail.id) {
+      await db.dashboardCharts.update(detail.id, {
+        title: detail.title,
+        chartType: detail.chartType,
+        granularity: detail.granularity,
+        startDate: detail.startDate,
+        endDate: detail.endDate,
+        tagId: detail.tagId,
+        merchantId: detail.merchantId,
+      });
+    } else {
+      await db.dashboardCharts.add({
+        ...detail,
+        position: this._charts.length,
+      });
+    }
     this._showConfigurator = false;
+    this._editingChart = undefined;
     await this.#refresh();
+  }
+
+  #onChartEdit(e: CustomEvent) {
+    this._editingChart = e.detail.chart;
+    this._showConfigurator = true;
   }
 
   async #onChartDeleted(e: CustomEvent) {
@@ -253,6 +274,7 @@ export class Dashboard extends LitElement {
                   data-chart-id=${chart.id!}
                   .config=${chart}
                   .transactions=${this._transactions}
+                  @chart-edit=${this.#onChartEdit}
                   @chart-deleted=${this.#onChartDeleted}
                 ></dashboard-chart-card>
               `,
@@ -264,6 +286,7 @@ export class Dashboard extends LitElement {
 
       <button @click=${() => {
         this._showConfigurator = !this._showConfigurator;
+        if (!this._showConfigurator) this._editingChart = undefined;
       }}>
         ${this._showConfigurator ? "Cancel" : "Add Chart"}
       </button>
@@ -275,6 +298,7 @@ export class Dashboard extends LitElement {
               .transactions=${this._transactions}
               .tags=${this._tags}
               .merchants=${this._merchants}
+              .editingChart=${this._editingChart}
               @chart-saved=${this.#onChartSaved}
             ></chart-configurator>
           `

@@ -39,14 +39,26 @@ export class DashboardChartCard extends LitElement {
     button {
       padding: 2px 8px;
       cursor: pointer;
-      background-color: var(--budgee-danger, #e8a0a0);
       color: white;
       border: none;
       border-radius: 4px;
       font-size: 0.8rem;
     }
-    button:hover {
+    .edit-btn {
+      background-color: var(--budgee-primary, #7eb8da);
+    }
+    .edit-btn:hover {
+      background-color: var(--budgee-primary-hover, #5a9cbf);
+    }
+    .delete-btn {
+      background-color: var(--budgee-danger, #e8a0a0);
+    }
+    .delete-btn:hover {
       background-color: var(--budgee-danger-hover, #d07070);
+    }
+    .actions {
+      display: flex;
+      gap: 0.25rem;
     }
   `;
 
@@ -75,6 +87,10 @@ export class DashboardChartCard extends LitElement {
     };
   }
 
+  #onEdit() {
+    this.dispatchEvent(new CustomEvent("chart-edit", { detail: { chart: this.config } }));
+  }
+
   #onDelete() {
     this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config.id } }));
   }
@@ -83,7 +99,10 @@ export class DashboardChartCard extends LitElement {
     return html`
       <div class="header">
         <h4>${this.config.title}</h4>
-        <button @click=${this.#onDelete}>Delete</button>
+        <div class="actions">
+          <button class="edit-btn" @click=${this.#onEdit}>Edit</button>
+          <button class="delete-btn" @click=${this.#onDelete}>Delete</button>
+        </div>
       </div>
       <chart-wrapper
         .chartType=${this.config.chartType}

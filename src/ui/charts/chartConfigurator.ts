@@ -25,6 +25,9 @@ export class ChartConfigurator extends LitElement {
   @property({ type: Array })
   merchants: Merchant[] = [];
 
+  @property({ type: Object })
+  editingChart?: DashboardChart;
+
   @state()
   private _title = "";
 
@@ -48,6 +51,9 @@ export class ChartConfigurator extends LitElement {
 
   @state()
   private _showPreview = false;
+
+  @state()
+  private _initialized = false;
 
   static styles = css`
     :host {
@@ -90,6 +96,19 @@ export class ChartConfigurator extends LitElement {
     }
   `;
 
+  updated(changed: Map<string, unknown>) {
+    if (changed.has("editingChart") && this.editingChart && !this._initialized) {
+      this._title = this.editingChart.title;
+      this._chartType = this.editingChart.chartType;
+      this._granularity = this.editingChart.granularity;
+      this._startDate = this.editingChart.startDate ?? "";
+      this._endDate = this.editingChart.endDate ?? "";
+      this._tagId = this.editingChart.tagId;
+      this._merchantId = this.editingChart.merchantId;
+      this._initialized = true;
+    }
+  }
+
   get #chartData(): ChartData {
     const filtered = filterTransactions(this.transactions, {
       tagId: this._tagId,
@@ -122,6 +141,7 @@ export class ChartConfigurator extends LitElement {
     this.dispatchEvent(
       new CustomEvent("chart-saved", {
         detail: {
+          id: this.editingChart?.id,
           title,
           chartType: this._chartType,
           granularity: this._granularity,
@@ -135,11 +155,12 @@ export class ChartConfigurator extends LitElement {
 
     this._title = "";
     this._showPreview = false;
+    this._initialized = false;
   }
 
   render() {
     return html`
-      <h4>Add Chart</h4>
+      <h4>${this.editingChart ? "Edit Chart" : "Add Chart"}</h4>
       <div class="form-grid">
         <label>Title:</label>
         <input
@@ -153,18 +174,18 @@ export class ChartConfigurator extends LitElement {
         <select @change=${(e: Event) => {
           this._chartType = (e.target as HTMLSelectElement).value as ChartKind;
         }}>
-          <option value="bar">Bar</option>
-          <option value="line">Line</option>
-          <option value="pie">Pie</option>
-          <option value="doughnut">Doughnut</option>
+          <option value="bar" ?selected=${this._chartType === "bar"}>Bar</option>
+          <option value="line" ?selected=${this._chartType === "line"}>Line</option>
+          <option value="pie" ?selected=${this._chartType === "pie"}>Pie</option>
+          <option value="doughnut" ?selected=${this._chartType === "doughnut"}>Doughnut</option>
         </select>
         <label>Granularity:</label>
         <select @change=${(e: Event) => {
           this._granularity = (e.target as HTMLSelectElement).value as Granularity;
         }}>
-          <option value="day">Day</option>
-          <option value="month" selected>Month</option>
-          <option value="year">Year</option>
+          <option value="day" ?selected=${this._granularity === "day"}>Day</option>
+          <option value="month" ?selected=${this._granularity === "month"}>Month</option>
+          <option value="year" ?selected=${this._granularity === "year"}>Year</option>
         </select>
         <label>Start date:</label>
         <input
@@ -188,7 +209,7 @@ export class ChartConfigurator extends LitElement {
           this._tagId = v ? Number(v) : undefined;
         }}>
           <option value="">All</option>
-          ${this.tags.map((t) => html`<option value=${t.id!}>${t.name}</option>`)}
+          ${this.tags.map((t) => html`<option value=${t.id!} ?selected=${this._tagId === t.id}>${t.name}</option>`)}
         </select>
         <label>Merchant:</label>
         <select @change=${(e: Event) => {
@@ -196,13 +217,13 @@ export class ChartConfigurator extends LitElement {
           this._merchantId = v ? Number(v) : undefined;
         }}>
           <option value="">All</option>
-          ${this.merchants.map((m) => html`<option value=${m.id!}>${m.name}</option>`)}
+          ${this.merchants.map((m) => html`<option value=${m.id!} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
         </select>
       </div>
       <button @click=${() => {
         this._showPreview = true;
       }}>Preview</button>
-      <button @click=${this.#onSave}>Save to Dashboard</button>
+      <button @click=${this.#onSave}>${this.editingChart ? "Update Chart" : "Save to Dashboard"}</button>
       ${
         this._showPreview
           ? html`
