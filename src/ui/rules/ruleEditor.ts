@@ -29,6 +29,9 @@ export class RuleEditor extends LitElement {
   editingMerchantName = "";
 
   @state()
+  private _prefillPristine = false;
+
+  @state()
   private _logic: "and" | "or" = "and";
 
   @state()
@@ -104,12 +107,23 @@ export class RuleEditor extends LitElement {
       this._conditions = [
         { field: "description", operator: "equals", value: this.prefillDescription },
       ];
+      this._prefillPristine = true;
     }
   }
 
   #onConditionChanged(e: CustomEvent) {
-    const { index, condition } = e.detail;
-    this._conditions = this._conditions.map((c, i) => (i === index ? condition : c));
+    const { index, condition } = e.detail as { index: number; condition: RuleCondition };
+    let updated = condition;
+    if (
+      this._prefillPristine &&
+      index === 0 &&
+      condition.operator === "equals" &&
+      condition.value !== this._conditions[0]?.value
+    ) {
+      updated = { ...condition, operator: "contains" };
+      this._prefillPristine = false;
+    }
+    this._conditions = this._conditions.map((c, i) => (i === index ? updated : c));
   }
 
   #onConditionRemoved(e: CustomEvent) {
