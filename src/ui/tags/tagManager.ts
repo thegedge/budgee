@@ -68,6 +68,9 @@ export class TagManager extends LitElement {
       padding: 4px 0;
       border-bottom: 1px solid var(--budgee-border, #e0e0e0);
     }
+    li:nth-child(even) {
+      background-color: var(--budgee-bg, #fafafa);
+    }
     .error {
       color: var(--budgee-danger-hover, #d07070);
       font-size: 0.85rem;

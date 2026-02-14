@@ -68,6 +68,10 @@ export class RuleManager extends LitElement {
       text-align: left;
     }
     th {
+      background-color: var(--budgee-primary, #7eb8da);
+      color: white;
+    }
+    tbody tr:nth-child(even) {
       background-color: var(--budgee-bg, #fafafa);
     }
     .clickable-row {
