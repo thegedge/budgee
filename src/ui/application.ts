@@ -5,6 +5,7 @@ import { Router } from "@lit-labs/router";
 import { exportDatabase } from "../database/exportDb";
 import "./dashboard/dashboard";
 import "./import/importer";
+import "./merchants/merchantList";
 import "./rules/ruleManager";
 import "./tags/tagManager";
 import "./transactions/transactionList";
@@ -38,6 +39,21 @@ export class Application extends LitElement {
         html`<transaction-detail .transactionId=${Number(id)}></transaction-detail>`,
       enter: async () => {
         await import("./transactions/transactionDetail");
+        return true;
+      },
+    },
+    {
+      path: "/merchants",
+      render: () =>
+        html`
+          <merchant-list></merchant-list>
+        `,
+    },
+    {
+      path: "/merchants/:id",
+      render: ({ id }) => html`<merchant-detail .merchantId=${Number(id)}></merchant-detail>`,
+      enter: async () => {
+        await import("./merchants/merchantDetail");
         return true;
       },
     },
@@ -126,6 +142,7 @@ export class Application extends LitElement {
       <nav>
         <a href="/">Dashboard</a>
         <a href="/transactions">Transactions</a>
+        <a href="/merchants">Merchants</a>
         <a href="/tags">Tags</a>
         <a href="/rules">Rules</a>
         <a href="/import">Import</a>
