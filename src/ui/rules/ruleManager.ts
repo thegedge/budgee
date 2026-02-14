@@ -231,6 +231,12 @@ export class RuleManager extends LitElement {
     this._showEditor = true;
   }
 
+  #tagLabel(tagId: number): string {
+    const tag = this._tags.find((t) => t.id === tagId);
+    if (!tag) return `#${tagId}`;
+    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
+  }
+
   #tagName(tagId: number): string {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
@@ -361,7 +367,7 @@ export class RuleManager extends LitElement {
                                 <td class="condition-summary">${this.#formatConditions(rule)}</td>
                                 <td>${this.#merchantName(rule.merchantId)}</td>
                                 <td>
-                                  ${rule.tagIds.map((id) => this.#tagName(id)).join(", ") || "None"}
+                                  ${rule.tagIds.map((id) => this.#tagLabel(id)).join(", ") || "None"}
                                 </td>
                                 <td>
                                   <button @click=${() => this.#editRule(rule)}>Edit</button>

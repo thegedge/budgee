@@ -12,6 +12,7 @@ export interface Transaction {
 export interface Tag {
   id?: number;
   name: string;
+  icon?: string;
 }
 
 export interface Merchant {

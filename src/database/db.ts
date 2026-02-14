@@ -42,6 +42,8 @@ export class Database extends Dexie {
     this.version(4).stores({
       dashboardCharts: "++id",
     });
+
+    this.version(5).stores({});
   }
 }
 

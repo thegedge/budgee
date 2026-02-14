@@ -120,8 +120,18 @@ export class TransactionList extends LitElement {
     await this.#refresh();
   }
 
+  #tag(tagId: number): Tag | undefined {
+    return this._tags.find((t) => t.id === tagId);
+  }
+
   #tagName(tagId: number): string {
-    return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
+    return this.#tag(tagId)?.name ?? `#${tagId}`;
+  }
+
+  #tagLabel(tagId: number): string {
+    const tag = this.#tag(tagId);
+    if (!tag) return `#${tagId}`;
+    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
   }
 
   #onPageChange(e: CustomEvent<PageChangeDetail>) {
@@ -239,7 +249,7 @@ export class TransactionList extends LitElement {
                   ${t.tagIds.map(
                     (tagId) => html`
                     <span class="tag-badge" @click=${(e: Event) => this.#removeTag(t, tagId, e)}>
-                      ${this.#tagName(tagId)} &times;
+                      ${this.#tagLabel(tagId)} &times;
                     </span>
                   `,
                   )}
