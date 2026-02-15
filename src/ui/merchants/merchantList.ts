@@ -117,7 +117,11 @@ export class MerchantList extends LitElement {
 
   #matchesFilter(row: MerchantRow): boolean {
     if (!this._filter) return true;
-    return row.merchant.name.toLowerCase().includes(this._filter.toLowerCase());
+    const lower = this._filter.toLowerCase();
+    if (row.merchant.name.toLowerCase().includes(lower)) return true;
+    if (String(row.transactionCount).includes(lower)) return true;
+    if (row.totalSpend.toFixed(2).includes(lower)) return true;
+    return false;
   }
 
   #onSortClick(col: SortColumn) {

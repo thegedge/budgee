@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
-import type { Merchant, Tag, Transaction } from "../../database/types";
+import type { Tag, Transaction } from "../../database/types";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../tags/tagAutocomplete";

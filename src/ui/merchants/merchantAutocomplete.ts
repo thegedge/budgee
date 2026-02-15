@@ -83,6 +83,17 @@ export class MerchantAutocomplete extends LitElement {
     this._open = val.trim().length > 0;
   }
 
+  #onPaste(e: ClipboardEvent) {
+    e.preventDefault();
+    const text = e.clipboardData?.getData("text") ?? "";
+    const titleCase = text.toLowerCase().replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+    const input = e.target as HTMLInputElement;
+    input.value = titleCase;
+    this.dispatchEvent(new CustomEvent("merchant-changed", { detail: { name: titleCase } }));
+    this._highlightIndex = -1;
+    this._open = titleCase.trim().length > 0;
+  }
+
   #onKeyDown(e: KeyboardEvent) {
     const filtered = this.#filtered;
     if (e.key === "ArrowDown") {
@@ -139,6 +150,7 @@ export class MerchantAutocomplete extends LitElement {
           placeholder="Merchant name (optional)"
           .value=${this.value}
           @input=${this.#onInput}
+          @paste=${this.#onPaste}
           @keydown=${this.#onKeyDown}
           @focus=${this.#onFocus}
           @blur=${this.#onBlur}
