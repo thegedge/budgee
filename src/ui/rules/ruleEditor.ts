@@ -32,7 +32,7 @@ export class RuleEditor extends LitElement {
   private _prefillPristine = false;
 
   @state()
-  private _logic: "and" | "or" = "and";
+  private _logic: "and" | "or" = "or";
 
   @state()
   private _conditions: RuleCondition[] = [{ field: "description", operator: "equals", value: "" }];
@@ -185,7 +185,7 @@ export class RuleEditor extends LitElement {
     this._conditions = [{ field: "description", operator: "equals", value: "" }];
     this._selectedTagIds = [];
     this._merchantName = "";
-    this._logic = "and";
+    this._logic = "or";
   }
 
   render() {

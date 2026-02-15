@@ -37,7 +37,7 @@ describe("rule-editor", () => {
     const detail = handler.mock.calls[0][0].detail;
     expect(detail.conditions).toHaveLength(1);
     expect(detail.conditions[0].value).toBe("starbucks");
-    expect(detail.logic).toBe("and");
+    expect(detail.logic).toBe("or");
 
     el.remove();
   });
