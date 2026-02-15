@@ -38,16 +38,17 @@ describe("transaction-list", () => {
     expect(rows).toHaveLength(2);
 
     // Default sort is date descending, so 2024-01-02 comes first
+    // Columns: Date, Merchant, Description, Amount, Tags
     const firstCells = rows[0].querySelectorAll("td");
-    expect(firstCells[0].textContent).toBe("2024-01-02");
-    expect(firstCells[1].textContent).toBe("Payroll");
-    expect(firstCells[2].textContent!.trim()).toBe("2500.00");
-    expect(firstCells[2].classList.contains("amount-positive")).toBe(true);
+    expect(firstCells[0].textContent).toBe("January 2, 2024");
+    expect(firstCells[2].textContent).toBe("Payroll");
+    expect(firstCells[3].textContent!.trim()).toBe("2500.00");
+    expect(firstCells[3].classList.contains("amount-positive")).toBe(true);
 
     const secondCells = rows[1].querySelectorAll("td");
-    expect(secondCells[0].textContent).toBe("2024-01-01");
-    expect(secondCells[2].textContent!.trim()).toBe("-50.00");
-    expect(secondCells[2].classList.contains("amount-negative")).toBe(true);
+    expect(secondCells[0].textContent).toBe("January 1, 2024");
+    expect(secondCells[3].textContent!.trim()).toBe("-50.00");
+    expect(secondCells[3].classList.contains("amount-negative")).toBe(true);
 
     el.remove();
   });

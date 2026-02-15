@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-type SortColumn = "date" | "description" | "amount" | "tags";
+type SortColumn = "date" | "merchant" | "description" | "amount" | "tags";
 type SortDir = "asc" | "desc";
 
 @customElement("transaction-list")
@@ -56,9 +56,20 @@ export class TransactionList extends LitElement {
         cursor: pointer;
         text-decoration: underline;
       }
-      .original-description {
-        font-size: 0.85em;
-        color: var(--budgee-muted, #888);
+      .col-amount {
+        width: 8rem;
+        text-align: right;
+      }
+      td.col-amount {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .col-date {
+        white-space: nowrap;
+      }
+      .col-tags tag-autocomplete {
+        display: block;
+        width: 100%;
       }
     `,
   ];
@@ -143,6 +154,17 @@ export class TransactionList extends LitElement {
     return this._sortDir === "asc" ? " ▲" : " ▼";
   }
 
+  #merchantName(merchantId: number | undefined): string {
+    if (!merchantId) return "";
+    return this._merchants.get(merchantId) ?? "";
+  }
+
+  #humanizeDate(dateStr: string): string {
+    const [year, month, day] = dateStr.split("-");
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  }
+
   #sorted(transactions: Transaction[]): Transaction[] {
     const col = this._sortCol;
     const dir = this._sortDir === "asc" ? 1 : -1;
@@ -150,6 +172,8 @@ export class TransactionList extends LitElement {
       let cmp = 0;
       if (col === "date") {
         cmp = a.date.localeCompare(b.date);
+      } else if (col === "merchant") {
+        cmp = this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId));
       } else if (col === "description") {
         cmp = a.originalDescription.localeCompare(b.originalDescription);
       } else if (col === "amount") {
@@ -203,16 +227,19 @@ export class TransactionList extends LitElement {
         <table>
           <thead>
             <tr>
-              <th class="sortable" @click=${() => this.#onSortClick("date")}>
+              <th class="sortable col-date" @click=${() => this.#onSortClick("date")}>
                 Date${this.#sortIndicator("date")}
+              </th>
+              <th class="sortable" @click=${() => this.#onSortClick("merchant")}>
+                Merchant${this.#sortIndicator("merchant")}
               </th>
               <th class="sortable" @click=${() => this.#onSortClick("description")}>
                 Description${this.#sortIndicator("description")}
               </th>
-              <th class="sortable" @click=${() => this.#onSortClick("amount")}>
+              <th class="sortable col-amount" @click=${() => this.#onSortClick("amount")}>
                 Amount${this.#sortIndicator("amount")}
               </th>
-              <th class="sortable" @click=${() => this.#onSortClick("tags")}>
+              <th class="sortable col-tags" @click=${() => this.#onSortClick("tags")}>
                 Tags${this.#sortIndicator("tags")}
               </th>
             </tr>
@@ -221,19 +248,20 @@ export class TransactionList extends LitElement {
             ${pageTransactions.map(
               (t) => html`
               <tr @click=${() => this.#navigateToTransaction(t.id!)}>
-                <td>${t.date}</td>
+                <td class="col-date">${this.#humanizeDate(t.date)}</td>
                 <td>${
                   t.merchantId && this._merchants.has(t.merchantId)
                     ? html`<a class="merchant-link" @click=${(e: Event) => {
                         e.stopPropagation();
                         this.#navigateToMerchant(t.merchantId!);
-                      }}>${this._merchants.get(t.merchantId!)}</a><br><span class="original-description">${t.originalDescription}</span>`
-                    : t.originalDescription
+                      }}>${this._merchants.get(t.merchantId!)}</a>`
+                    : ""
                 }</td>
-                <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                <td>${t.originalDescription}</td>
+                <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                   ${t.amount.toFixed(2)}
                 </td>
-                <td @click=${(e: Event) => e.stopPropagation()}>
+                <td class="col-tags" @click=${(e: Event) => e.stopPropagation()}>
                   <tag-autocomplete
                     .tags=${this._tags}
                     .selectedTagIds=${t.tagIds}
