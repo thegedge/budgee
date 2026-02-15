@@ -155,7 +155,16 @@ export class RuleManager extends LitElement {
   }
 
   async #onRuleSaved(e: CustomEvent) {
-    const { id, logic, conditions, tagIds, merchantName } = e.detail;
+    const { id, logic, conditions, tagIds, newTagNames, merchantName } = e.detail;
+
+    const allTagIds = [...(tagIds as number[])];
+    if (newTagNames?.length) {
+      for (const name of newTagNames as string[]) {
+        const existing = await db.tags.where("name").equalsIgnoreCase(name).first();
+        const tagId = existing?.id ?? (await db.tags.add({ name }));
+        allTagIds.push(tagId);
+      }
+    }
 
     let merchantId: number | undefined;
     if (merchantName) {
@@ -164,8 +173,8 @@ export class RuleManager extends LitElement {
     }
 
     const rule: MerchantRule = id
-      ? { id, logic, conditions, merchantId, tagIds }
-      : ({ logic, conditions, merchantId, tagIds } as MerchantRule);
+      ? { id, logic, conditions, merchantId, tagIds: allTagIds }
+      : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
 
     if (id) {
       await db.merchantRules.put(rule);
@@ -201,17 +210,6 @@ export class RuleManager extends LitElement {
     }
     if (updates.length > 0) {
       await db.transactions.bulkPut(updates);
-    }
-  }
-
-  async #onTagCreated(e: CustomEvent) {
-    const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name });
-    this._tags = await db.tags.toArray();
-    const editor = this.shadowRoot!.querySelector("rule-editor");
-    if (editor) {
-      editor.tags = this._tags;
-      editor.addTag(tagId);
     }
   }
 
@@ -412,7 +410,6 @@ export class RuleManager extends LitElement {
                 .editingRule=${this._editingRule}
                 .editingMerchantName=${this._editingMerchantName}
                 @rule-saved=${this.#onRuleSaved}
-                @tag-created=${this.#onTagCreated}
               ></rule-editor>
             </budgee-modal>
           `

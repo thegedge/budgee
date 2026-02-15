@@ -43,6 +43,9 @@ export class RuleEditor extends LitElement {
   @state()
   private _merchantName = "";
 
+  @state()
+  private _pendingTagNames: string[] = [];
+
   static styles = css`
     :host {
       display: block;
@@ -103,11 +106,13 @@ export class RuleEditor extends LitElement {
       this._logic = this.editingRule.logic;
       this._selectedTagIds = [...this.editingRule.tagIds];
       this._merchantName = this.editingMerchantName;
+      this._pendingTagNames = [];
     } else if (changed.has("prefillDescription") && this.prefillDescription) {
       this._conditions = [
         { field: "description", operator: "equals", value: this.prefillDescription },
       ];
       this._prefillPristine = true;
+      this._pendingTagNames = [];
     }
   }
 
@@ -138,12 +143,6 @@ export class RuleEditor extends LitElement {
     ];
   }
 
-  addTag(tagId: number) {
-    if (!this._selectedTagIds.includes(tagId)) {
-      this._selectedTagIds = [...this._selectedTagIds, tagId];
-    }
-  }
-
   #onTagSelected(e: CustomEvent) {
     const tag = e.detail.tag as Tag;
     if (!this._selectedTagIds.includes(tag.id!)) {
@@ -153,17 +152,17 @@ export class RuleEditor extends LitElement {
 
   #onTagCreated(e: CustomEvent) {
     const name = e.detail.name as string;
-    this.dispatchEvent(
-      new CustomEvent("tag-created", { detail: { name }, bubbles: true, composed: true }),
-    );
+    if (!this._pendingTagNames.includes(name)) {
+      this._pendingTagNames = [...this._pendingTagNames, name];
+    }
+  }
+
+  #removePendingTag(name: string) {
+    this._pendingTagNames = this._pendingTagNames.filter((n) => n !== name);
   }
 
   #removeTag(tagId: number) {
     this._selectedTagIds = this._selectedTagIds.filter((id) => id !== tagId);
-  }
-
-  #tagName(tagId: number): string {
-    return this.tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
 
   #onSave() {
@@ -177,6 +176,7 @@ export class RuleEditor extends LitElement {
           logic: this._logic,
           conditions: validConditions,
           tagIds: this._selectedTagIds,
+          newTagNames: this._pendingTagNames,
           merchantName: this._merchantName.trim() || undefined,
         },
       }),
@@ -185,6 +185,7 @@ export class RuleEditor extends LitElement {
     this._conditions = [{ field: "description", operator: "equals", value: "" }];
     this._selectedTagIds = [];
     this._merchantName = "";
+    this._pendingTagNames = [];
     this._logic = "or";
   }
 
@@ -231,18 +232,19 @@ export class RuleEditor extends LitElement {
       </div>
       <div class="form-row tags-row">
         <label>Tags:</label>
-        ${this._selectedTagIds.map(
-          (tagId) => html`
-          <span class="tag-badge" @click=${() => this.#removeTag(tagId)}>
-            ${this.#tagName(tagId)} &times;
+        ${this._pendingTagNames.map(
+          (name) => html`
+          <span class="tag-badge" @click=${() => this.#removePendingTag(name)}>
+            ${name} &times;
           </span>
         `,
         )}
         <tag-autocomplete
           .tags=${this.tags}
-          .excludeIds=${this._selectedTagIds}
+          .selectedTagIds=${this._selectedTagIds}
           @tag-selected=${this.#onTagSelected}
           @tag-created=${this.#onTagCreated}
+          @tag-removed=${(e: CustomEvent) => this.#removeTag(e.detail.tagId)}
         ></tag-autocomplete>
       </div>
       <button @click=${this.#onSave}>Save Rule</button>
