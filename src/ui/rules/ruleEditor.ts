@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Merchant, MerchantRule, RuleCondition, Tag } from "../../database/types";
+import { extractMerchant } from "../../import/extractMerchant";
 import "../merchants/merchantAutocomplete";
 import "../tags/tagAutocomplete";
 import "./conditionRow";
@@ -111,6 +112,7 @@ export class RuleEditor extends LitElement {
       this._conditions = [
         { field: "description", operator: "equals", value: this.prefillDescription },
       ];
+      this._merchantName = extractMerchant(this.prefillDescription);
       this._prefillPristine = true;
       this._pendingTagNames = [];
     }
