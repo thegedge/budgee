@@ -50,6 +50,12 @@ export class TransactionList extends LitElement {
   private _selectedIds = new Set<number>();
 
   @state()
+  private _excludeTagIds = new Set<number>();
+
+  @state()
+  private _noMerchant = false;
+
+  @state()
   private _bulkMerchantName = "";
 
   static styles = [
@@ -112,6 +118,49 @@ export class TransactionList extends LitElement {
         padding: 4px 10px;
         cursor: pointer;
       }
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .filter-group select {
+        padding: 2px 6px;
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        border-radius: 4px;
+        background: var(--budgee-surface, #fff);
+        font-size: 0.85rem;
+      }
+      .active-filters {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: var(--budgee-bg, #fafafa);
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        font-size: 0.8rem;
+      }
+      .chip-remove {
+        all: unset;
+        cursor: pointer;
+        font-size: 0.9rem;
+        line-height: 1;
+        padding: 0 2px;
+      }
     `,
   ];
 
@@ -170,6 +219,9 @@ export class TransactionList extends LitElement {
   }
 
   #matchesFilter(t: Transaction): boolean {
+    if (this._noMerchant && t.merchantId) return false;
+    if (t.tagIds.some((id) => this._excludeTagIds.has(id))) return false;
+
     if (!this._filter) return true;
     const lower = this._filter.toLowerCase();
     if (t.originalDescription.toLowerCase().includes(lower)) return true;
@@ -306,6 +358,74 @@ export class TransactionList extends LitElement {
     await this.#refresh();
   }
 
+  #toggleExcludeTag(tagId: number) {
+    const next = new Set(this._excludeTagIds);
+    if (next.has(tagId)) {
+      next.delete(tagId);
+    } else {
+      next.add(tagId);
+    }
+    this._excludeTagIds = next;
+    this._currentPage = 1;
+  }
+
+  #toggleNoMerchant() {
+    this._noMerchant = !this._noMerchant;
+    this._currentPage = 1;
+  }
+
+  #renderFilterBar() {
+    const hasActiveFilters = this._excludeTagIds.size > 0 || this._noMerchant;
+
+    return html`
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Exclude tag:</label>
+          <select @change=${(e: Event) => {
+            const value = Number((e.target as HTMLSelectElement).value);
+            if (value) this.#toggleExcludeTag(value);
+            (e.target as HTMLSelectElement).value = "";
+          }}>
+            <option value="">Select…</option>
+            ${this._tags
+              .filter((t) => !this._excludeTagIds.has(t.id!))
+              .map((t) => html`<option value=${t.id!}>${t.name}</option>`)}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>
+            <input type="checkbox" .checked=${this._noMerchant} @change=${this.#toggleNoMerchant} />
+            No merchant
+          </label>
+        </div>
+        ${
+          hasActiveFilters
+            ? html`
+            <div class="active-filters">
+              ${[...this._excludeTagIds].map(
+                (id) => html`
+                  <span class="filter-chip">
+                    Not: ${this.#tagName(id)}
+                    <button class="chip-remove" @click=${() => this.#toggleExcludeTag(id)}>×</button>
+                  </span>
+                `,
+              )}
+              ${
+                this._noMerchant
+                  ? html`<span class="filter-chip">
+                    No merchant
+                    <button class="chip-remove" @click=${this.#toggleNoMerchant}>×</button>
+                  </span>`
+                  : nothing
+              }
+            </div>
+          `
+            : nothing
+        }
+      </div>
+    `;
+  }
+
   #renderBulkBar() {
     if (this._selectedIds.size === 0) return nothing;
 
@@ -361,6 +481,7 @@ export class TransactionList extends LitElement {
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
     return html`
+      ${this.#renderFilterBar()}
       ${this.#renderBulkBar()}
       <paginated-table
         .totalItems=${filtered.length}
