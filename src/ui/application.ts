@@ -1,4 +1,5 @@
 import { LitElement, css, html } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import { customElement } from "lit/decorators.js";
 import { Router } from "@lit-labs/router";
 
@@ -117,6 +118,7 @@ export class Application extends LitElement {
         border-color 0.15s;
     }
 
+    nav a.active,
     nav a:hover,
     nav button:hover {
       color: var(--budgee-text);
@@ -150,6 +152,7 @@ export class Application extends LitElement {
         padding: 0.5rem 0.75rem;
       }
 
+      nav a.active,
       nav a:hover,
       nav button:hover {
         border-left-color: transparent;
@@ -162,15 +165,21 @@ export class Application extends LitElement {
     }
   `;
 
+  private navLink(href: string, label: string) {
+    const path = window.location.pathname;
+    const active = href === "/" ? path === "/" : path.startsWith(href);
+    return html`<a href=${href} class=${classMap({ active })}>${label}</a>`;
+  }
+
   render() {
     return html`
       <nav>
-        <a href="/">Dashboard</a>
-        <a href="/transactions">Transactions</a>
-        <a href="/merchants">Merchants</a>
-        <a href="/tags">Tags</a>
-        <a href="/rules">Rules</a>
-        <a href="/import">Import / Export</a>
+        ${this.navLink("/", "Dashboard")}
+        ${this.navLink("/transactions", "Transactions")}
+        ${this.navLink("/merchants", "Merchants")}
+        ${this.navLink("/tags", "Tags")}
+        ${this.navLink("/rules", "Rules")}
+        ${this.navLink("/import", "Import / Export")}
       </nav>
       <div class="container">
         ${this._router.outlet()}
