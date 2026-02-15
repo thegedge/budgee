@@ -59,12 +59,6 @@ export class TransactionDetail extends LitElement {
         font-size: 1.5rem;
         font-weight: bold;
       }
-      .amount-negative {
-        color: var(--budgee-negative, #d09090);
-      }
-      .amount-positive {
-        color: var(--budgee-positive, #7ec8a0);
-      }
       .meta {
         color: var(--budgee-text-muted, #888);
         font-size: 0.9rem;

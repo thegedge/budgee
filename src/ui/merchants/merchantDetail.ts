@@ -106,12 +106,6 @@ export class MerchantDetail extends LitElement {
         background: var(--budgee-surface, #fff);
         font-size: 0.875rem;
       }
-      .amount-negative {
-        color: var(--budgee-negative, #d09090);
-      }
-      .amount-positive {
-        color: var(--budgee-positive, #7ec8a0);
-      }
       tr {
         cursor: pointer;
       }

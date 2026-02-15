@@ -80,12 +80,6 @@ export class Dashboard extends LitElement {
           grid-template-columns: 1fr 1fr 1fr;
         }
       }
-      .amount-negative {
-        color: var(--budgee-negative, #d09090);
-      }
-      .amount-positive {
-        color: var(--budgee-positive, #7ec8a0);
-      }
       button {
         padding: 0.5rem 1rem;
         cursor: pointer;

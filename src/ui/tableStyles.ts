@@ -31,4 +31,10 @@ export const tableStyles = css`
   .clickable-row:hover {
     background-color: var(--budgee-bg, #fafafa);
   }
+  .amount-negative {
+    color: var(--budgee-negative, #d09090);
+  }
+  .amount-positive {
+    color: var(--budgee-positive, #7ec8a0);
+  }
 `;

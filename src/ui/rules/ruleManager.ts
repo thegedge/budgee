@@ -504,7 +504,7 @@ export class RuleManager extends LitElement {
                           <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
                             <td>${tx.date}</td>
                             <td>${tx.originalDescription}</td>
-                            <td>${tx.amount.toFixed(2)}</td>
+                            <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
                           </tr>
                         `,
                           )}

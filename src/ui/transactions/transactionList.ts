@@ -45,12 +45,6 @@ export class TransactionList extends LitElement {
   static styles = [
     tableStyles,
     css`
-      .amount-negative {
-        color: var(--budgee-negative, #d09090);
-      }
-      .amount-positive {
-        color: var(--budgee-positive, #7ec8a0);
-      }
       tr {
         cursor: pointer;
       }
