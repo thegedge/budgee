@@ -71,18 +71,7 @@ export class Application extends LitElement {
           <rule-manager></rule-manager>
         `,
     },
-    {
-      path: "/rule-overlap",
-      render: () =>
-        html`
-          <rule-overlap></rule-overlap>
-        `,
-      enter: async () => {
-        await import("./rules/ruleOverlap");
-        return true;
-      },
-    },
-    {
+{
       path: "/import",
       render: () =>
         html`
@@ -182,7 +171,6 @@ export class Application extends LitElement {
         <a href="/merchants">Merchants</a>
         <a href="/tags">Tags</a>
         <a href="/rules">Rules</a>
-        <a href="/rule-overlap">Overlap</a>
         <a href="/import">Import</a>
         <button @click=${exportDatabase}>Export</button>
       </nav>

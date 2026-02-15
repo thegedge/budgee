@@ -7,6 +7,7 @@ import "../modal";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "./ruleEditor";
+import "./ruleOverlap";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -518,6 +519,8 @@ export class RuleManager extends LitElement {
           `
           : nothing
       }
+
+      <rule-overlap></rule-overlap>
       </div>
     `;
   }
