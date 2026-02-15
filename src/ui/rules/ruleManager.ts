@@ -139,6 +139,16 @@ export class RuleManager extends LitElement {
       font-size: 0.85rem;
       color: var(--budgee-text-muted, #888);
     }
+    .sections-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 1200px) {
+      .sections-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
   `;
 
   connectedCallback() {
@@ -345,6 +355,7 @@ export class RuleManager extends LitElement {
     return html`
       <h2>Merchant Rules</h2>
 
+      <div class="sections-grid">
       ${
         this._rules.length > 0
           ? html`
@@ -507,6 +518,7 @@ export class RuleManager extends LitElement {
           `
           : nothing
       }
+      </div>
     `;
   }
 }

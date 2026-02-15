@@ -93,58 +93,84 @@ export class Application extends LitElement {
 
   static styles = css`
     :host {
-      display: block;
+      display: flex;
+      min-height: 100vh;
       color: var(--budgee-text);
       font-family: sans-serif;
     }
 
     nav {
       display: flex;
+      flex-direction: column;
       gap: 0;
       background: var(--budgee-surface);
-      border-bottom: 1px solid var(--budgee-border);
-      padding: 0 1rem;
+      border-right: 1px solid var(--budgee-border);
+      padding: 1rem 0;
+      width: 180px;
+      flex-shrink: 0;
     }
 
-    nav a {
-      padding: 0.75rem 1rem;
+    nav a,
+    nav button {
+      padding: 0.5rem 1rem;
       text-decoration: none;
       color: var(--budgee-text-muted);
       font-size: 0.9rem;
-      border-bottom: 2px solid transparent;
-      transition:
-        color 0.15s,
-        border-color 0.15s;
-    }
-
-    nav a:hover {
-      color: var(--budgee-text);
-      border-bottom-color: var(--budgee-primary);
-    }
-
-    nav button {
+      border-left: 3px solid transparent;
       background: none;
-      border: none;
-      padding: 0.75rem 1rem;
+      border-top: none;
+      border-right: none;
+      border-bottom: none;
       cursor: pointer;
-      color: var(--budgee-text-muted);
-      font-size: 0.9rem;
       font-family: inherit;
-      border-bottom: 2px solid transparent;
+      text-align: left;
       transition:
         color 0.15s,
         border-color 0.15s;
     }
 
+    nav a:hover,
     nav button:hover {
       color: var(--budgee-text);
-      border-bottom-color: var(--budgee-primary);
+      border-left-color: var(--budgee-primary);
     }
 
     .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1.5rem 1rem;
+      flex: 1;
+      min-width: 0;
+      padding: 1.5rem 2rem;
+    }
+
+    @media (max-width: 768px) {
+      :host {
+        flex-direction: column;
+      }
+
+      nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--budgee-border);
+        padding: 0 0.5rem;
+      }
+
+      nav a,
+      nav button {
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        padding: 0.5rem 0.75rem;
+      }
+
+      nav a:hover,
+      nav button:hover {
+        border-left-color: transparent;
+        border-bottom-color: var(--budgee-primary);
+      }
+
+      .container {
+        padding: 1rem;
+      }
     }
   `;
 

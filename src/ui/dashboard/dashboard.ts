@@ -72,6 +72,11 @@ export class Dashboard extends LitElement {
         grid-template-columns: 1fr 1fr;
       }
     }
+    @media (min-width: 1200px) {
+      .chart-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
     table {
       width: 100%;
       border-collapse: collapse;
