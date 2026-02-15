@@ -1,7 +1,8 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
-import type { Tag, Transaction } from "../../database/types";
+import type { Merchant, Tag, Transaction } from "../../database/types";
+import "../merchants/merchantAutocomplete";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../tags/tagAutocomplete";
@@ -28,6 +29,9 @@ export class TransactionList extends LitElement {
   private _merchants = new Map<number, string>();
 
   @state()
+  private _merchantList: Merchant[] = [];
+
+  @state()
   private _currentPage = 1;
 
   @state()
@@ -41,6 +45,12 @@ export class TransactionList extends LitElement {
 
   @state()
   private _sortDir: SortDir = "desc";
+
+  @state()
+  private _selectedIds = new Set<number>();
+
+  @state()
+  private _bulkMerchantName = "";
 
   static styles = [
     tableStyles,
@@ -71,6 +81,37 @@ export class TransactionList extends LitElement {
         display: block;
         width: 100%;
       }
+      .col-checkbox {
+        width: min-content;
+      }
+      .bulk-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0.75rem;
+        background: var(--budgee-bg, #fafafa);
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .bulk-bar .selected-count {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .bulk-bar label {
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+      .bulk-bar .bulk-action {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .bulk-bar button {
+        padding: 4px 10px;
+        cursor: pointer;
+      }
     `,
   ];
 
@@ -84,6 +125,7 @@ export class TransactionList extends LitElement {
     this._tags = await db.tags.toArray();
     const merchants = await db.merchants.toArray();
     this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
+    this._merchantList = merchants;
   }
 
   async #onTagSelected(transaction: Transaction, e: CustomEvent) {
@@ -197,6 +239,107 @@ export class TransactionList extends LitElement {
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
+  #toggleSelection(id: number) {
+    const next = new Set(this._selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    this._selectedIds = next;
+  }
+
+  #toggleSelectAll(pageTransactions: Transaction[]) {
+    const pageIds = pageTransactions.map((t) => t.id!);
+    const allSelected = pageIds.every((id) => this._selectedIds.has(id));
+    if (allSelected) {
+      const next = new Set(this._selectedIds);
+      for (const id of pageIds) next.delete(id);
+      this._selectedIds = next;
+    } else {
+      this._selectedIds = new Set([...this._selectedIds, ...pageIds]);
+    }
+  }
+
+  #clearSelection() {
+    this._selectedIds = new Set();
+    this._bulkMerchantName = "";
+  }
+
+  async #bulkAddTag(e: CustomEvent) {
+    const tag = e.detail.tag as Tag;
+    const tagId = tag.id!;
+    await this.#applyTagToSelected(tagId);
+  }
+
+  async #bulkCreateTag(e: CustomEvent) {
+    const name = e.detail.name as string;
+    const tagId = await db.tags.add({ name });
+    await this.#applyTagToSelected(tagId as number);
+  }
+
+  async #applyTagToSelected(tagId: number) {
+    if (!this._transactions) return;
+    const selected = this._transactions.filter((t) => this._selectedIds.has(t.id!));
+    for (const t of selected) {
+      if (t.tagIds.includes(tagId)) continue;
+      await db.transactions.update(t.id!, { tagIds: [...t.tagIds, tagId] });
+    }
+    this.#clearSelection();
+    await this.#refresh();
+  }
+
+  async #bulkSetMerchant() {
+    const name = this._bulkMerchantName.trim();
+    if (!name || !this._transactions) return;
+
+    let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
+    if (!merchant) {
+      const id = await db.merchants.add({ name });
+      merchant = { id: id as number, name };
+    }
+
+    for (const id of this._selectedIds) {
+      await db.transactions.update(id, { merchantId: merchant.id });
+    }
+    this.#clearSelection();
+    await this.#refresh();
+  }
+
+  #renderBulkBar() {
+    if (this._selectedIds.size === 0) return nothing;
+
+    return html`
+      <div class="bulk-bar">
+        <span class="selected-count">${this._selectedIds.size} selected</span>
+        <div class="bulk-action">
+          <label>Tag:</label>
+          <tag-autocomplete
+            .tags=${this._tags}
+            .selectedTagIds=${[]}
+            .excludeIds=${[]}
+            @tag-selected=${this.#bulkAddTag}
+            @tag-created=${this.#bulkCreateTag}
+          ></tag-autocomplete>
+        </div>
+        <div class="bulk-action">
+          <label>Merchant:</label>
+          <merchant-autocomplete
+            .merchants=${this._merchantList}
+            .value=${this._bulkMerchantName}
+            @merchant-changed=${(e: CustomEvent) => {
+              this._bulkMerchantName = e.detail.name as string;
+            }}
+          ></merchant-autocomplete>
+          <button @click=${this.#bulkSetMerchant} ?disabled=${!this._bulkMerchantName.trim()}>
+            Set
+          </button>
+        </div>
+        <button @click=${this.#clearSelection}>Clear selection</button>
+      </div>
+    `;
+  }
+
   render() {
     if (this._transactions === null) {
       return html`
@@ -214,8 +357,11 @@ export class TransactionList extends LitElement {
     const sorted = this.#sorted(filtered);
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = sorted.slice(start, start + this._pageSize);
+    const pageIds = pageTransactions.map((t) => t.id!);
+    const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
     return html`
+      ${this.#renderBulkBar()}
       <paginated-table
         .totalItems=${filtered.length}
         .defaultPageSize=${50}
@@ -227,6 +373,13 @@ export class TransactionList extends LitElement {
         <table>
           <thead>
             <tr>
+              <th class="col-checkbox">
+                <input
+                  type="checkbox"
+                  .checked=${allPageSelected}
+                  @change=${() => this.#toggleSelectAll(pageTransactions)}
+                />
+              </th>
               <th class="sortable col-date" @click=${() => this.#onSortClick("date")}>
                 Date${this.#sortIndicator("date")}
               </th>
@@ -248,6 +401,13 @@ export class TransactionList extends LitElement {
             ${pageTransactions.map(
               (t) => html`
               <tr @click=${() => this.#navigateToTransaction(t.id!)}>
+                <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    .checked=${this._selectedIds.has(t.id!)}
+                    @change=${() => this.#toggleSelection(t.id!)}
+                  />
+                </td>
                 <td class="col-date">${this.#humanizeDate(t.date)}</td>
                 <td>${
                   t.merchantId && this._merchants.has(t.merchantId)
