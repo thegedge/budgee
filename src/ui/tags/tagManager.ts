@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag } from "../../database/types";
@@ -14,33 +14,6 @@ declare global {
 
 type SortDir = "asc" | "desc";
 
-const COMMON_ICONS = [
-  "🍔",
-  "🛒",
-  "🏠",
-  "🚗",
-  "✈️",
-  "💊",
-  "🎮",
-  "🎬",
-  "☕",
-  "🍺",
-  "👕",
-  "💇",
-  "📚",
-  "🐾",
-  "💡",
-  "🏋️",
-  "🎵",
-  "💰",
-  "🏥",
-  "⛽",
-  "📱",
-  "🎁",
-  "🌿",
-  "🔧",
-];
-
 @customElement("tag-manager")
 export class TagManager extends LitElement {
   @state()
@@ -48,9 +21,6 @@ export class TagManager extends LitElement {
 
   @state()
   private _newTagName = "";
-
-  @state()
-  private _newTagIcon = "";
 
   @state()
   private _error = "";
@@ -117,59 +87,44 @@ export class TagManager extends LitElement {
         color: var(--budgee-danger-hover, #d07070);
         font-size: 0.85rem;
       }
-      .icon-picker {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
+      .col-icon {
+        width: min-content;
       }
-      .icon-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
+      .col-remove {
+        width: min-content;
       }
       .icon-btn {
         background: none;
         border: 1px solid var(--budgee-border, #e0e0e0);
         border-radius: 4px;
         padding: 4px;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         cursor: pointer;
         color: inherit;
-        min-width: 2rem;
+        width: 2.2rem;
+        height: 2.2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
-      .icon-btn:hover,
-      .icon-btn.selected {
-        background-color: var(--budgee-primary, #7eb8da);
+      .icon-btn:hover {
+        background-color: var(--budgee-bg, #fafafa);
       }
-      .icon-input-row {
+      .icon-btn.placeholder {
+        color: var(--budgee-text-muted, #888);
+        font-size: 1rem;
+      }
+      .icon-edit {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.25rem;
         align-items: center;
       }
-      .icon-input-row input {
-        width: 4rem;
+      .icon-edit input {
+        width: 3rem;
         flex: none;
         text-align: center;
         font-size: 1.1rem;
-      }
-      .icon-preview {
-        font-size: 1rem;
-      }
-      .tag-icon {
-        margin-right: 4px;
-      }
-      .edit-icon-btn {
-        background: none;
-        border: 1px solid var(--budgee-border, #e0e0e0);
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        color: inherit;
-      }
-      .edit-icon-btn:hover {
-        background-color: var(--budgee-bg, #fafafa);
+        padding: 2px 4px;
       }
     `,
   ];
@@ -188,13 +143,10 @@ export class TagManager extends LitElement {
     if (!name) return;
 
     this._error = "";
-    const tag: Tag = { name };
-    if (this._newTagIcon) tag.icon = this._newTagIcon;
 
     try {
-      await db.tags.add(tag);
+      await db.tags.add({ name });
       this._newTagName = "";
-      this._newTagIcon = "";
       await this.#refreshTags();
     } catch {
       this._error = `Tag "${name}" already exists.`;
@@ -241,33 +193,6 @@ export class TagManager extends LitElement {
     return [...tags].sort((a, b) => a.name.localeCompare(b.name) * dir);
   }
 
-  #renderIconPicker(selectedIcon: string, onSelect: (icon: string) => void) {
-    return html`
-      <div class="icon-picker">
-        <div class="icon-grid">
-          ${COMMON_ICONS.map(
-            (emoji) => html`
-            <button
-              class="icon-btn ${selectedIcon === emoji ? "selected" : ""}"
-              @click=${() => onSelect(selectedIcon === emoji ? "" : emoji)}
-            >${emoji}</button>
-          `,
-          )}
-        </div>
-        <div class="icon-input-row">
-          <span>Or type:</span>
-          <input
-            type="text"
-            .value=${selectedIcon}
-            placeholder="😀"
-            @input=${(e: Event) => onSelect((e.target as HTMLInputElement).value)}
-          />
-          ${selectedIcon ? html`<span class="icon-preview">${selectedIcon}</span>` : nothing}
-        </div>
-      </div>
-    `;
-  }
-
   render() {
     return html`
       <h3>Tags</h3>
@@ -281,9 +206,6 @@ export class TagManager extends LitElement {
         />
         <button @click=${this.#addTag}>Add</button>
       </div>
-      ${this.#renderIconPicker(this._newTagIcon, (icon) => {
-        this._newTagIcon = icon;
-      })}
       ${this._error ? html`<p class="error">${this._error}</p>` : ""}
       ${(() => {
         const lower = this._filter.toLowerCase();
@@ -306,42 +228,47 @@ export class TagManager extends LitElement {
             <table>
               <thead>
                 <tr>
+                  <th class="col-icon">Icon</th>
                   <th class="sortable" @click=${this.#onNameSortClick}>Name${indicator}</th>
-                  <th>Icon</th>
-                  <th></th>
+                  <th class="col-remove"></th>
                 </tr>
               </thead>
               <tbody>
                 ${pageTags.map(
                   (tag) => html`
                   <tr>
-                    <td>
-                      ${tag.icon ? html`<span class="tag-icon">${tag.icon}</span>` : nothing}${tag.name}
-                    </td>
-                    <td>
+                    <td class="col-icon">
                       ${
                         this._editingTagId === tag.id
                           ? html`
-                          ${this.#renderIconPicker(this._editingIcon, (icon) => {
-                            this._editingIcon = icon;
-                          })}
-                          <button @click=${() => this.#saveTagIcon(tag)}>Save</button>
-                          <button class="delete-btn" @click=${() => {
-                            this._editingTagId = null;
-                          }}>Cancel</button>
+                          <div class="icon-edit">
+                            <input
+                              type="text"
+                              .value=${this._editingIcon}
+                              placeholder="😀"
+                              @input=${(e: Event) => {
+                                this._editingIcon = (e.target as HTMLInputElement).value;
+                              }}
+                            />
+                            <button @click=${() => this.#saveTagIcon(tag)}>Save</button>
+                            <button class="delete-btn" @click=${() => {
+                              this._editingTagId = null;
+                            }}>Cancel</button>
+                          </div>
                         `
                           : html`
                           <button
-                            class="edit-icon-btn"
+                            class="icon-btn ${tag.icon ? "" : "placeholder"}"
                             @click=${() => {
                               this._editingTagId = tag.id!;
                               this._editingIcon = tag.icon ?? "";
                             }}
-                          >${tag.icon ? tag.icon : "Set icon"}</button>
+                          >${tag.icon ? tag.icon : "?"}</button>
                         `
                       }
                     </td>
-                    <td>
+                    <td>${tag.name}</td>
+                    <td class="col-remove">
                       <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
                         Remove
                       </button>
