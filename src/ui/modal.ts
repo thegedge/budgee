@@ -13,24 +13,23 @@ export class Modal extends LitElement {
   heading = "";
 
   static styles = css`
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal {
+    [popover] {
       background: var(--budgee-surface, #fff);
       border-radius: 8px;
       padding: 1.5rem;
       max-width: 800px;
-      width: 90%;
+      width: min(90vw, 800px);
       max-height: 80vh;
       overflow-y: auto;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      border: none;
+      margin: auto;
+      position: fixed;
+      inset: 0;
+      height: fit-content;
+    }
+    [popover]::backdrop {
+      background: rgba(0, 0, 0, 0.5);
     }
     .header {
       display: flex;
@@ -55,26 +54,31 @@ export class Modal extends LitElement {
     }
   `;
 
-  #onClose() {
-    this.dispatchEvent(new CustomEvent("modal-close"));
+  connectedCallback() {
+    super.connectedCallback();
+    this.updateComplete.then(() => {
+      const el = this.shadowRoot?.getElementById("popover");
+      el?.showPopover?.();
+      el?.addEventListener("toggle", (e: Event) => {
+        if ((e as ToggleEvent).newState === "closed") {
+          this.dispatchEvent(new CustomEvent("modal-close"));
+        }
+      });
+    });
   }
 
-  #onOverlayClick(e: Event) {
-    if (e.target === e.currentTarget) {
-      this.#onClose();
-    }
+  #onClose() {
+    this.shadowRoot?.getElementById("popover")?.hidePopover?.();
   }
 
   render() {
     return html`
-      <div class="overlay" @click=${this.#onOverlayClick}>
-        <div class="modal">
-          <div class="header">
-            <h3>${this.heading}</h3>
-            <button class="close" @click=${this.#onClose}>&times;</button>
-          </div>
-          <slot></slot>
+      <div id="popover" popover="auto">
+        <div class="header">
+          <h3>${this.heading}</h3>
+          <button class="close" @click=${this.#onClose}>&times;</button>
         </div>
+        <slot></slot>
       </div>
     `;
   }
