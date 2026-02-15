@@ -468,7 +468,6 @@ export class RuleManager extends LitElement {
           ? html`
             <div class="section">
               <h3>Unmerchanted Transactions</h3>
-              <p>Click a transaction to pre-fill a rule.</p>
               ${(() => {
                 const lower = this._unmerchantedFilter.toLowerCase();
                 const filtered = lower

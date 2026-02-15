@@ -1,7 +1,15 @@
-import { LitElement, css, html } from "lit";
-import { classMap } from "lit/directives/class-map.js";
-import { customElement } from "lit/decorators.js";
 import { Router } from "@lit-labs/router";
+import { LitElement, css, html } from "lit";
+import { customElement } from "lit/decorators.js";
+import { classMap } from "lit/directives/class-map.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+
+import adjustmentsHorizontalIcon from "heroicons/24/outline/adjustments-horizontal.svg?raw";
+import arrowDownTrayIcon from "heroicons/24/outline/arrow-down-tray.svg?raw";
+import banknotesIcon from "heroicons/24/outline/banknotes.svg?raw";
+import buildingStorefrontIcon from "heroicons/24/outline/building-storefront.svg?raw";
+import chartBarIcon from "heroicons/24/outline/chart-bar.svg?raw";
+import tagIcon from "heroicons/24/outline/tag.svg?raw";
 
 import "./dashboard/dashboard";
 import "./import/importer";
@@ -88,6 +96,12 @@ export class Application extends LitElement {
       font-family: sans-serif;
     }
 
+    svg[data-slot="icon"] {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+    }
+
     nav {
       display: flex;
       flex-direction: column;
@@ -101,6 +115,9 @@ export class Application extends LitElement {
 
     nav a,
     nav button {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
       padding: 0.5rem 1rem;
       text-decoration: none;
       color: var(--budgee-text-muted);
@@ -116,13 +133,6 @@ export class Application extends LitElement {
       transition:
         color 0.15s,
         border-color 0.15s;
-    }
-
-    nav a.active,
-    nav a:hover,
-    nav button:hover {
-      color: var(--budgee-text);
-      border-left-color: var(--budgee-primary);
     }
 
     .container {
@@ -165,21 +175,21 @@ export class Application extends LitElement {
     }
   `;
 
-  private navLink(href: string, label: string) {
+  private navLink(href: string, label: string, icon: string) {
     const path = window.location.pathname;
     const active = href === "/" ? path === "/" : path.startsWith(href);
-    return html`<a href=${href} class=${classMap({ active })}>${label}</a>`;
+    return html`<a href=${href} class=${classMap({ active })}>${unsafeSVG(icon)} ${label}</a>`;
   }
 
   render() {
     return html`
       <nav>
-        ${this.navLink("/", "Dashboard")}
-        ${this.navLink("/transactions", "Transactions")}
-        ${this.navLink("/merchants", "Merchants")}
-        ${this.navLink("/tags", "Tags")}
-        ${this.navLink("/rules", "Rules")}
-        ${this.navLink("/import", "Import / Export")}
+        ${this.navLink("/", "Dashboard", chartBarIcon)}
+        ${this.navLink("/transactions", "Transactions", banknotesIcon)}
+        ${this.navLink("/merchants", "Merchants", buildingStorefrontIcon)}
+        ${this.navLink("/tags", "Tags", tagIcon)}
+        ${this.navLink("/rules", "Rules", adjustmentsHorizontalIcon)}
+        ${this.navLink("/import", "Import / Export", arrowDownTrayIcon)}
       </nav>
       <div class="container">
         ${this._router.outlet()}
