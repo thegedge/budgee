@@ -1,5 +1,5 @@
 import { LitElement, css, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { MerchantRule } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
@@ -14,11 +14,14 @@ interface OverlapPair {
   ruleA: MerchantRule;
   ruleB: MerchantRule;
   count: number;
-  sampleDescriptions: string[];
+  samples: Set<string>;
 }
 
 @customElement("rule-overlap")
 export class RuleOverlap extends LitElement {
+  @property({ type: Number })
+  refreshTrigger = 0;
+
   @state()
   private _overlaps: OverlapPair[] = [];
 
@@ -57,12 +60,22 @@ export class RuleOverlap extends LitElement {
       font-size: 0.8rem;
       color: var(--budgee-text-muted, #888);
       font-style: italic;
+      white-space: pre-wrap;
     }
   `;
 
   connectedCallback() {
     super.connectedCallback();
     this.#analyze();
+  }
+
+  willUpdate(changedProperties: Map<string, unknown>) {
+    if (
+      changedProperties.has("refreshTrigger") &&
+      changedProperties.get("refreshTrigger") !== undefined
+    ) {
+      this.#analyze();
+    }
   }
 
   async #analyze() {
@@ -73,10 +86,7 @@ export class RuleOverlap extends LitElement {
     ]);
 
     this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
-    const pairCounts = new Map<
-      string,
-      { ruleA: MerchantRule; ruleB: MerchantRule; count: number; samples: string[] }
-    >();
+    const pairCounts = new Map<string, OverlapPair>();
 
     for (const tx of transactions) {
       const desc = tx.originalDescription.toLowerCase();
@@ -89,30 +99,20 @@ export class RuleOverlap extends LitElement {
           const existing = pairCounts.get(key);
           if (existing) {
             existing.count++;
-            if (existing.samples.length < 3) {
-              existing.samples.push(tx.originalDescription);
-            }
+            existing.samples.add(tx.originalDescription);
           } else {
             pairCounts.set(key, {
               ruleA: matching[i],
               ruleB: matching[j],
               count: 1,
-              samples: [tx.originalDescription],
+              samples: new Set([tx.originalDescription]),
             });
           }
         }
       }
     }
 
-    this._overlaps = [...pairCounts.values()]
-      .sort((a, b) => b.count - a.count)
-      .map((p) => ({
-        ruleA: p.ruleA,
-        ruleB: p.ruleB,
-        count: p.count,
-        sampleDescriptions: p.samples,
-      }));
-
+    this._overlaps = [...pairCounts.values()].sort((a, b) => b.count - a.count);
     this._loading = false;
   }
 
@@ -157,7 +157,7 @@ export class RuleOverlap extends LitElement {
               <td class="condition-summary">${this.#formatRule(o.ruleA)}</td>
               <td class="condition-summary">${this.#formatRule(o.ruleB)}</td>
               <td>${o.count}</td>
-              <td class="samples">${o.sampleDescriptions.join(", ")}</td>
+              <td class="samples">${o.samples.values().take(3).toArray().join("\n\n")}</td>
             </tr>
           `,
           )}

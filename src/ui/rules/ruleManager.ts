@@ -71,6 +71,9 @@ export class RuleManager extends LitElement {
   @state()
   private _unmerchantedFilter = "";
 
+  @state()
+  private _overlapRefresh = 0;
+
   static styles = css`
     :host {
       display: block;
@@ -166,6 +169,7 @@ export class RuleManager extends LitElement {
     this._merchants = await db.merchants.toArray();
     const allTx = await db.transactions.toArray();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
+    this._overlapRefresh++;
   }
 
   async #onRuleSaved(e: CustomEvent) {
@@ -494,7 +498,9 @@ export class RuleManager extends LitElement {
               ${(() => {
                 const lower = this._unmerchantedFilter.toLowerCase();
                 const filtered = lower
-                  ? this._unmerchanted.filter((tx) => tx.originalDescription.toLowerCase().includes(lower))
+                  ? this._unmerchanted.filter((tx) =>
+                      tx.originalDescription.toLowerCase().includes(lower),
+                    )
                   : this._unmerchanted;
                 return html`
                   <paginated-table
@@ -538,7 +544,7 @@ export class RuleManager extends LitElement {
           : nothing
       }
 
-      <rule-overlap></rule-overlap>
+      <rule-overlap .refreshTrigger=${this._overlapRefresh}></rule-overlap>
       </div>
     `;
   }

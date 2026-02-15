@@ -71,7 +71,7 @@ export class Application extends LitElement {
           <rule-manager></rule-manager>
         `,
     },
-{
+    {
       path: "/import",
       render: () =>
         html`
