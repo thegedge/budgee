@@ -69,16 +69,6 @@ export class TransactionList extends LitElement {
     .amount-positive {
       color: var(--budgee-positive, #7ec8a0);
     }
-    .tag-badge {
-      display: inline-block;
-      background: var(--budgee-primary, #7eb8da);
-      color: white;
-      padding: 1px 6px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      margin-right: 2px;
-      cursor: pointer;
-    }
     tr {
       cursor: pointer;
     }
@@ -126,12 +116,6 @@ export class TransactionList extends LitElement {
 
   #tagName(tagId: number): string {
     return this.#tag(tagId)?.name ?? `#${tagId}`;
-  }
-
-  #tagLabel(tagId: number): string {
-    const tag = this.#tag(tagId);
-    if (!tag) return `#${tagId}`;
-    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
   }
 
   #onPageChange(e: CustomEvent<PageChangeDetail>) {
@@ -246,18 +230,12 @@ export class TransactionList extends LitElement {
                   ${t.amount.toFixed(2)}
                 </td>
                 <td @click=${(e: Event) => e.stopPropagation()}>
-                  ${t.tagIds.map(
-                    (tagId) => html`
-                    <span class="tag-badge" @click=${(e: Event) => this.#removeTag(t, tagId, e)}>
-                      ${this.#tagLabel(tagId)} &times;
-                    </span>
-                  `,
-                  )}
                   <tag-autocomplete
                     .tags=${this._tags}
-                    .excludeIds=${t.tagIds}
+                    .selectedTagIds=${t.tagIds}
                     @tag-selected=${(e: CustomEvent) => this.#onTagSelected(t, e)}
                     @tag-created=${(e: CustomEvent) => this.#onTagCreated(t, e)}
+                    @tag-removed=${(e: CustomEvent) => this.#removeTag(t, e.detail.tagId, e)}
                   ></tag-autocomplete>
                 </td>
               </tr>

@@ -267,10 +267,6 @@ export class TransactionDetail extends LitElement {
     };
   }
 
-  #tagName(tagId: number): string {
-    return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
-  }
-
   #createRule(tx: Transaction) {
     const params = new URLSearchParams({ description: tx.originalDescription });
     window.history.pushState({}, "", `/rules?${params}`);
@@ -306,21 +302,13 @@ export class TransactionDetail extends LitElement {
 
       <div class="section">
         <h3>Tags</h3>
-        <div class="tags-row">
-          ${tx.tagIds.map(
-            (tagId) => html`
-            <span class="tag-badge" @click=${() => this.#removeTag(tagId)}>
-              ${this.#tagName(tagId)} &times;
-            </span>
-          `,
-          )}
-          <tag-autocomplete
-            .tags=${this._tags}
-            .excludeIds=${tx.tagIds}
-            @tag-selected=${this.#onTagSelected}
-            @tag-created=${this.#onTagCreated}
-          ></tag-autocomplete>
-        </div>
+        <tag-autocomplete
+          .tags=${this._tags}
+          .selectedTagIds=${tx.tagIds}
+          @tag-selected=${this.#onTagSelected}
+          @tag-created=${this.#onTagCreated}
+          @tag-removed=${(e: CustomEvent) => this.#removeTag(e.detail.tagId)}
+        ></tag-autocomplete>
       </div>
 
       ${

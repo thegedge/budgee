@@ -14,6 +14,9 @@ export class TagAutocomplete extends LitElement {
   tags: Tag[] = [];
 
   @property({ type: Array })
+  selectedTagIds: number[] = [];
+
+  @property({ type: Array })
   excludeIds: number[] = [];
 
   @state()
@@ -30,24 +33,50 @@ export class TagAutocomplete extends LitElement {
       display: inline-block;
       position: relative;
     }
-    input {
-      padding: 2px 6px;
-      font-size: 0.85rem;
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: 2px 4px;
       border: 1px solid var(--budgee-border, #e0e0e0);
       border-radius: 4px;
-      width: 120px;
+      min-width: 120px;
+      cursor: text;
+      background: var(--budgee-surface, #fff);
+    }
+    .input-wrapper:focus-within {
+      outline: 2px solid var(--budgee-primary, #7eb8da);
+      outline-offset: -1px;
+    }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      background: var(--budgee-primary, #7eb8da);
+      color: white;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    input {
+      border: none;
+      outline: none;
+      padding: 2px 4px;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 60px;
+      background: transparent;
     }
     .suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
+      position: fixed;
       background: var(--budgee-surface, #fff);
       border: 1px solid var(--budgee-border, #e0e0e0);
       border-radius: 0 0 4px 4px;
       max-height: 150px;
       overflow-y: auto;
-      z-index: 10;
+      z-index: 1100;
       min-width: 120px;
     }
     .suggestion {
@@ -65,17 +94,52 @@ export class TagAutocomplete extends LitElement {
     }
   `;
 
+  updated(changed: Map<string, unknown>) {
+    if (changed.has("_open") && this._open) {
+      this.updateComplete.then(() => this.#positionDropdown());
+    }
+  }
+
   get #filtered(): Tag[] {
     const q = this._query.toLowerCase();
-    return this.tags.filter(
-      (t) => !this.excludeIds.includes(t.id!) && t.name.toLowerCase().includes(q),
-    );
+    return this.tags
+      .filter(
+        (t) =>
+          !this.selectedTagIds.includes(t.id!) &&
+          !this.excludeIds.includes(t.id!) &&
+          t.name.toLowerCase().includes(q),
+      )
+      .sort((a, b) => {
+        const aStarts = a.name.toLowerCase().startsWith(q) ? 0 : 1;
+        const bStarts = b.name.toLowerCase().startsWith(q) ? 0 : 1;
+        return aStarts - bStarts || a.name.localeCompare(b.name);
+      });
   }
 
   get #showCreate(): boolean {
     const q = this._query.trim();
     if (!q) return false;
     return !this.tags.some((t) => t.name.toLowerCase() === q.toLowerCase());
+  }
+
+  #tagLabel(tagId: number): string {
+    const tag = this.tags.find((t) => t.id === tagId);
+    if (!tag) return `#${tagId}`;
+    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
+  }
+
+  #removeTag(tagId: number) {
+    this.dispatchEvent(new CustomEvent("tag-removed", { detail: { tagId } }));
+  }
+
+  #positionDropdown() {
+    const input = this.shadowRoot?.querySelector("input");
+    const dropdown = this.shadowRoot?.querySelector(".suggestions") as HTMLElement | null;
+    if (!input || !dropdown) return;
+    const rect = input.getBoundingClientRect();
+    dropdown.style.top = `${rect.bottom}px`;
+    dropdown.style.left = `${rect.left}px`;
+    dropdown.style.width = `${rect.width}px`;
   }
 
   #onInput(e: Event) {
@@ -142,21 +206,36 @@ export class TagAutocomplete extends LitElement {
     this._query = "";
     this._highlightIndex = -1;
     this._open = false;
+    this.updateComplete.then(() => {
+      this.shadowRoot?.querySelector("input")?.focus();
+    });
   }
 
   render() {
     const filtered = this.#filtered;
 
     return html`
-      <input
-        type="text"
-        placeholder="Add tag..."
-        .value=${this._query}
-        @input=${this.#onInput}
-        @keydown=${this.#onKeyDown}
-        @focus=${this.#onFocus}
-        @blur=${this.#onBlur}
-      />
+      <div class="input-wrapper" @click=${() => this.shadowRoot?.querySelector("input")?.focus()}>
+        ${this.selectedTagIds.map(
+          (tagId) => html`
+          <span class="tag-pill" @click=${(e: Event) => {
+            e.stopPropagation();
+            this.#removeTag(tagId);
+          }}>
+            ${this.#tagLabel(tagId)} &times;
+          </span>
+        `,
+        )}
+        <input
+          type="text"
+          placeholder=${this.selectedTagIds.length > 0 ? "" : "Add tag..."}
+          .value=${this._query}
+          @input=${this.#onInput}
+          @keydown=${this.#onKeyDown}
+          @focus=${this.#onFocus}
+          @blur=${this.#onBlur}
+        />
+      </div>
       ${
         this._open && (filtered.length > 0 || this.#showCreate)
           ? html`

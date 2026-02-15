@@ -71,7 +71,8 @@ describe("transaction-detail", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const badges = el.shadowRoot!.querySelectorAll(".tag-badge");
+    const autocomplete = el.shadowRoot!.querySelector("tag-autocomplete")!;
+    const badges = autocomplete.shadowRoot!.querySelectorAll(".tag-pill");
     expect(badges).toHaveLength(1);
     expect(badges[0].textContent).toContain("Groceries");
 
