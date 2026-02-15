@@ -68,6 +68,9 @@ export class RuleManager extends LitElement {
   @state()
   private _unmerchantedPageSize = 20;
 
+  @state()
+  private _unmerchantedFilter = "";
+
   static styles = css`
     :host {
       display: block;
@@ -347,6 +350,11 @@ export class RuleManager extends LitElement {
     this._unmerchantedPageSize = e.detail.pageSize;
   }
 
+  #onUnmerchantedFilterChange(e: CustomEvent<FilterChangeDetail>) {
+    this._unmerchantedFilter = e.detail.filter;
+    this._unmerchantedPage = 1;
+  }
+
   #selectTransaction(tx: Transaction) {
     this._prefillDescription = tx.originalDescription;
     this._showEditor = true;
@@ -483,38 +491,48 @@ export class RuleManager extends LitElement {
             <div class="section">
               <h3>Unmerchanted Transactions</h3>
               <p>Click a transaction to pre-fill a rule.</p>
-              <paginated-table
-                .totalItems=${this._unmerchanted.length}
-                .defaultPageSize=${20}
-                storageKey="unmerchanted"
-                @page-change=${this.#onUnmerchantedPageChange}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Description</th>
-                      <th>Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${this._unmerchanted
-                      .slice(
-                        (this._unmerchantedPage - 1) * this._unmerchantedPageSize,
-                        this._unmerchantedPage * this._unmerchantedPageSize,
-                      )
-                      .map(
-                        (tx) => html`
-                      <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
-                        <td>${tx.date}</td>
-                        <td>${tx.originalDescription}</td>
-                        <td>${tx.amount.toFixed(2)}</td>
-                      </tr>
-                    `,
-                      )}
-                  </tbody>
-                </table>
-              </paginated-table>
+              ${(() => {
+                const lower = this._unmerchantedFilter.toLowerCase();
+                const filtered = lower
+                  ? this._unmerchanted.filter((tx) => tx.originalDescription.toLowerCase().includes(lower))
+                  : this._unmerchanted;
+                return html`
+                  <paginated-table
+                    .totalItems=${filtered.length}
+                    .defaultPageSize=${20}
+                    storageKey="unmerchanted"
+                    ?filterable=${true}
+                    @page-change=${this.#onUnmerchantedPageChange}
+                    @filter-change=${this.#onUnmerchantedFilterChange}
+                  >
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Description</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${filtered
+                          .slice(
+                            (this._unmerchantedPage - 1) * this._unmerchantedPageSize,
+                            this._unmerchantedPage * this._unmerchantedPageSize,
+                          )
+                          .map(
+                            (tx) => html`
+                          <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+                            <td>${tx.date}</td>
+                            <td>${tx.originalDescription}</td>
+                            <td>${tx.amount.toFixed(2)}</td>
+                          </tr>
+                        `,
+                          )}
+                      </tbody>
+                    </table>
+                  </paginated-table>
+                `;
+              })()}
             </div>
           `
           : nothing
