@@ -7,6 +7,7 @@ import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import type { PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../charts/chartWrapper";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -41,98 +42,84 @@ export class MerchantDetail extends LitElement {
   @state()
   private _pageSize = 25;
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .back-link {
-      color: var(--budgee-primary, #7eb8da);
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
-      display: inline-block;
-    }
-    .header {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    .header h2 {
-      margin-top: 0;
-      margin-bottom: 0.25rem;
-    }
-    .meta {
-      color: var(--budgee-text-muted, #888);
-      font-size: 0.9rem;
-    }
-    .top-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    .section {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      background: var(--budgee-surface, #fff);
-    }
-    .section h3 {
-      margin-top: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .section-transactions {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      background: var(--budgee-surface, #fff);
-      margin-bottom: 1rem;
-    }
-    .section-transactions h3 {
-      margin-top: 0;
-    }
-    select {
-      padding: 2px 6px;
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      border-radius: 4px;
-      background: var(--budgee-surface, #fff);
-      font-size: 0.875rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .amount-negative {
-      color: var(--budgee-negative, #d09090);
-    }
-    .amount-positive {
-      color: var(--budgee-positive, #7ec8a0);
-    }
-    tr {
-      cursor: pointer;
-    }
-    tr:hover {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
+      }
+      .back-link {
+        color: var(--budgee-primary, #7eb8da);
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+      }
+      .header {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
+      }
+      .header h2 {
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+      }
+      .meta {
+        color: var(--budgee-text-muted, #888);
+        font-size: 0.9rem;
+      }
+      .top-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .section {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        background: var(--budgee-surface, #fff);
+      }
+      .section h3 {
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .section-transactions {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        background: var(--budgee-surface, #fff);
+        margin-bottom: 1rem;
+      }
+      .section-transactions h3 {
+        margin-top: 0;
+      }
+      select {
+        padding: 2px 6px;
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        border-radius: 4px;
+        background: var(--budgee-surface, #fff);
+        font-size: 0.875rem;
+      }
+      .amount-negative {
+        color: var(--budgee-negative, #d09090);
+      }
+      .amount-positive {
+        color: var(--budgee-positive, #7ec8a0);
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background-color: var(--budgee-bg, #fafafa);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

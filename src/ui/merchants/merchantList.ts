@@ -4,6 +4,7 @@ import { db } from "../../database/db";
 import type { Merchant, Transaction } from "../../database/types";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -40,44 +41,23 @@ export class MerchantList extends LitElement {
   @state()
   private _sortDir: SortDir = "asc";
 
-  static styles = css`
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-    }
-    th.sortable:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    tr {
-      cursor: pointer;
-    }
-    tr:hover {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .amount-negative {
-      color: var(--budgee-negative, #d09090);
-    }
-    .amount-positive {
-      color: var(--budgee-positive, #7ec8a0);
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background-color: var(--budgee-bg, #fafafa);
+      }
+      .amount-negative {
+        color: var(--budgee-negative, #d09090);
+      }
+      .amount-positive {
+        color: var(--budgee-positive, #7ec8a0);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

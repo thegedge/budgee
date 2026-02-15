@@ -6,6 +6,7 @@ import { matchesRule } from "../../import/applyRules";
 import "../modal";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
+import { tableStyles } from "../tableStyles";
 import "./ruleEditor";
 import "./ruleOverlap";
 
@@ -74,89 +75,62 @@ export class RuleManager extends LitElement {
   @state()
   private _overlapRefresh = 0;
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .section {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    .section h3 {
-      margin-top: 0;
-    }
-    button {
-      padding: 4px 12px;
-      cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-    .delete-btn {
-      background-color: var(--budgee-danger, #e8a0a0);
-      font-size: 0.8rem;
-      padding: 2px 8px;
-    }
-    .delete-btn:hover {
-      background-color: var(--budgee-danger-hover, #d07070);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-    }
-    th.sortable:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .clickable-row {
-      cursor: pointer;
-    }
-    .clickable-row:hover {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .confirm-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .condition-summary {
-      font-size: 0.85rem;
-      color: var(--budgee-text-muted, #888);
-    }
-    .sections-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    @media (min-width: 1200px) {
-      .sections-grid {
-        grid-template-columns: 1fr 1fr;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
       }
-    }
-  `;
+      .section {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
+      }
+      .section h3 {
+        margin-top: 0;
+      }
+      button {
+        padding: 4px 12px;
+        cursor: pointer;
+        background-color: var(--budgee-primary, #7eb8da);
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: var(--budgee-primary-hover, #5a9cbf);
+      }
+      .delete-btn {
+        background-color: var(--budgee-danger, #e8a0a0);
+        font-size: 0.8rem;
+        padding: 2px 8px;
+      }
+      .delete-btn:hover {
+        background-color: var(--budgee-danger-hover, #d07070);
+      }
+      .confirm-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .condition-summary {
+        font-size: 0.85rem;
+        color: var(--budgee-text-muted, #888);
+      }
+      .sections-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      @media (min-width: 1200px) {
+        .sections-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

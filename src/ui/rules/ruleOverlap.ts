@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { MerchantRule } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -31,38 +32,24 @@ export class RuleOverlap extends LitElement {
   @state()
   private _loading = true;
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .condition-summary {
-      font-size: 0.85rem;
-      color: var(--budgee-text-muted, #888);
-    }
-    .samples {
-      font-size: 0.8rem;
-      color: var(--budgee-text-muted, #888);
-      font-style: italic;
-      white-space: pre-wrap;
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
+      }
+      .condition-summary {
+        font-size: 0.85rem;
+        color: var(--budgee-text-muted, #888);
+      }
+      .samples {
+        font-size: 0.8rem;
+        color: var(--budgee-text-muted, #888);
+        font-style: italic;
+        white-space: pre-wrap;
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

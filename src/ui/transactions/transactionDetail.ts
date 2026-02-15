@@ -6,6 +6,7 @@ import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../tags/tagAutocomplete";
 import "../charts/chartWrapper";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -38,111 +39,97 @@ export class TransactionDetail extends LitElement {
   @state()
   private _monthlySpend: MonthlySpend[] = [];
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .header {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    .header h2 {
-      margin-top: 0;
-    }
-    .amount {
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-    .amount-negative {
-      color: var(--budgee-negative, #d09090);
-    }
-    .amount-positive {
-      color: var(--budgee-positive, #7ec8a0);
-    }
-    .meta {
-      color: var(--budgee-text-muted, #888);
-      font-size: 0.9rem;
-    }
-    .section {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    .section h3 {
-      margin-top: 0;
-    }
-    .tag-badge {
-      display: inline-block;
-      background: var(--budgee-primary, #7eb8da);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      margin-right: 4px;
-      cursor: pointer;
-    }
-    .tags-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    textarea {
-      width: 100%;
-      min-height: 60px;
-      padding: 8px;
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      border-radius: 4px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      resize: vertical;
-      box-sizing: border-box;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .create-rule {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    .create-rule:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-    .back-link {
-      color: var(--budgee-primary, #7eb8da);
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
-      display: inline-block;
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
+      }
+      .header {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
+      }
+      .header h2 {
+        margin-top: 0;
+      }
+      .amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+      .amount-negative {
+        color: var(--budgee-negative, #d09090);
+      }
+      .amount-positive {
+        color: var(--budgee-positive, #7ec8a0);
+      }
+      .meta {
+        color: var(--budgee-text-muted, #888);
+        font-size: 0.9rem;
+      }
+      .section {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
+      }
+      .section h3 {
+        margin-top: 0;
+      }
+      .tag-badge {
+        display: inline-block;
+        background: var(--budgee-primary, #7eb8da);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-right: 4px;
+        cursor: pointer;
+      }
+      .tags-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      textarea {
+        width: 100%;
+        min-height: 60px;
+        padding: 8px;
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        resize: vertical;
+        box-sizing: border-box;
+      }
+      .create-rule {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        background-color: var(--budgee-primary, #7eb8da);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .create-rule:hover {
+        background-color: var(--budgee-primary-hover, #5a9cbf);
+      }
+      .back-link {
+        color: var(--budgee-primary, #7eb8da);
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

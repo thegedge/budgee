@@ -11,6 +11,7 @@ import "../charts/chartConfigurator";
 import "../modal";
 import "../paginatedTable";
 import type { PageChangeDetail } from "../paginatedTable";
+import { tableStyles } from "../tableStyles";
 import "./dashboardChartCard";
 
 declare global {
@@ -47,78 +48,58 @@ export class Dashboard extends LitElement {
 
   private _sortable?: Sortable;
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .card {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    .card h3 {
-      margin-top: 0;
-    }
-    .chart-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    @media (min-width: 700px) {
-      .chart-grid {
-        grid-template-columns: 1fr 1fr;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
       }
-    }
-    @media (min-width: 1200px) {
-      .chart-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+      .card {
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
       }
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .amount-negative {
-      color: var(--budgee-negative, #d09090);
-    }
-    .amount-positive {
-      color: var(--budgee-positive, #7ec8a0);
-    }
-    .clickable-row {
-      cursor: pointer;
-    }
-    .clickable-row:hover {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    button {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-  `;
+      .card h3 {
+        margin-top: 0;
+      }
+      .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      @media (min-width: 700px) {
+        .chart-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (min-width: 1200px) {
+        .chart-grid {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      .amount-negative {
+        color: var(--budgee-negative, #d09090);
+      }
+      .amount-positive {
+        color: var(--budgee-positive, #7ec8a0);
+      }
+      button {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        background-color: var(--budgee-primary, #7eb8da);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+      }
+      button:hover {
+        background-color: var(--budgee-primary-hover, #5a9cbf);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

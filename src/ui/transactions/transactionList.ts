@@ -5,6 +5,7 @@ import type { Tag, Transaction } from "../../database/types";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../tags/tagAutocomplete";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -41,53 +42,32 @@ export class TransactionList extends LitElement {
   @state()
   private _sortDir: SortDir = "desc";
 
-  static styles = css`
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-    }
-    th.sortable:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .amount-negative {
-      color: var(--budgee-negative, #d09090);
-    }
-    .amount-positive {
-      color: var(--budgee-positive, #7ec8a0);
-    }
-    tr {
-      cursor: pointer;
-    }
-    tr:hover {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .merchant-link {
-      color: var(--budgee-primary, #7eb8da);
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .original-description {
-      font-size: 0.85em;
-      color: var(--budgee-muted, #888);
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      .amount-negative {
+        color: var(--budgee-negative, #d09090);
+      }
+      .amount-positive {
+        color: var(--budgee-positive, #7ec8a0);
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background-color: var(--budgee-bg, #fafafa);
+      }
+      .merchant-link {
+        color: var(--budgee-primary, #7eb8da);
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .original-description {
+        font-size: 0.85em;
+        color: var(--budgee-muted, #888);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

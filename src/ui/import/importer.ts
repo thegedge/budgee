@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { exportDatabase } from "../../database/exportDb";
 import { importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -28,58 +29,44 @@ export class Importer extends LitElement {
   @state()
   private _mapping: ColumnMapping = {};
 
-  static styles = css`
-    :host {
-      display: block;
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th,
-    td {
-      border: 1px solid var(--budgee-border, #e0e0e0);
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: var(--budgee-bg, #fafafa);
-    }
-    .preview {
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .mapping-form {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.5rem;
-      align-items: center;
-      max-width: 400px;
-    }
-    select {
-      padding: 4px 8px;
-    }
-    button {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
-    }
-  `;
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
+        border: 1px solid var(--budgee-border, #e0e0e0);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface, #fff);
+      }
+      .preview {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .mapping-form {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+        max-width: 400px;
+      }
+      select {
+        padding: 4px 8px;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        background-color: var(--budgee-primary, #7eb8da);
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: var(--budgee-primary-hover, #5a9cbf);
+      }
+    `,
+  ];
 
   async #onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
