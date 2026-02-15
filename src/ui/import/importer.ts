@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { exportDatabase } from "../../database/exportDb";
 import { importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 
@@ -110,6 +111,12 @@ export class Importer extends LitElement {
     return html`
       <h2>Import Transactions</h2>
       ${this._step === "upload" ? this.#renderUpload() : this.#renderMapping()}
+
+      <hr style="margin: 2rem 0;" />
+
+      <h2>Export Database</h2>
+      <p>Download a full backup of your data as JSON.</p>
+      <button @click=${exportDatabase}>Export</button>
     `;
   }
 

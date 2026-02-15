@@ -2,7 +2,6 @@ import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { Router } from "@lit-labs/router";
 
-import { exportDatabase } from "../database/exportDb";
 import "./dashboard/dashboard";
 import "./import/importer";
 import "./merchants/merchantList";
@@ -171,8 +170,7 @@ export class Application extends LitElement {
         <a href="/merchants">Merchants</a>
         <a href="/tags">Tags</a>
         <a href="/rules">Rules</a>
-        <a href="/import">Import</a>
-        <button @click=${exportDatabase}>Export</button>
+        <a href="/import">Import / Export</a>
       </nav>
       <div class="container">
         ${this._router.outlet()}
