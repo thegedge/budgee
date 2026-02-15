@@ -1,6 +1,8 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { Tag } from "../../database/types";
+import { ICON_MAP } from "../iconPicker";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -59,6 +61,14 @@ export class TagAutocomplete extends LitElement {
       font-size: 0.75rem;
       cursor: pointer;
       white-space: nowrap;
+    }
+    .pill-icon {
+      display: inline-flex;
+      align-items: center;
+    }
+    .pill-icon svg {
+      width: 0.75rem;
+      height: 0.75rem;
     }
     input {
       border: none;
@@ -122,10 +132,11 @@ export class TagAutocomplete extends LitElement {
     return !this.tags.some((t) => t.name.toLowerCase() === q.toLowerCase());
   }
 
-  #tagLabel(tagId: number): string {
+  #tagLabel(tagId: number) {
     const tag = this.tags.find((t) => t.id === tagId);
     if (!tag) return `#${tagId}`;
-    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
+    const svg = tag.icon ? ICON_MAP[tag.icon] : null;
+    return svg ? html`<span class="pill-icon">${unsafeSVG(svg)}</span> ${tag.name}` : tag.name;
   }
 
   #removeTag(tagId: number) {

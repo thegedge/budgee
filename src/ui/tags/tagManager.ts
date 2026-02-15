@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag } from "../../database/types";
+import "../iconPicker";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -36,12 +37,6 @@ export class TagManager extends LitElement {
 
   @state()
   private _sortDir: SortDir = "asc";
-
-  @state()
-  private _editingTagId: number | null = null;
-
-  @state()
-  private _editingIcon = "";
 
   static styles = [
     tableStyles,
@@ -93,39 +88,6 @@ export class TagManager extends LitElement {
       .col-remove {
         width: min-content;
       }
-      .icon-btn {
-        background: none;
-        border: 1px solid var(--budgee-border, #e0e0e0);
-        border-radius: 4px;
-        padding: 4px;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: inherit;
-        width: 2.2rem;
-        height: 2.2rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .icon-btn:hover {
-        background-color: var(--budgee-bg, #fafafa);
-      }
-      .icon-btn.placeholder {
-        color: var(--budgee-text-muted, #888);
-        font-size: 1rem;
-      }
-      .icon-edit {
-        display: flex;
-        gap: 0.25rem;
-        align-items: center;
-      }
-      .icon-edit input {
-        width: 3rem;
-        flex: none;
-        text-align: center;
-        font-size: 1.1rem;
-        padding: 2px 4px;
-      }
     `,
   ];
 
@@ -158,10 +120,8 @@ export class TagManager extends LitElement {
     await this.#refreshTags();
   }
 
-  async #saveTagIcon(tag: Tag) {
-    await db.tags.update(tag.id!, { icon: this._editingIcon || undefined });
-    this._editingTagId = null;
-    this._editingIcon = "";
+  async #saveTagIcon(tag: Tag, icon: string) {
+    await db.tags.update(tag.id!, { icon: icon || undefined });
     await this.#refreshTags();
   }
 
@@ -238,34 +198,11 @@ export class TagManager extends LitElement {
                   (tag) => html`
                   <tr>
                     <td class="col-icon">
-                      ${
-                        this._editingTagId === tag.id
-                          ? html`
-                          <div class="icon-edit">
-                            <input
-                              type="text"
-                              .value=${this._editingIcon}
-                              placeholder="😀"
-                              @input=${(e: Event) => {
-                                this._editingIcon = (e.target as HTMLInputElement).value;
-                              }}
-                            />
-                            <button @click=${() => this.#saveTagIcon(tag)}>Save</button>
-                            <button class="delete-btn" @click=${() => {
-                              this._editingTagId = null;
-                            }}>Cancel</button>
-                          </div>
-                        `
-                          : html`
-                          <button
-                            class="icon-btn ${tag.icon ? "" : "placeholder"}"
-                            @click=${() => {
-                              this._editingTagId = tag.id!;
-                              this._editingIcon = tag.icon ?? "";
-                            }}
-                          >${tag.icon ? tag.icon : "?"}</button>
-                        `
-                      }
+                      <icon-picker
+                        .value=${tag.icon ?? ""}
+                        @icon-selected=${(e: CustomEvent<{ icon: string }>) =>
+                          this.#saveTagIcon(tag, e.detail.icon)}
+                      ></icon-picker>
                     </td>
                     <td>${tag.name}</td>
                     <td class="col-remove">
