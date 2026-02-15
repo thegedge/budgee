@@ -1,12 +1,13 @@
-const PREFIXES = /^(SQ \*|TST\* |SP \*|PAYPAL \*)/i;
-const LOCATION_SUFFIX = /,\s*[A-Z]{2}$/;
+// TODO we could probable make this more dynamic by looking for common prefixes and suffixes
+const PREFIXES = /^(SQ \*|TST\* |SP \*?|PAYPAL \*)/i;
+const LOCATION_SUFFIX = /(St.\s+)?[^\s]+\s*,\s*\w{2}$/;
 
-export function extractMerchant(description: string): string {
-  let cleaned = description.replace(PREFIXES, "").trim();
-  cleaned = cleaned.replace(LOCATION_SUFFIX, "").trim();
+export const extractMerchant = (description: string): string => {
+  const cleaned = description.replace(PREFIXES, "").trim().replace(LOCATION_SUFFIX, "").trim();
+
   return cleaned
-    .toLowerCase()
+    .toLocaleLowerCase()
     .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => w.charAt(0).toLocaleUpperCase() + w.slice(1))
     .join(" ");
-}
+};
