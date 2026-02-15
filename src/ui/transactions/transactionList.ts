@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
-import type { Tag, Transaction } from "../../database/types";
+import type { Merchant, Tag, Transaction } from "../../database/types";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../tags/tagAutocomplete";
@@ -22,6 +22,9 @@ export class TransactionList extends LitElement {
 
   @state()
   private _tags: Tag[] = [];
+
+  @state()
+  private _merchants = new Map<number, string>();
 
   @state()
   private _currentPage = 1;
@@ -75,6 +78,11 @@ export class TransactionList extends LitElement {
     tr:hover {
       background-color: var(--budgee-bg, #fafafa);
     }
+    .merchant-link {
+      color: var(--budgee-primary, #7eb8da);
+      cursor: pointer;
+      text-decoration: underline;
+    }
   `;
 
   connectedCallback() {
@@ -85,6 +93,8 @@ export class TransactionList extends LitElement {
   async #refresh() {
     this._transactions = await db.transactions.toArray();
     this._tags = await db.tags.toArray();
+    const merchants = await db.merchants.toArray();
+    this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
   }
 
   async #onTagSelected(transaction: Transaction, e: CustomEvent) {
@@ -133,6 +143,10 @@ export class TransactionList extends LitElement {
     const lower = this._filter.toLowerCase();
     if (t.originalDescription.toLowerCase().includes(lower)) return true;
     if (t.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
+    if (t.merchantId && this._merchants.get(t.merchantId)?.toLowerCase().includes(lower))
+      return true;
+    if (t.date.includes(lower)) return true;
+    if (t.amount.toFixed(2).includes(lower)) return true;
     return false;
   }
 
@@ -169,6 +183,11 @@ export class TransactionList extends LitElement {
       }
       return cmp * dir;
     });
+  }
+
+  #navigateToMerchant(id: number) {
+    window.history.pushState({}, "", `/merchants/${id}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
   #navigateToTransaction(id: number) {
@@ -225,7 +244,14 @@ export class TransactionList extends LitElement {
               (t) => html`
               <tr @click=${() => this.#navigateToTransaction(t.id!)}>
                 <td>${t.date}</td>
-                <td>${t.originalDescription}</td>
+                <td>${
+                  t.merchantId && this._merchants.has(t.merchantId)
+                    ? html`<a class="merchant-link" @click=${(e: Event) => {
+                        e.stopPropagation();
+                        this.#navigateToMerchant(t.merchantId!);
+                      }}>${this._merchants.get(t.merchantId!)}</a>`
+                    : t.originalDescription
+                }</td>
                 <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
                   ${t.amount.toFixed(2)}
                 </td>

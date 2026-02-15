@@ -172,6 +172,30 @@ export class RuleManager extends LitElement {
       merchantId = existing?.id ?? (await db.merchants.add({ name: merchantName }));
     }
 
+    // Check for existing rule to merge with (only for new rules, not edits)
+    if (!id && merchantId) {
+      const existingRule = this._rules.find((r) => r.merchantId === merchantId);
+      if (existingRule) {
+        const mergedConditions = [...existingRule.conditions, ...conditions];
+        const mergedTagIds = [...new Set([...existingRule.tagIds, ...allTagIds])];
+        const mergedLogic = existingRule.conditions.length <= 1 ? "or" : existingRule.logic;
+        const merged: MerchantRule = {
+          ...existingRule,
+          logic: mergedLogic,
+          conditions: mergedConditions,
+          tagIds: mergedTagIds,
+        };
+        await db.merchantRules.put(merged);
+        this._showEditor = false;
+        this._editingRule = null;
+        this._editingMerchantName = "";
+        this._prefillDescription = "";
+        this._pendingRerunRule = merged;
+        await this.#refresh();
+        return;
+      }
+    }
+
     const rule: MerchantRule = id
       ? { id, logic, conditions, merchantId, tagIds: allTagIds }
       : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
