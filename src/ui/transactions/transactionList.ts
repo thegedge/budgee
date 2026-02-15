@@ -83,6 +83,10 @@ export class TransactionList extends LitElement {
       cursor: pointer;
       text-decoration: underline;
     }
+    .original-description {
+      font-size: 0.85em;
+      color: var(--budgee-muted, #888);
+    }
   `;
 
   connectedCallback() {
@@ -249,7 +253,7 @@ export class TransactionList extends LitElement {
                     ? html`<a class="merchant-link" @click=${(e: Event) => {
                         e.stopPropagation();
                         this.#navigateToMerchant(t.merchantId!);
-                      }}>${this._merchants.get(t.merchantId!)}</a>`
+                      }}>${this._merchants.get(t.merchantId!)}</a><br><span class="original-description">${t.originalDescription}</span>`
                     : t.originalDescription
                 }</td>
                 <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
