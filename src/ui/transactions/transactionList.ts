@@ -9,6 +9,7 @@ import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 import "../tags/tagAutocomplete";
+import "../tags/tagPills";
 import "./transactionImporter";
 
 declare global {
@@ -81,7 +82,7 @@ export class TransactionList extends LitElement {
       .col-date {
         white-space: nowrap;
       }
-      .col-tags tag-autocomplete {
+      .col-tags tag-pills {
         display: block;
         width: 100%;
       }
@@ -208,29 +209,6 @@ export class TransactionList extends LitElement {
     const merchants = await Merchants.all();
     this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
     this._merchantList = merchants;
-  }
-
-  async #onTagSelected(transaction: Transaction, e: CustomEvent) {
-    const tag = e.detail.tag as Tag;
-    if (transaction.tagIds.includes(tag.id!)) return;
-    const updatedTagIds = [...transaction.tagIds, tag.id!];
-    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
-    await this.#refresh();
-  }
-
-  async #onTagCreated(transaction: Transaction, e: CustomEvent) {
-    const name = e.detail.name as string;
-    const tagId = await Tags.create(name);
-    const updatedTagIds = [...transaction.tagIds, tagId];
-    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
-    await this.#refresh();
-  }
-
-  async #removeTag(transaction: Transaction, tagId: number, e: Event) {
-    e.stopPropagation();
-    const updatedTagIds = transaction.tagIds.filter((id) => id !== tagId);
-    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
-    await this.#refresh();
   }
 
   #tag(tagId: number): Tag | undefined {
@@ -581,14 +559,8 @@ export class TransactionList extends LitElement {
                 <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                   ${t.amount.toFixed(2)}
                 </td>
-                <td class="col-tags" @click=${(e: Event) => e.stopPropagation()}>
-                  <tag-autocomplete
-                    .tags=${this._tags}
-                    .selectedTagIds=${t.tagIds}
-                    @tag-selected=${(e: CustomEvent) => this.#onTagSelected(t, e)}
-                    @tag-created=${(e: CustomEvent) => this.#onTagCreated(t, e)}
-                    @tag-removed=${(e: CustomEvent) => this.#removeTag(t, e.detail.tagId, e)}
-                  ></tag-autocomplete>
+                <td class="col-tags">
+                  <tag-pills .tags=${this._tags} .tagIds=${t.tagIds}></tag-pills>
                 </td>
               </tr>
             `,

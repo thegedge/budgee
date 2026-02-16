@@ -67,21 +67,21 @@ describe("transaction-list", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const autocomplete = el.shadowRoot!.querySelector("tag-autocomplete")!;
-    const badges = autocomplete.shadowRoot!.querySelectorAll(".tag-pill");
+    const pills = el.shadowRoot!.querySelector("tag-pills")!;
+    const badges = pills.shadowRoot!.querySelectorAll(".tag-pill");
     expect(badges).toHaveLength(1);
     expect(badges[0].textContent).toContain("Food");
 
     el.remove();
   });
 
-  it("should add a tag via the autocomplete", async () => {
+  it("should not allow removing tags from the list view", async () => {
     const tagId = await db.tags.add({ name: "Food" });
-    const txId = await db.transactions.add({
+    await db.transactions.add({
       date: "2024-01-01",
       amount: -50,
       originalDescription: "Groceries",
-      tagIds: [],
+      tagIds: [tagId],
     });
 
     const el = document.createElement("transaction-list") as TransactionList;
@@ -89,14 +89,9 @@ describe("transaction-list", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const autocomplete = el.shadowRoot!.querySelector("tag-autocomplete")!;
-    autocomplete.dispatchEvent(
-      new CustomEvent("tag-selected", { detail: { tag: { id: tagId, name: "Food" } } }),
-    );
-    await new Promise((r) => setTimeout(r, 50));
-
-    const updated = await db.transactions.get(txId);
-    expect(updated!.tagIds).toContain(tagId);
+    const pills = el.shadowRoot!.querySelector("tag-pills")!;
+    expect(pills.shadowRoot!.querySelector("tag-autocomplete")).toBeNull();
+    expect(pills.shadowRoot!.querySelectorAll(".tag-pill")).toHaveLength(1);
 
     el.remove();
   });
