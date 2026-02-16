@@ -4,8 +4,8 @@ export type PeriodGranularity = "day" | "month" | "year";
 export type Granularity = PeriodGranularity | "byTag" | "byMerchant";
 
 interface FilterOptions {
-  tagId?: number;
-  merchantId?: number;
+  tagId?: string;
+  merchantId?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -23,11 +23,11 @@ function periodKey(date: string, granularity: PeriodGranularity): string {
 
 export function aggregateByTag(
   transactions: Transaction[],
-  tags: { id?: number; name: string }[],
-  excludedIds?: number[],
+  tags: { _id?: string; name: string }[],
+  excludedIds?: string[],
 ): Map<string, number> {
   const excluded = excludedIds ? new Set(excludedIds) : undefined;
-  const totals = new Map<number, number>();
+  const totals = new Map<string, number>();
   for (const tx of transactions) {
     for (const tagId of tx.tagIds) {
       totals.set(tagId, (totals.get(tagId) ?? 0) + tx.amount);
@@ -36,8 +36,8 @@ export function aggregateByTag(
 
   const result = new Map<string, number>();
   for (const tag of tags) {
-    if (excluded?.has(tag.id!)) continue;
-    const total = totals.get(tag.id!);
+    if (excluded?.has(tag._id!)) continue;
+    const total = totals.get(tag._id!);
     if (total !== undefined) {
       result.set(tag.name, total);
     }
@@ -47,11 +47,11 @@ export function aggregateByTag(
 
 export function aggregateByMerchant(
   transactions: Transaction[],
-  merchants: { id?: number; name: string }[],
-  excludedIds?: number[],
+  merchants: { _id?: string; name: string }[],
+  excludedIds?: string[],
 ): Map<string, number> {
   const excluded = excludedIds ? new Set(excludedIds) : undefined;
-  const totals = new Map<number, number>();
+  const totals = new Map<string, number>();
   for (const tx of transactions) {
     if (tx.merchantId !== undefined) {
       totals.set(tx.merchantId, (totals.get(tx.merchantId) ?? 0) + tx.amount);
@@ -60,8 +60,8 @@ export function aggregateByMerchant(
 
   const result = new Map<string, number>();
   for (const merchant of merchants) {
-    if (excluded?.has(merchant.id!)) continue;
-    const total = totals.get(merchant.id!);
+    if (excluded?.has(merchant._id!)) continue;
+    const total = totals.get(merchant._id!);
     if (total !== undefined) {
       result.set(merchant.name, total);
     }

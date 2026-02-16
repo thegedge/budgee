@@ -59,8 +59,8 @@ export class MerchantList extends LitElement {
   async #load() {
     const [merchants, transactions] = await Promise.all([Merchants.all(), Transactions.all()]);
 
-    const countMap = new Map<number, number>();
-    const spendMap = new Map<number, number>();
+    const countMap = new Map<string, number>();
+    const spendMap = new Map<string, number>();
     for (const tx of transactions as Transaction[]) {
       if (tx.merchantId == null) continue;
       countMap.set(tx.merchantId, (countMap.get(tx.merchantId) ?? 0) + 1);
@@ -69,8 +69,8 @@ export class MerchantList extends LitElement {
 
     this._rows = merchants.map((m) => ({
       merchant: m,
-      transactionCount: countMap.get(m.id!) ?? 0,
-      totalSpend: spendMap.get(m.id!) ?? 0,
+      transactionCount: countMap.get(m._id!) ?? 0,
+      totalSpend: spendMap.get(m._id!) ?? 0,
     }));
   }
 
@@ -124,7 +124,7 @@ export class MerchantList extends LitElement {
     });
   }
 
-  #navigateToMerchant(id: number) {
+  #navigateToMerchant(id: string) {
     window.history.pushState({}, "", `/merchants/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
@@ -173,7 +173,7 @@ export class MerchantList extends LitElement {
           <tbody>
             ${pageRows.map(
               (row) => html`
-              <tr @click=${() => this.#navigateToMerchant(row.merchant.id!)}>
+              <tr @click=${() => this.#navigateToMerchant(row.merchant._id!)}>
                 <td>${row.merchant.name}</td>
                 <td>${row.transactionCount}</td>
                 <td class="col-amount ${row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">

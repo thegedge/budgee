@@ -10,14 +10,14 @@ export type ImportMode = "replace" | "append";
 export async function importTransactions(
   rows: Record<string, string>[],
   mapping: ColumnMapping,
-  options: { accountId?: number; importMode: ImportMode },
+  options: { accountId?: string; importMode: ImportMode },
 ): Promise<number> {
   const rules = await MerchantRules.all();
   const accountIdsByName = mapping.account
     ? await resolveAccountIds(rows, mapping.account)
     : undefined;
 
-  const transactions: Omit<Transaction, "id">[] = rows
+  const transactions: Omit<Transaction, "_id" | "_rev">[] = rows
     .map((row) =>
       rowToTransaction(
         row,
@@ -25,7 +25,7 @@ export async function importTransactions(
         accountIdsByName?.get(row[mapping.account!]) ?? options.accountId,
       ),
     )
-    .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
+    .filter((t): t is Omit<Transaction, "_id" | "_rev"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
   if (options.importMode === "replace" && options.accountId) {
@@ -39,16 +39,16 @@ export async function importTransactions(
 async function resolveAccountIds(
   rows: Record<string, string>[],
   accountColumn: string,
-): Promise<Map<string, number>> {
+): Promise<Map<string, string>> {
   const uniqueNames = [...new Set(rows.map((r) => r[accountColumn]).filter(Boolean))];
   const existingAccounts = await Accounts.all();
 
-  const nameToId = new Map<string, number>();
+  const nameToId = new Map<string, string>();
   for (const account of existingAccounts) {
-    nameToId.set(account.name.toLowerCase(), account.id!);
+    nameToId.set(account.name.toLowerCase(), account._id!);
   }
 
-  const result = new Map<string, number>();
+  const result = new Map<string, string>();
   for (const name of uniqueNames) {
     const existing = nameToId.get(name.toLowerCase());
     if (existing) {
@@ -66,8 +66,8 @@ async function resolveAccountIds(
 function rowToTransaction(
   row: Record<string, string>,
   mapping: ColumnMapping,
-  accountId?: number,
-): Omit<Transaction, "id"> | undefined {
+  accountId?: string,
+): Omit<Transaction, "_id" | "_rev"> | undefined {
   const dateStr = mapping.date ? row[mapping.date] : undefined;
   const amountStr = mapping.amount ? row[mapping.amount] : undefined;
   const creditStr = mapping.credit ? row[mapping.credit] : undefined;

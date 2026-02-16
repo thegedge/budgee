@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
+import { clearDb } from "../../database/pouchHelpers";
 import "./transactionDetail";
 import { TransactionDetail } from "./transactionDetail";
 
 describe("transaction-detail", () => {
   beforeEach(async () => {
-    await db.transactions.clear();
-    await db.tags.clear();
-    await db.merchants.clear();
+    await clearDb(db.transactions);
+    await clearDb(db.tags);
+    await clearDb(db.merchants);
   });
 
   it("should be defined", () => {
@@ -15,7 +16,9 @@ describe("transaction-detail", () => {
   });
 
   it("should display transaction header", async () => {
-    const txId = await db.transactions.add({
+    const txId = crypto.randomUUID();
+    await db.transactions.put({
+      _id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods Market",
@@ -36,8 +39,12 @@ describe("transaction-detail", () => {
   });
 
   it("should display merchant name when available", async () => {
-    const merchantId = await db.merchants.add({ name: "Whole Foods" });
-    const txId = await db.transactions.add({
+    const merchantId = crypto.randomUUID();
+    await db.merchants.put({ _id: merchantId, name: "Whole Foods" });
+
+    const txId = crypto.randomUUID();
+    await db.transactions.put({
+      _id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods Market #123",
@@ -57,8 +64,12 @@ describe("transaction-detail", () => {
   });
 
   it("should display tag badges", async () => {
-    const tagId = await db.tags.add({ name: "Groceries" });
-    const txId = await db.transactions.add({
+    const tagId = crypto.randomUUID();
+    await db.tags.put({ _id: tagId, name: "Groceries" });
+
+    const txId = crypto.randomUUID();
+    await db.transactions.put({
+      _id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods",
@@ -80,7 +91,9 @@ describe("transaction-detail", () => {
   });
 
   it("should save memo on blur", async () => {
-    const txId = await db.transactions.add({
+    const txId = crypto.randomUUID();
+    await db.transactions.put({
+      _id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods",
@@ -105,15 +118,20 @@ describe("transaction-detail", () => {
   });
 
   it("should show related transactions for same merchant", async () => {
-    const merchantId = await db.merchants.add({ name: "Starbucks" });
-    const txId = await db.transactions.add({
+    const merchantId = crypto.randomUUID();
+    await db.merchants.put({ _id: merchantId, name: "Starbucks" });
+
+    const txId = crypto.randomUUID();
+    await db.transactions.put({
+      _id: txId,
       date: "2024-01-15",
       amount: -5.5,
       originalDescription: "Starbucks #1",
       merchantId,
       tagIds: [],
     });
-    await db.transactions.add({
+    await db.transactions.put({
+      _id: crypto.randomUUID(),
       date: "2024-01-10",
       amount: -4.75,
       originalDescription: "Starbucks #2",

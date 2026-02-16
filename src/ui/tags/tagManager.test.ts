@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
+import { allDocs, clearDb } from "../../database/pouchHelpers";
 import "./tagManager";
 import { TagManager } from "./tagManager";
 
 describe("tag-manager", () => {
   beforeEach(async () => {
-    await db.tags.clear();
+    await clearDb(db.tags);
   });
 
   it("should be defined", () => {
@@ -29,7 +30,7 @@ describe("tag-manager", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const tags = await db.tags.toArray();
+    const tags = await allDocs(db.tags);
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("Food");
 
@@ -37,7 +38,7 @@ describe("tag-manager", () => {
   });
 
   it("should show error for duplicate tag names", async () => {
-    await db.tags.add({ name: "Food" });
+    await db.tags.put({ _id: crypto.randomUUID(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
@@ -61,7 +62,7 @@ describe("tag-manager", () => {
   });
 
   it("should delete a tag when Remove is clicked", async () => {
-    await db.tags.add({ name: "Food" });
+    await db.tags.put({ _id: crypto.randomUUID(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
@@ -78,7 +79,7 @@ describe("tag-manager", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const tags = await db.tags.toArray();
+    const tags = await allDocs(db.tags);
     expect(tags).toHaveLength(0);
 
     el.remove();

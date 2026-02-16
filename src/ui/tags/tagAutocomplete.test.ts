@@ -4,12 +4,12 @@ import "./tagAutocomplete";
 import { TagAutocomplete } from "./tagAutocomplete";
 
 const tags: Tag[] = [
-  { id: 1, name: "Food" },
-  { id: 2, name: "Coffee" },
-  { id: 3, name: "Fuel" },
+  { _id: "t1", name: "Food" },
+  { _id: "t2", name: "Coffee" },
+  { _id: "t3", name: "Fuel" },
 ];
 
-function createElement(overrides?: { excludeIds?: number[] }): TagAutocomplete {
+function createElement(overrides?: { excludeIds?: string[] }): TagAutocomplete {
   const el = document.createElement("tag-autocomplete") as TagAutocomplete;
   el.tags = tags;
   el.excludeIds = overrides?.excludeIds ?? [];
@@ -39,7 +39,7 @@ describe("tag-autocomplete", () => {
   });
 
   it("should exclude tags by excludeIds", async () => {
-    const el = createElement({ excludeIds: [1] });
+    const el = createElement({ excludeIds: ["t1"] });
     document.body.appendChild(el);
     await el.updateComplete;
 

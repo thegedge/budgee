@@ -1,42 +1,57 @@
 import { db } from "../database/db";
+import { allDocs } from "../database/pouchHelpers";
 import type { Transaction } from "../database/types";
 
 export class Transactions {
   private constructor() {}
 
-  static all(): Promise<Transaction[]> {
-    return db.transactions.toArray();
+  static async all(): Promise<Transaction[]> {
+    return allDocs(db.transactions);
   }
 
-  static get(id: number): Promise<Transaction | undefined> {
-    return db.transactions.get(id);
+  static async get(id: string): Promise<Transaction | undefined> {
+    try {
+      return await db.transactions.get(id);
+    } catch {
+      return undefined;
+    }
   }
 
-  static update(id: number, changes: Partial<Transaction>): Promise<number> {
-    return db.transactions.update(id, changes);
+  static async update(id: string, changes: Partial<Transaction>): Promise<void> {
+    const doc = await db.transactions.get(id);
+    await db.transactions.put({ ...doc, ...changes });
   }
 
-  static bulkPut(transactions: Transaction[]): Promise<unknown> {
-    return db.transactions.bulkPut(transactions);
+  static async bulkPut(transactions: Transaction[]): Promise<void> {
+    await db.transactions.bulkDocs(
+      transactions.map((t) => ({ ...t, _id: t._id ?? crypto.randomUUID() })),
+    );
   }
 
-  static bulkAdd(transactions: Omit<Transaction, "id">[]): Promise<unknown> {
-    return db.transactions.bulkAdd(transactions);
+  static async bulkAdd(transactions: Omit<Transaction, "_id" | "_rev">[]): Promise<void> {
+    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, _id: crypto.randomUUID() })));
   }
 
-  static forMerchant(merchantId: number): Promise<Transaction[]> {
-    return db.transactions.where("merchantId").equals(merchantId).reverse().sortBy("date");
+  static async forMerchant(merchantId: string): Promise<Transaction[]> {
+    const result = await db.transactions.find({ selector: { merchantId } });
+    return result.docs.sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  static async forMerchantAll(merchantId: number): Promise<Transaction[]> {
-    return db.transactions.where("merchantId").equals(merchantId).toArray();
+  static async forMerchantAll(merchantId: string): Promise<Transaction[]> {
+    const result = await db.transactions.find({ selector: { merchantId } });
+    return result.docs;
   }
 
-  static forAccount(accountId: number): Promise<Transaction[]> {
-    return db.transactions.where("accountId").equals(accountId).reverse().sortBy("date");
+  static async forAccount(accountId: string): Promise<Transaction[]> {
+    const result = await db.transactions.find({ selector: { accountId } });
+    return result.docs.sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  static deleteForAccount(accountId: number): Promise<number> {
-    return db.transactions.where("accountId").equals(accountId).delete();
+  static async deleteForAccount(accountId: string): Promise<number> {
+    const result = await db.transactions.find({ selector: { accountId } });
+    await db.transactions.bulkDocs(
+      result.docs.map((doc) => ({ ...doc, _deleted: true }) as unknown as Transaction),
+    );
+    return result.docs.length;
   }
 }

@@ -111,22 +111,24 @@ export class TagManager extends LitElement {
 
     this._error = "";
 
-    try {
-      await Tags.create(name);
-      this._newTagName = "";
-      await this.#refreshTags();
-    } catch {
+    const existing = await Tags.byName(name);
+    if (existing) {
       this._error = `Tag "${name}" already exists.`;
+      return;
     }
+
+    await Tags.create(name);
+    this._newTagName = "";
+    await this.#refreshTags();
   }
 
-  async #deleteTag(id: number) {
+  async #deleteTag(id: string) {
     await Tags.remove(id);
     await this.#refreshTags();
   }
 
   async #saveTagIcon(tag: Tag, icon: string) {
-    await Tags.update(tag.id!, { icon: icon || undefined });
+    await Tags.update(tag._id!, { icon: icon || undefined });
     await this.#refreshTags();
   }
 
@@ -135,7 +137,7 @@ export class TagManager extends LitElement {
   }
 
   async #saveTagColor(tag: Tag, color: string) {
-    await Tags.update(tag.id!, { color });
+    await Tags.update(tag._id!, { color });
     await this.#refreshTags();
   }
 
@@ -232,7 +234,7 @@ export class TagManager extends LitElement {
                       ${tag.name}
                     </td>
                     <td class="col-remove">
-                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id!)}>
+                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag._id!)}>
                         ${unsafeSVG(trash2Icon)}
                       </button>
                     </td>

@@ -39,7 +39,7 @@ export class RuleEditor extends LitElement {
   private _conditions: RuleCondition[] = [{ field: "description", operator: "equals", value: "" }];
 
   @state()
-  private _selectedTagIds: number[] = [];
+  private _selectedTagIds: string[] = [];
 
   @state()
   private _merchantName = "";
@@ -147,8 +147,8 @@ export class RuleEditor extends LitElement {
 
   #onTagSelected(e: CustomEvent) {
     const tag = e.detail.tag as Tag;
-    if (!this._selectedTagIds.includes(tag.id!)) {
-      this._selectedTagIds = [...this._selectedTagIds, tag.id!];
+    if (!this._selectedTagIds.includes(tag._id!)) {
+      this._selectedTagIds = [...this._selectedTagIds, tag._id!];
     }
   }
 
@@ -163,7 +163,7 @@ export class RuleEditor extends LitElement {
     this._pendingTagNames = this._pendingTagNames.filter((n) => n !== name);
   }
 
-  #removeTag(tagId: number) {
+  #removeTag(tagId: string) {
     this._selectedTagIds = this._selectedTagIds.filter((id) => id !== tagId);
   }
 
@@ -174,7 +174,7 @@ export class RuleEditor extends LitElement {
     this.dispatchEvent(
       new CustomEvent("rule-saved", {
         detail: {
-          id: this.editingRule?.id,
+          id: this.editingRule?._id,
           logic: this._logic,
           conditions: validConditions,
           tagIds: this._selectedTagIds,

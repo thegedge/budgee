@@ -1,16 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
+import { clearDb } from "../database/pouchHelpers";
 import { Tags } from "./tags";
 
 beforeEach(async () => {
-  await db.tags.clear();
+  await clearDb(db.tags);
 });
 
 describe("Tags", () => {
   it("should return all tags", async () => {
-    await db.tags.bulkAdd([
-      { name: "food", color: "lch(50 30 0)" },
-      { name: "transport", color: "lch(50 30 120)" },
+    await db.tags.bulkDocs([
+      { _id: crypto.randomUUID(), name: "food", color: "lch(50 30 0)" },
+      { _id: crypto.randomUUID(), name: "transport", color: "lch(50 30 120)" },
     ]);
     const all = await Tags.all();
     expect(all).toHaveLength(2);
@@ -24,21 +25,29 @@ describe("Tags", () => {
   });
 
   it("should update a tag", async () => {
-    const id = (await db.tags.add({ name: "old", color: "lch(50 30 0)" })) as number;
-    await Tags.update(id, { name: "new" });
-    const tag = await db.tags.get(id);
+    const resp = await db.tags.put({
+      _id: crypto.randomUUID(),
+      name: "old",
+      color: "lch(50 30 0)",
+    });
+    await Tags.update(resp.id, { name: "new" });
+    const tag = await db.tags.get(resp.id);
     expect(tag?.name).toBe("new");
   });
 
   it("should remove a tag", async () => {
-    const id = (await db.tags.add({ name: "temp", color: "lch(50 30 0)" })) as number;
-    await Tags.remove(id);
-    const tag = await db.tags.get(id);
+    const resp = await db.tags.put({
+      _id: crypto.randomUUID(),
+      name: "temp",
+      color: "lch(50 30 0)",
+    });
+    await Tags.remove(resp.id);
+    const tag = await db.tags.get(resp.id).catch(() => undefined);
     expect(tag).toBeUndefined();
   });
 
   it("should find a tag by name (case-insensitive)", async () => {
-    await db.tags.add({ name: "Food", color: "lch(50 30 0)" });
+    await db.tags.put({ _id: crypto.randomUUID(), name: "Food", color: "lch(50 30 0)" });
     const tag = await Tags.byName("food");
     expect(tag?.name).toBe("Food");
   });

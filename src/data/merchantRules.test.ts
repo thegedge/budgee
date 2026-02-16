@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
+import { allDocs, clearDb } from "../database/pouchHelpers";
 import { MerchantRules } from "./merchantRules";
 
 beforeEach(async () => {
-  await db.merchantRules.clear();
-  await db.transactions.clear();
+  await clearDb(db.merchantRules);
+  await clearDb(db.transactions);
 });
 
 describe("MerchantRules", () => {
   it("should return all rules", async () => {
-    await db.merchantRules.add({
+    await db.merchantRules.put({
+      _id: crypto.randomUUID(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "test" }],
       tagIds: [],
@@ -29,38 +31,55 @@ describe("MerchantRules", () => {
   });
 
   it("should remove a rule", async () => {
-    const id = (await db.merchantRules.add({
+    const resp = await db.merchantRules.put({
+      _id: crypto.randomUUID(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "x" }],
       tagIds: [],
-    })) as number;
-    await MerchantRules.remove(id);
-    expect(await db.merchantRules.get(id)).toBeUndefined();
+    });
+    await MerchantRules.remove(resp.id);
+    expect(await db.merchantRules.get(resp.id).catch(() => undefined)).toBeUndefined();
   });
 
   it("should apply a rule to matching transactions", async () => {
-    await db.transactions.bulkAdd([
-      { date: "2024-01-01", amount: -5, originalDescription: "COFFEE SHOP", tagIds: [] },
-      { date: "2024-01-02", amount: -10, originalDescription: "GROCERY STORE", tagIds: [] },
+    await db.transactions.bulkDocs([
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-01",
+        amount: -5,
+        originalDescription: "COFFEE SHOP",
+        tagIds: [],
+      },
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-02",
+        amount: -10,
+        originalDescription: "GROCERY STORE",
+        tagIds: [],
+      },
     ]);
 
+    const ruleId = crypto.randomUUID();
+    const merchantId = "m99";
+    const tagId = "t1";
     const rule = {
-      id: 1,
+      _id: ruleId,
+      _rev: "",
       logic: "and" as const,
       conditions: [
         { field: "description" as const, operator: "contains" as const, value: "coffee" },
       ],
-      merchantId: 99,
-      tagIds: [1],
+      merchantId,
+      tagIds: [tagId],
     };
 
     const count = await MerchantRules.applyToTransactions(rule);
     expect(count).toBe(1);
 
-    const txs = await db.transactions.toArray();
+    const txs = await allDocs(db.transactions);
     const coffee = txs.find((t) => t.originalDescription === "COFFEE SHOP");
-    expect(coffee?.merchantId).toBe(99);
-    expect(coffee?.tagIds).toContain(1);
+    expect(coffee?.merchantId).toBe(merchantId);
+    expect(coffee?.tagIds).toContain(tagId);
 
     const grocery = txs.find((t) => t.originalDescription === "GROCERY STORE");
     expect(grocery?.merchantId).toBeUndefined();

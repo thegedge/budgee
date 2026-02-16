@@ -143,7 +143,7 @@ export class TableConfigurator extends LitElement {
     this.dispatchEvent(
       new CustomEvent("table-saved", {
         detail: {
-          id: this.editingTable?.id,
+          id: this.editingTable?._id,
           title,
           model: this._model,
           columns: this._columns,

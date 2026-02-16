@@ -43,10 +43,10 @@ export class ChartConfigurator extends LitElement {
   private _endDate = "";
 
   @state()
-  private _tagId?: number;
+  private _tagId?: string;
 
   @state()
-  private _merchantId?: number;
+  private _merchantId?: string;
 
   @state()
   private _colSpan: NonNullable<DashboardChart["colSpan"]> = 1;
@@ -55,10 +55,10 @@ export class ChartConfigurator extends LitElement {
   private _rowSpan: NonNullable<DashboardChart["rowSpan"]> = 1;
 
   @state()
-  private _excludedTagIds: number[] = [];
+  private _excludedTagIds: string[] = [];
 
   @state()
-  private _excludedMerchantIds: number[] = [];
+  private _excludedMerchantIds: string[] = [];
 
   @state()
   private _showExclusions = false;
@@ -149,7 +149,7 @@ export class ChartConfigurator extends LitElement {
     this.dispatchEvent(
       new CustomEvent("chart-saved", {
         detail: {
-          id: this.editingChart?.id,
+          id: this.editingChart?._id,
           title,
           chartType: this._chartType,
           granularity: this._granularity,
@@ -189,8 +189,8 @@ export class ChartConfigurator extends LitElement {
             <label>
               <input
                 type="checkbox"
-                ?checked=${excludedIds.includes(item.id!)}
-                @change=${(e: Event) => this.#toggleExclusion(item.id!, (e.target as HTMLInputElement).checked)}
+                ?checked=${excludedIds.includes(item._id!)}
+                @change=${(e: Event) => this.#toggleExclusion(item._id!, (e.target as HTMLInputElement).checked)}
               />
               ${item.name}
             </label>
@@ -201,7 +201,7 @@ export class ChartConfigurator extends LitElement {
     `;
   }
 
-  #toggleExclusion(id: number, excluded: boolean) {
+  #toggleExclusion(id: string, excluded: boolean) {
     if (this._granularity === "byTag") {
       this._excludedTagIds = excluded
         ? [...this._excludedTagIds, id]
@@ -279,18 +279,18 @@ export class ChartConfigurator extends LitElement {
         <label>Tag:</label>
         <select @change=${(e: Event) => {
           const v = (e.target as HTMLSelectElement).value;
-          this._tagId = v ? Number(v) : undefined;
+          this._tagId = v || undefined;
         }}>
           <option value="">All</option>
-          ${this.tags.map((t) => html`<option value=${t.id!} ?selected=${this._tagId === t.id}>${t.name}</option>`)}
+          ${this.tags.map((t) => html`<option value=${t._id!} ?selected=${this._tagId === t._id}>${t.name}</option>`)}
         </select>
         <label>Merchant:</label>
         <select @change=${(e: Event) => {
           const v = (e.target as HTMLSelectElement).value;
-          this._merchantId = v ? Number(v) : undefined;
+          this._merchantId = v || undefined;
         }}>
           <option value="">All</option>
-          ${this.merchants.map((m) => html`<option value=${m.id!} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
+          ${this.merchants.map((m) => html`<option value=${m._id!} ?selected=${this._merchantId === m._id}>${m.name}</option>`)}
         </select>
         <label>Width:</label>
         <select @change=${(e: Event) => {

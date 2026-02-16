@@ -206,9 +206,9 @@ export class Dashboard extends LitElement {
     if (!grid) return;
 
     const cards = grid.querySelectorAll(`[${attr}]`);
-    const ids: number[] = [];
+    const ids: string[] = [];
     cards.forEach((card) => {
-      const id = Number(card.getAttribute(attr));
+      const id = card.getAttribute(attr);
       if (id) ids.push(id);
     });
 
@@ -323,7 +323,7 @@ export class Dashboard extends LitElement {
               ${this._charts.map(
                 (chart) => html`
                 <dashboard-chart-card
-                  data-chart-id=${chart.id!}
+                  data-chart-id=${chart._id!}
                   style="grid-column: span ${chart.colSpan ?? 1}; grid-row: span ${chart.rowSpan ?? 1}"
                   .config=${chart}
                   .transactions=${this._transactions}
@@ -347,7 +347,7 @@ export class Dashboard extends LitElement {
               ${this._tables.map(
                 (table) => html`
                 <dashboard-table-card
-                  data-table-id=${table.id!}
+                  data-table-id=${table._id!}
                   style="grid-column: span ${table.colSpan ?? 1}; grid-row: span ${table.rowSpan ?? 1}"
                   .config=${table}
                   .transactions=${this._transactions!}

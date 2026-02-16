@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
+import { allDocs, clearDb } from "../../database/pouchHelpers";
 import "./ruleManager";
 import { RuleManager } from "./ruleManager";
 
 describe("rule-manager", () => {
   beforeEach(async () => {
-    await db.merchantRules.clear();
-    await db.tags.clear();
-    await db.transactions.clear();
-    await db.merchants.clear();
+    await clearDb(db.merchantRules);
+    await clearDb(db.tags);
+    await clearDb(db.transactions);
+    await clearDb(db.merchants);
   });
 
   it("should be defined", () => {
@@ -16,8 +17,9 @@ describe("rule-manager", () => {
   });
 
   it("should add a rule via clicking an unmerchanted transaction", async () => {
-    await db.tags.add({ name: "Coffee" });
-    await db.transactions.add({
+    await db.tags.put({ _id: crypto.randomUUID(), name: "Coffee" });
+    await db.transactions.put({
+      _id: crypto.randomUUID(),
       date: "2024-01-01",
       originalDescription: "STARBUCKS",
       amount: 5.0,
@@ -46,7 +48,7 @@ describe("rule-manager", () => {
     );
     await new Promise((r) => setTimeout(r, 50));
 
-    const rules = await db.merchantRules.toArray();
+    const rules = await allDocs(db.merchantRules);
     expect(rules).toHaveLength(1);
     expect(rules[0].conditions[0].value).toBe("starbucks");
 
@@ -54,7 +56,8 @@ describe("rule-manager", () => {
   });
 
   it("should delete a rule", async () => {
-    await db.merchantRules.add({
+    await db.merchantRules.put({
+      _id: crypto.randomUUID(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
       tagIds: [],
@@ -72,7 +75,7 @@ describe("rule-manager", () => {
     deleteBtn.click();
     await new Promise((r) => setTimeout(r, 50));
 
-    const rules = await db.merchantRules.toArray();
+    const rules = await allDocs(db.merchantRules);
     expect(rules).toHaveLength(0);
 
     el.remove();

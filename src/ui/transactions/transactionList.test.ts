@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
+import { clearDb } from "../../database/pouchHelpers";
 import "./transactionList";
 import { TransactionList } from "./transactionList";
 
 describe("transaction-list", () => {
   beforeEach(async () => {
-    await db.transactions.clear();
-    await db.tags.clear();
+    await clearDb(db.transactions);
+    await clearDb(db.tags);
   });
 
   it("should be defined", () => {
@@ -24,9 +25,21 @@ describe("transaction-list", () => {
   });
 
   it("should render rows for each transaction", async () => {
-    await db.transactions.bulkAdd([
-      { date: "2024-01-01", amount: -50, originalDescription: "Groceries", tagIds: [] },
-      { date: "2024-01-02", amount: 2500, originalDescription: "Payroll", tagIds: [] },
+    await db.transactions.bulkDocs([
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-01",
+        amount: -50,
+        originalDescription: "Groceries",
+        tagIds: [],
+      },
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-02",
+        amount: 2500,
+        originalDescription: "Payroll",
+        tagIds: [],
+      },
     ]);
 
     const el = document.createElement("transaction-list") as TransactionList;
@@ -54,8 +67,10 @@ describe("transaction-list", () => {
   });
 
   it("should display tag badges for tagged transactions", async () => {
-    const tagId = await db.tags.add({ name: "Food" });
-    await db.transactions.add({
+    const tagId = crypto.randomUUID();
+    await db.tags.put({ _id: tagId, name: "Food" });
+    await db.transactions.put({
+      _id: crypto.randomUUID(),
       date: "2024-01-01",
       amount: -50,
       originalDescription: "Groceries",
@@ -76,8 +91,10 @@ describe("transaction-list", () => {
   });
 
   it("should not allow removing tags from the list view", async () => {
-    const tagId = await db.tags.add({ name: "Food" });
-    await db.transactions.add({
+    const tagId = crypto.randomUUID();
+    await db.tags.put({ _id: tagId, name: "Food" });
+    await db.transactions.put({
+      _id: crypto.randomUUID(),
       date: "2024-01-01",
       amount: -50,
       originalDescription: "Groceries",

@@ -200,12 +200,12 @@ export class DashboardChartCard extends LitElement {
   }
 
   #onDelete() {
-    this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config.id } }));
+    this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config._id } }));
   }
 
   #onResize(colSpan: ColSpan) {
     this.dispatchEvent(
-      new CustomEvent("chart-resized", { detail: { id: this.config.id, colSpan } }),
+      new CustomEvent("chart-resized", { detail: { id: this.config._id, colSpan } }),
     );
   }
 

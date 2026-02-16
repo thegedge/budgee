@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
+import { clearDb } from "../../database/pouchHelpers";
 import "./dashboard";
 import { Dashboard } from "./dashboard";
 
 describe("budgee-dashboard", () => {
   beforeEach(async () => {
-    await db.transactions.clear();
-    await db.tags.clear();
-    await db.dashboardCharts.clear();
-    await db.dashboardTables.clear();
-    await db.merchants.clear();
+    await clearDb(db.transactions);
+    await clearDb(db.tags);
+    await clearDb(db.dashboardCharts);
+    await clearDb(db.dashboardTables);
+    await clearDb(db.merchants);
   });
 
   it("should be defined", () => {
@@ -27,9 +28,21 @@ describe("budgee-dashboard", () => {
   });
 
   it("should render chart grid when transactions exist", async () => {
-    await db.transactions.bulkAdd([
-      { date: "2024-01-01", amount: -50, originalDescription: "Groceries", tagIds: [] },
-      { date: "2024-01-02", amount: -25, originalDescription: "Restaurant", tagIds: [] },
+    await db.transactions.bulkDocs([
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-01",
+        amount: -50,
+        originalDescription: "Groceries",
+        tagIds: [],
+      },
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-02",
+        amount: -25,
+        originalDescription: "Restaurant",
+        tagIds: [],
+      },
     ]);
 
     const el = document.createElement("budgee-dashboard") as Dashboard;
@@ -44,10 +57,17 @@ describe("budgee-dashboard", () => {
   });
 
   it("should render dashboard tables from database", async () => {
-    await db.transactions.bulkAdd([
-      { date: "2024-01-01", amount: -50, originalDescription: "Groceries", tagIds: [] },
+    await db.transactions.bulkDocs([
+      {
+        _id: crypto.randomUUID(),
+        date: "2024-01-01",
+        amount: -50,
+        originalDescription: "Groceries",
+        tagIds: [],
+      },
     ]);
-    await db.dashboardTables.add({
+    await db.dashboardTables.put({
+      _id: crypto.randomUUID(),
       title: "Recent Transactions",
       model: "transactions",
       columns: ["date", "amount", "description"],

@@ -99,14 +99,14 @@ export class TransactionImporter extends LitElement {
     this._mapping = { ...this._mapping, [field]: value };
   }
 
-  async #resolveAccountId(): Promise<number | undefined> {
+  async #resolveAccountId(): Promise<string | undefined> {
     if (this._mapping.account) return undefined;
 
     const name = this._accountName.trim();
     if (!name) return undefined;
 
     const existing = this._accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
-    if (existing) return existing.id;
+    if (existing) return existing._id;
 
     return Accounts.create({ name });
   }

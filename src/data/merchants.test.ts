@@ -1,21 +1,25 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
+import { clearDb } from "../database/pouchHelpers";
 import { Merchants } from "./merchants";
 
 beforeEach(async () => {
-  await db.merchants.clear();
+  await clearDb(db.merchants);
 });
 
 describe("Merchants", () => {
   it("should return all merchants", async () => {
-    await db.merchants.bulkAdd([{ name: "Store A" }, { name: "Store B" }]);
+    await db.merchants.bulkDocs([
+      { _id: crypto.randomUUID(), name: "Store A" },
+      { _id: crypto.randomUUID(), name: "Store B" },
+    ]);
     const all = await Merchants.all();
     expect(all).toHaveLength(2);
   });
 
   it("should get a merchant by id", async () => {
-    const id = (await db.merchants.add({ name: "Test" })) as number;
-    const m = await Merchants.get(id);
+    const resp = await db.merchants.put({ _id: crypto.randomUUID(), name: "Test" });
+    const m = await Merchants.get(resp.id);
     expect(m?.name).toBe("Test");
   });
 
@@ -26,13 +30,13 @@ describe("Merchants", () => {
   });
 
   it("should remove a merchant", async () => {
-    const id = (await db.merchants.add({ name: "Temp" })) as number;
-    await Merchants.remove(id);
-    expect(await db.merchants.get(id)).toBeUndefined();
+    const resp = await db.merchants.put({ _id: crypto.randomUUID(), name: "Temp" });
+    await Merchants.remove(resp.id);
+    expect(await db.merchants.get(resp.id).catch(() => undefined)).toBeUndefined();
   });
 
   it("should find a merchant by name (case-insensitive)", async () => {
-    await db.merchants.add({ name: "Costco" });
+    await db.merchants.put({ _id: crypto.randomUUID(), name: "Costco" });
     const m = await Merchants.byName("costco");
     expect(m?.name).toBe("Costco");
   });

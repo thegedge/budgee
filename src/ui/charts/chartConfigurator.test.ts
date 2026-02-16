@@ -11,7 +11,7 @@ describe("chart-configurator", () => {
   it("should dispatch chart-saved with config", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.transactions = [
-      { id: 1, date: "2024-01-01", amount: -50, originalDescription: "Test", tagIds: [] },
+      { _id: "t1", date: "2024-01-01", amount: -50, originalDescription: "Test", tagIds: [] },
     ] satisfies Transaction[];
     document.body.appendChild(el);
     await el.updateComplete;

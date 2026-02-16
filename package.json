@@ -20,21 +20,25 @@
   "dependencies": {
     "@lit-labs/router": "^0.1.4",
     "chart.js": "^4.5.1",
-    "dexie": "^4.3.0",
     "lit": "^3.3.2",
     "lucide-static": "^0.564.0",
     "papaparse": "^5.5.3",
+    "pouchdb-browser": "^9.0.0",
+    "pouchdb-find": "^9.0.0",
     "sortablejs": "^1.15.7",
     "urlpattern-polyfill": "^10.1.0"
   },
   "devDependencies": {
     "@types/papaparse": "^5.5.2",
+    "@types/pouchdb-adapter-memory": "^6.1.6",
+    "@types/pouchdb-browser": "^6.1.5",
+    "@types/pouchdb-find": "^7.3.3",
     "@types/sortablejs": "^1.15.9",
     "@vitest/ui": "^4.0.18",
-    "fake-indexeddb": "^6.2.5",
     "happy-dom": "^20.6.0",
     "oxfmt": "^0.31.0",
     "oxlint": "^1.46.0",
+    "pouchdb-adapter-memory": "^9.0.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"

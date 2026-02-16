@@ -31,7 +31,7 @@ export class TransactionList extends LitElement {
   private _tags: Tag[] = [];
 
   @state()
-  private _merchants = new Map<number, string>();
+  private _merchants = new Map<string, string>();
 
   @state()
   private _merchantList: Merchant[] = [];
@@ -52,10 +52,10 @@ export class TransactionList extends LitElement {
   private _sortDir: SortDir = "desc";
 
   @state()
-  private _selectedIds = new Set<number>();
+  private _selectedIds = new Set<string>();
 
   @state()
-  private _excludeTagIds = new Set<number>();
+  private _excludeTagIds = new Set<string>();
 
   @state()
   private _noMerchant = false;
@@ -208,15 +208,15 @@ export class TransactionList extends LitElement {
     this._transactions = await Transactions.all();
     this._tags = await Tags.all();
     const merchants = await Merchants.all();
-    this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
+    this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
     this._merchantList = merchants;
   }
 
-  #tag(tagId: number): Tag | undefined {
-    return this._tags.find((t) => t.id === tagId);
+  #tag(tagId: string): Tag | undefined {
+    return this._tags.find((t) => t._id === tagId);
   }
 
-  #tagName(tagId: number): string {
+  #tagName(tagId: string): string {
     return this.#tag(tagId)?.name ?? `#${tagId}`;
   }
 
@@ -260,7 +260,7 @@ export class TransactionList extends LitElement {
     return this._sortDir === "asc" ? " ▲" : " ▼";
   }
 
-  #merchantName(merchantId: number | undefined): string {
+  #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
     return this._merchants.get(merchantId) ?? "";
   }
@@ -293,17 +293,17 @@ export class TransactionList extends LitElement {
     });
   }
 
-  #navigateToMerchant(id: number) {
+  #navigateToMerchant(id: string) {
     window.history.pushState({}, "", `/merchants/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
-  #navigateToTransaction(id: number) {
+  #navigateToTransaction(id: string) {
     window.history.pushState({}, "", `/transactions/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
-  #toggleSelection(id: number) {
+  #toggleSelection(id: string) {
     const next = new Set(this._selectedIds);
     if (next.has(id)) {
       next.delete(id);
@@ -314,7 +314,7 @@ export class TransactionList extends LitElement {
   }
 
   #toggleSelectAll(pageTransactions: Transaction[]) {
-    const pageIds = pageTransactions.map((t) => t.id!);
+    const pageIds = pageTransactions.map((t) => t._id!);
     const allSelected = pageIds.every((id) => this._selectedIds.has(id));
     if (allSelected) {
       const next = new Set(this._selectedIds);
@@ -332,7 +332,7 @@ export class TransactionList extends LitElement {
 
   async #bulkAddTag(e: CustomEvent) {
     const tag = e.detail.tag as Tag;
-    const tagId = tag.id!;
+    const tagId = tag._id!;
     await this.#applyTagToSelected(tagId);
   }
 
@@ -342,12 +342,12 @@ export class TransactionList extends LitElement {
     await this.#applyTagToSelected(tagId);
   }
 
-  async #applyTagToSelected(tagId: number) {
+  async #applyTagToSelected(tagId: string) {
     if (!this._transactions) return;
-    const selected = this._transactions.filter((t) => this._selectedIds.has(t.id!));
+    const selected = this._transactions.filter((t) => this._selectedIds.has(t._id!));
     for (const t of selected) {
       if (t.tagIds.includes(tagId)) continue;
-      await Transactions.update(t.id!, { tagIds: [...t.tagIds, tagId] });
+      await Transactions.update(t._id!, { tagIds: [...t.tagIds, tagId] });
     }
     this.#clearSelection();
     await this.#refresh();
@@ -359,18 +359,18 @@ export class TransactionList extends LitElement {
 
     let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
     if (!merchant) {
-      const id = await Merchants.create(name);
-      merchant = { id, name };
+      const _id = await Merchants.create(name);
+      merchant = { _id, name };
     }
 
     for (const id of this._selectedIds) {
-      await Transactions.update(id, { merchantId: merchant.id });
+      await Transactions.update(id, { merchantId: merchant._id });
     }
     this.#clearSelection();
     await this.#refresh();
   }
 
-  #toggleExcludeTag(tagId: number) {
+  #toggleExcludeTag(tagId: string) {
     const next = new Set(this._excludeTagIds);
     if (next.has(tagId)) {
       next.delete(tagId);
@@ -394,14 +394,14 @@ export class TransactionList extends LitElement {
         <div class="filter-group">
           <label>Exclude tag:</label>
           <select @change=${(e: Event) => {
-            const value = Number((e.target as HTMLSelectElement).value);
+            const value = (e.target as HTMLSelectElement).value;
             if (value) this.#toggleExcludeTag(value);
             (e.target as HTMLSelectElement).value = "";
           }}>
             <option value="">Select…</option>
             ${this._tags
-              .filter((t) => !this._excludeTagIds.has(t.id!))
-              .map((t) => html`<option value=${t.id!}>${t.name}</option>`)}
+              .filter((t) => !this._excludeTagIds.has(t._id!))
+              .map((t) => html`<option value=${t._id!}>${t.name}</option>`)}
           </select>
         </div>
         <div class="filter-group">
@@ -489,7 +489,7 @@ export class TransactionList extends LitElement {
     const sorted = this.#sorted(filtered);
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = sorted.slice(start, start + this._pageSize);
-    const pageIds = pageTransactions.map((t) => t.id!);
+    const pageIds = pageTransactions.map((t) => t._id!);
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
     return html`
@@ -545,12 +545,12 @@ export class TransactionList extends LitElement {
           <tbody>
             ${pageTransactions.map(
               (t) => html`
-              <tr @click=${() => this.#navigateToTransaction(t.id!)}>
+              <tr @click=${() => this.#navigateToTransaction(t._id!)}>
                 <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
                   <input
                     type="checkbox"
-                    .checked=${this._selectedIds.has(t.id!)}
-                    @change=${() => this.#toggleSelection(t.id!)}
+                    .checked=${this._selectedIds.has(t._id!)}
+                    @change=${() => this.#toggleSelection(t._id!)}
                   />
                 </td>
                 <td class="col-date">${this.#humanizeDate(t.date)}</td>

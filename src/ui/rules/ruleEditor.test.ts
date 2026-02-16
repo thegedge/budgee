@@ -10,7 +10,7 @@ describe("rule-editor", () => {
 
   it("should dispatch rule-saved with condition data", async () => {
     const el = document.createElement("rule-editor") as RuleEditor;
-    el.tags = [{ id: 1, name: "Coffee" }] satisfies Tag[];
+    el.tags = [{ _id: "t1", name: "Coffee" }] satisfies Tag[];
     document.body.appendChild(el);
     await el.updateComplete;
 

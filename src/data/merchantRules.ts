@@ -1,32 +1,42 @@
 import { db } from "../database/db";
+import { allDocs } from "../database/pouchHelpers";
 import type { MerchantRule, Transaction } from "../database/types";
 import { matchesRule } from "../import/applyRules";
 
 export class MerchantRules {
   private constructor() {}
 
-  static all(): Promise<MerchantRule[]> {
-    return db.merchantRules.toArray();
+  static async all(): Promise<MerchantRule[]> {
+    return allDocs(db.merchantRules);
   }
 
-  static create(rule: Omit<MerchantRule, "id">): Promise<number> {
-    return db.merchantRules.add(rule) as Promise<number>;
+  static async create(rule: Omit<MerchantRule, "_id" | "_rev">): Promise<string> {
+    const id = crypto.randomUUID();
+    await db.merchantRules.put({ ...rule, _id: id });
+    return id;
   }
 
-  static put(rule: MerchantRule): Promise<number> {
-    return db.merchantRules.put(rule);
+  static async put(rule: MerchantRule): Promise<void> {
+    if (rule._id) {
+      const existing = await db.merchantRules.get(rule._id);
+      await db.merchantRules.put({ ...rule, _rev: existing._rev });
+    } else {
+      await db.merchantRules.put({ ...rule, _id: crypto.randomUUID() });
+    }
   }
 
-  static update(id: number, changes: Partial<MerchantRule>): Promise<number> {
-    return db.merchantRules.update(id, changes);
+  static async update(id: string, changes: Partial<MerchantRule>): Promise<void> {
+    const doc = await db.merchantRules.get(id);
+    await db.merchantRules.put({ ...doc, ...changes });
   }
 
-  static remove(id: number): Promise<void> {
-    return db.merchantRules.delete(id);
+  static async remove(id: string): Promise<void> {
+    const doc = await db.merchantRules.get(id);
+    await db.merchantRules.remove(doc);
   }
 
   static async applyToTransactions(rule: MerchantRule): Promise<number> {
-    const allTx = await db.transactions.toArray();
+    const allTx = await allDocs(db.transactions);
     const updates: Transaction[] = [];
     for (const tx of allTx) {
       const description = tx.originalDescription.toLowerCase();
@@ -39,7 +49,7 @@ export class MerchantRules {
       }
     }
     if (updates.length > 0) {
-      await db.transactions.bulkPut(updates);
+      await db.transactions.bulkDocs(updates);
     }
     return updates.length;
   }

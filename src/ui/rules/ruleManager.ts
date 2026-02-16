@@ -154,19 +154,19 @@ export class RuleManager extends LitElement {
   async #onRuleSaved(e: CustomEvent) {
     const { id, logic, conditions, tagIds, newTagNames, merchantName } = e.detail;
 
-    const allTagIds = [...(tagIds as number[])];
+    const allTagIds = [...(tagIds as string[])];
     if (newTagNames?.length) {
       for (const name of newTagNames as string[]) {
         const existing = await Tags.byName(name);
-        const tagId = existing?.id ?? (await Tags.create(name));
+        const tagId = existing?._id ?? (await Tags.create(name));
         allTagIds.push(tagId);
       }
     }
 
-    let merchantId: number | undefined;
+    let merchantId: string | undefined;
     if (merchantName) {
       const existing = await Merchants.byName(merchantName);
-      merchantId = existing?.id ?? (await Merchants.create(merchantName));
+      merchantId = existing?._id ?? (await Merchants.create(merchantName));
     }
 
     // Check for existing rule to merge with (only for new rules, not edits)
@@ -194,7 +194,7 @@ export class RuleManager extends LitElement {
     }
 
     const rule: MerchantRule = id
-      ? { id, logic, conditions, merchantId, tagIds: allTagIds }
+      ? { _id: id, logic, conditions, merchantId, tagIds: allTagIds }
       : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
 
     if (id) {
@@ -205,7 +205,7 @@ export class RuleManager extends LitElement {
       this._prefillDescription = "";
       this._pendingRerunRule = rule;
     } else {
-      rule.id = await MerchantRules.create(rule);
+      rule._id = await MerchantRules.create(rule);
       await MerchantRules.applyToTransactions(rule);
       this._showEditor = false;
       this._editingRule = null;
@@ -216,7 +216,7 @@ export class RuleManager extends LitElement {
     await this.#refresh();
   }
 
-  async #deleteRule(id: number) {
+  async #deleteRule(id: string) {
     await MerchantRules.remove(id);
     await this.#refresh();
   }
@@ -232,19 +232,19 @@ export class RuleManager extends LitElement {
     this._showEditor = true;
   }
 
-  #tagLabel(tagId: number): string {
-    const tag = this._tags.find((t) => t.id === tagId);
+  #tagLabel(tagId: string): string {
+    const tag = this._tags.find((t) => t._id === tagId);
     if (!tag) return `#${tagId}`;
     return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
   }
 
-  #tagName(tagId: number): string {
-    return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
+  #tagName(tagId: string): string {
+    return this._tags.find((t) => t._id === tagId)?.name ?? `#${tagId}`;
   }
 
-  #merchantName(merchantId: number | undefined): string {
+  #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
-    return this._merchants.find((m) => m.id === merchantId)?.name ?? "";
+    return this._merchants.find((m) => m._id === merchantId)?.name ?? "";
   }
 
   #formatConditions(rule: MerchantRule): string {
@@ -268,7 +268,7 @@ export class RuleManager extends LitElement {
     const lower = this._rulesFilter.toLowerCase();
     if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
     if (rule.merchantId) {
-      const merchant = this._merchants.find((m) => m.id === rule.merchantId);
+      const merchant = this._merchants.find((m) => m._id === rule.merchantId);
       if (merchant?.name.toLowerCase().includes(lower)) return true;
     }
     if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
@@ -378,7 +378,7 @@ export class RuleManager extends LitElement {
                                 </td>
                                 <td>
                                   <button class="icon-btn" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
-                                  <button class="icon-btn icon-btn--danger" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id!)}>${unsafeSVG(trash2Icon)}</button>
+                                  <button class="icon-btn icon-btn--danger" aria-label="Delete rule" @click=${() => this.#deleteRule(rule._id!)}>${unsafeSVG(trash2Icon)}</button>
                                 </td>
                               </tr>
                             `,

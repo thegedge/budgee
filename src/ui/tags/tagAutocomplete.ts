@@ -17,10 +17,10 @@ export class TagAutocomplete extends LitElement {
   tags: Tag[] = [];
 
   @property({ type: Array })
-  selectedTagIds: number[] = [];
+  selectedTagIds: string[] = [];
 
   @property({ type: Array })
-  excludeIds: number[] = [];
+  excludeIds: string[] = [];
 
   @state()
   private _query = "";
@@ -117,8 +117,8 @@ export class TagAutocomplete extends LitElement {
     return this.tags
       .filter(
         (t) =>
-          !this.selectedTagIds.includes(t.id!) &&
-          !this.excludeIds.includes(t.id!) &&
+          !this.selectedTagIds.includes(t._id!) &&
+          !this.excludeIds.includes(t._id!) &&
           t.name.toLowerCase().includes(q),
       )
       .sort((a, b) => {
@@ -134,14 +134,14 @@ export class TagAutocomplete extends LitElement {
     return !this.tags.some((t) => t.name.toLowerCase() === q.toLowerCase());
   }
 
-  #tagLabel(tagId: number) {
-    const tag = this.tags.find((t) => t.id === tagId);
+  #tagLabel(tagId: string) {
+    const tag = this.tags.find((t) => t._id === tagId);
     if (!tag) return `#${tagId}`;
     const svg = tag.icon ? ICON_MAP[tag.icon] : null;
     return svg ? html`<span class="pill-icon">${unsafeSVG(svg)}</span> ${tag.name}` : tag.name;
   }
 
-  #removeTag(tagId: number) {
+  #removeTag(tagId: string) {
     this.dispatchEvent(new CustomEvent("tag-removed", { detail: { tagId } }));
   }
 
@@ -230,7 +230,7 @@ export class TagAutocomplete extends LitElement {
     return html`
       <div class="input-wrapper" @click=${() => this.shadowRoot?.querySelector("input")?.focus()}>
         ${this.selectedTagIds.map((tagId) => {
-          const tag = this.tags.find((t) => t.id === tagId);
+          const tag = this.tags.find((t) => t._id === tagId);
           const bg = tag?.color ?? "var(--budgee-primary)";
           const fg = tag?.color ? contrastTextColor(tag.color) : "white";
           return html`

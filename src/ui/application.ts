@@ -5,6 +5,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { importDatabase } from "../database/importDb";
+import { startReplication } from "../database/replication";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
 import chartBarIcon from "lucide-static/icons/chart-column.svg?raw";
@@ -12,6 +13,7 @@ import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
 import landmarkIcon from "lucide-static/icons/landmark.svg?raw";
 import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
 import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
+import refreshIcon from "lucide-static/icons/refresh-cw.svg?raw";
 import tagIcon from "lucide-static/icons/tag.svg?raw";
 
 import "./accounts/accountList";
@@ -19,6 +21,7 @@ import "./dashboard/dashboard";
 import "./import/importer";
 import "./merchants/merchantList";
 import "./rules/ruleManager";
+import "./settings/settings";
 import "./tags/tagManager";
 import "./transactions/transactionList";
 
@@ -34,6 +37,7 @@ export class Application extends LitElement {
   private _dragOver = false;
 
   #dragCounter = 0;
+  #cancelReplication?: () => void;
 
   private _router = new Router(this, [
     {
@@ -52,8 +56,7 @@ export class Application extends LitElement {
     },
     {
       path: "/transactions/:id",
-      render: ({ id }) =>
-        html`<transaction-detail .transactionId=${Number(id)}></transaction-detail>`,
+      render: ({ id }) => html`<transaction-detail .transactionId=${id}></transaction-detail>`,
       enter: async () => {
         await import("./transactions/transactionDetail");
         return true;
@@ -68,7 +71,7 @@ export class Application extends LitElement {
     },
     {
       path: "/accounts/:id",
-      render: ({ id }) => html`<account-detail .accountId=${Number(id)}></account-detail>`,
+      render: ({ id }) => html`<account-detail .accountId=${id}></account-detail>`,
       enter: async () => {
         await import("./accounts/accountDetail");
         return true;
@@ -83,7 +86,7 @@ export class Application extends LitElement {
     },
     {
       path: "/merchants/:id",
-      render: ({ id }) => html`<merchant-detail .merchantId=${Number(id)}></merchant-detail>`,
+      render: ({ id }) => html`<merchant-detail .merchantId=${id}></merchant-detail>`,
       enter: async () => {
         await import("./merchants/merchantDetail");
         return true;
@@ -108,6 +111,13 @@ export class Application extends LitElement {
       render: () =>
         html`
           <database-manager></database-manager>
+        `,
+    },
+    {
+      path: "/settings",
+      render: () =>
+        html`
+          <budgee-settings @budgee-sync-settings-changed=${() => this.#connectReplication()}></budgee-settings>
         `,
     },
   ]);
@@ -229,6 +239,7 @@ export class Application extends LitElement {
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
+    this.#connectReplication();
   }
 
   disconnectedCallback() {
@@ -237,6 +248,22 @@ export class Application extends LitElement {
     this.removeEventListener("dragenter", this.#onDragEnter);
     this.removeEventListener("dragleave", this.#onDragLeave);
     this.removeEventListener("drop", this.#onDrop);
+    this.#cancelReplication?.();
+  }
+
+  #connectReplication() {
+    this.#cancelReplication?.();
+    let enabled: boolean;
+    let url: string | null;
+    try {
+      enabled = localStorage.getItem("budgee-sync-enabled") === "true";
+      url = localStorage.getItem("budgee-sync-url");
+    } catch {
+      return;
+    }
+    if (enabled && url) {
+      this.#cancelReplication = startReplication(url);
+    }
   }
 
   #onDragOver = (e: DragEvent) => {
@@ -292,6 +319,7 @@ export class Application extends LitElement {
         ${this.navLink("/tags", "Tags", tagIcon)}
         ${this.navLink("/rules", "Rules", adjustmentsHorizontalIcon)}
         ${this.navLink("/import", "Database", arrowDownTrayIcon)}
+        ${this.navLink("/settings", "Sync", refreshIcon)}
       </nav>
       <div class="container">
         ${this._router.outlet()}

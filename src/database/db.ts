@@ -1,4 +1,5 @@
-import Dexie, { type Table } from "dexie";
+import PouchDB from "pouchdb-browser";
+import PouchDBFind from "pouchdb-find";
 import type {
   Account,
   DashboardChart,
@@ -8,102 +9,50 @@ import type {
   Tag,
   Transaction,
 } from "./types";
-import { randomTagColor } from "../data/tagColor";
 
-export class Database extends Dexie {
-  transactions!: Table<Transaction, number>;
-  tags!: Table<Tag, number>;
-  merchants!: Table<Merchant, number>;
-  accounts!: Table<Account, number>;
-  merchantRules!: Table<MerchantRule, number>;
-  dashboardCharts!: Table<DashboardChart, number>;
-  dashboardTables!: Table<DashboardTable, number>;
+PouchDB.plugin(PouchDBFind);
 
-  constructor() {
-    super("BudgeeDatabase");
-
-    this.version(1).stores({
-      transactions: "++id, date, amount, merchantId, accountId, *tagIds",
-      tags: "++id, &name",
-      merchants: "++id, &name",
-      accounts: "++id, &name",
-    });
-
-    this.version(2).stores({
-      merchantRules: "++id, pattern",
-    });
-
-    this.version(3)
-      .stores({
-        merchantRules: "++id",
-      })
-      .upgrade((tx) =>
-        tx
-          .table("merchantRules")
-          .toCollection()
-          .modify((rule) => {
-            const pattern = (rule as Record<string, unknown>).pattern as string;
-            rule.logic = "and";
-            rule.conditions = [{ field: "description", operator: "contains", value: pattern }];
-            delete (rule as Record<string, unknown>).pattern;
-          }),
-      );
-
-    this.version(4).stores({
-      dashboardCharts: "++id",
-    });
-
-    this.version(5).stores({});
-
-    this.version(6)
-      .stores({})
-      .upgrade((tx) =>
-        tx
-          .table("tags")
-          .toCollection()
-          .modify((tag: Tag) => {
-            if (!tag.color) {
-              tag.color = randomTagColor();
-            }
-          }),
-      );
-    const iconRenames: Record<string, string> = {
-      "academic-cap": "graduation-cap",
-      banknotes: "banknote",
-      bolt: "zap",
-      "bug-ant": "bug",
-      "building-storefront": "store",
-      "computer-desktop": "monitor",
-      cube: "box",
-      "currency-dollar": "circle-dollar-sign",
-      envelope: "mail",
-      film: "tv",
-      "globe-alt": "globe",
-      "light-bulb": "lightbulb",
-      "musical-note": "music",
-      "paint-brush": "paintbrush",
-      "plus-circle": "circle-plus",
-      "puzzle-piece": "puzzle",
-      "receipt-percent": "receipt",
-    };
-
-    this.version(7)
-      .stores({})
-      .upgrade((tx) =>
-        tx
-          .table("tags")
-          .toCollection()
-          .modify((tag: Tag) => {
-            if (tag.icon && tag.icon in iconRenames) {
-              tag.icon = iconRenames[tag.icon];
-            }
-          }),
-      );
-
-    this.version(8).stores({
-      dashboardTables: "++id",
-    });
-  }
+function createDb<T extends object>(name: string, adapter?: string) {
+  return new PouchDB<T>(name, adapter ? { adapter } : {});
 }
 
-export const db = new Database();
+export interface Databases {
+  transactions: PouchDB.Database<Transaction>;
+  tags: PouchDB.Database<Tag>;
+  merchants: PouchDB.Database<Merchant>;
+  accounts: PouchDB.Database<Account>;
+  merchantRules: PouchDB.Database<MerchantRule>;
+  dashboardCharts: PouchDB.Database<DashboardChart>;
+  dashboardTables: PouchDB.Database<DashboardTable>;
+}
+
+export function createDatabases(adapter?: string): Databases {
+  return {
+    transactions: createDb<Transaction>("budgee_transactions", adapter),
+    tags: createDb<Tag>("budgee_tags", adapter),
+    merchants: createDb<Merchant>("budgee_merchants", adapter),
+    accounts: createDb<Account>("budgee_accounts", adapter),
+    merchantRules: createDb<MerchantRule>("budgee_merchant_rules", adapter),
+    dashboardCharts: createDb<DashboardChart>("budgee_dashboard_charts", adapter),
+    dashboardTables: createDb<DashboardTable>("budgee_dashboard_tables", adapter),
+  };
+}
+
+export async function createIndexes(dbs: Databases) {
+  await dbs.transactions.createIndex({ index: { fields: ["merchantId"] } });
+  await dbs.transactions.createIndex({ index: { fields: ["accountId"] } });
+  await dbs.tags.createIndex({ index: { fields: ["name"] } });
+  await dbs.merchants.createIndex({ index: { fields: ["name"] } });
+}
+
+export function allDatabases(dbs: Databases): PouchDB.Database[] {
+  return Object.values(dbs);
+}
+
+export async function destroyAll(dbs: Databases) {
+  await Promise.all(allDatabases(dbs).map((db) => db.destroy()));
+}
+
+const defaultAdapter = import.meta.env?.MODE === "test" ? "memory" : undefined;
+export const db = createDatabases(defaultAdapter);
+createIndexes(db);

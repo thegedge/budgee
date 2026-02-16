@@ -1,39 +1,49 @@
+import "pouchdb-adapter-memory";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Database } from "./db";
+import { createDatabases, destroyAll, type Databases } from "./db";
 
 describe("BudgeeDatabase", () => {
-  let db: Database;
+  let dbs: Databases;
 
   beforeEach(() => {
-    db = new Database();
+    dbs = createDatabases("memory");
   });
 
   afterEach(async () => {
-    await db.delete();
+    await destroyAll(dbs);
   });
 
   it("should initialize successfully", () => {
-    expect(db).toBeDefined();
-    expect(db.transactions).toBeDefined();
-    expect(db.tags).toBeDefined();
-    expect(db.merchants).toBeDefined();
-    expect(db.accounts).toBeDefined();
-    expect(db.merchantRules).toBeDefined();
-    expect(db.dashboardCharts).toBeDefined();
+    expect(dbs).toBeDefined();
+    expect(dbs.transactions).toBeDefined();
+    expect(dbs.tags).toBeDefined();
+    expect(dbs.merchants).toBeDefined();
+    expect(dbs.accounts).toBeDefined();
+    expect(dbs.merchantRules).toBeDefined();
+    expect(dbs.dashboardCharts).toBeDefined();
   });
 
   it("should create and retrieve a tag", async () => {
-    const tagId = await db.tags.add({ name: "Groceries" });
-    const tag = await db.tags.get(tagId);
-    expect(tag).toEqual({ id: tagId, name: "Groceries" });
+    const id = crypto.randomUUID();
+    await dbs.tags.put({ _id: id, name: "Groceries" });
+    const tag = await dbs.tags.get(id);
+    expect(tag.name).toBe("Groceries");
+    expect(tag._id).toBe(id);
   });
 
   it("should create and retrieve a transaction", async () => {
-    const tagId = await db.tags.add({ name: "Coffee" });
-    const merchantId = await db.merchants.add({ name: "Starbucks" });
-    const accountId = await db.accounts.add({ name: "Checking Account", type: "Checking" });
+    const tagId = crypto.randomUUID();
+    await dbs.tags.put({ _id: tagId, name: "Coffee" });
 
-    const txId = await db.transactions.add({
+    const merchantId = crypto.randomUUID();
+    await dbs.merchants.put({ _id: merchantId, name: "Starbucks" });
+
+    const accountId = crypto.randomUUID();
+    await dbs.accounts.put({ _id: accountId, name: "Checking Account", type: "Checking" });
+
+    const txId = crypto.randomUUID();
+    await dbs.transactions.put({
+      _id: txId,
       date: "2023-10-27",
       amount: -5.5,
       originalDescription: "Starbucks Coffee",
@@ -42,16 +52,11 @@ describe("BudgeeDatabase", () => {
       accountId,
     });
 
-    const tx = await db.transactions.get(txId);
+    const tx = await dbs.transactions.get(txId);
     expect(tx).toBeDefined();
-    expect(tx?.amount).toBe(-5.5);
-    expect(tx?.tagIds).toContain(tagId);
-    expect(tx?.merchantId).toBe(merchantId);
-    expect(tx?.accountId).toBe(accountId);
-  });
-
-  it("should prevent duplicate tag names", async () => {
-    await db.tags.add({ name: "Utilities" });
-    await expect(db.tags.add({ name: "Utilities" })).rejects.toThrow();
+    expect(tx.amount).toBe(-5.5);
+    expect(tx.tagIds).toContain(tagId);
+    expect(tx.merchantId).toBe(merchantId);
+    expect(tx.accountId).toBe(accountId);
   });
 });

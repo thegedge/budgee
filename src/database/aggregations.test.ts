@@ -9,37 +9,43 @@ import {
 
 const transactions: Transaction[] = [
   {
-    id: 1,
+    _id: "t1",
     date: "2024-01-05",
     amount: -50,
     originalDescription: "Groceries",
-    tagIds: [1],
-    merchantId: 10,
+    tagIds: ["tag1"],
+    merchantId: "m10",
   },
   {
-    id: 2,
+    _id: "t2",
     date: "2024-01-15",
     amount: -25,
     originalDescription: "Coffee",
-    tagIds: [2],
-    merchantId: 20,
+    tagIds: ["tag2"],
+    merchantId: "m20",
   },
   {
-    id: 3,
+    _id: "t3",
     date: "2024-02-01",
     amount: -30,
     originalDescription: "Groceries",
-    tagIds: [1],
-    merchantId: 10,
+    tagIds: ["tag1"],
+    merchantId: "m10",
   },
-  { id: 4, date: "2024-02-10", amount: 2500, originalDescription: "Payroll", tagIds: [3] },
   {
-    id: 5,
+    _id: "t4",
+    date: "2024-02-10",
+    amount: 2500,
+    originalDescription: "Payroll",
+    tagIds: ["tag3"],
+  },
+  {
+    _id: "t5",
     date: "2025-01-01",
     amount: -60,
     originalDescription: "Groceries",
-    tagIds: [1],
-    merchantId: 10,
+    tagIds: ["tag1"],
+    merchantId: "m10",
   },
 ];
 
@@ -68,14 +74,14 @@ describe("aggregateByPeriod", () => {
 });
 
 const tags = [
-  { id: 1, name: "Food" },
-  { id: 2, name: "Coffee" },
-  { id: 3, name: "Income" },
+  { _id: "tag1", name: "Food" },
+  { _id: "tag2", name: "Coffee" },
+  { _id: "tag3", name: "Income" },
 ];
 
 const merchants = [
-  { id: 10, name: "Grocery Store" },
-  { id: 20, name: "Coffee Shop" },
+  { _id: "m10", name: "Grocery Store" },
+  { _id: "m20", name: "Coffee Shop" },
 ];
 
 describe("aggregateByTag", () => {
@@ -88,7 +94,7 @@ describe("aggregateByTag", () => {
   });
 
   it("should exclude specified tags from grouping", () => {
-    const result = aggregateByTag(transactions, tags, [3]);
+    const result = aggregateByTag(transactions, tags, ["tag3"]);
     expect(result.size).toBe(2);
     expect(result.has("Income")).toBe(false);
     expect(result.get("Food")).toBe(-140);
@@ -109,7 +115,7 @@ describe("aggregateByMerchant", () => {
   });
 
   it("should exclude specified merchants from grouping", () => {
-    const result = aggregateByMerchant(transactions, merchants, [20]);
+    const result = aggregateByMerchant(transactions, merchants, ["m20"]);
     expect(result.size).toBe(1);
     expect(result.has("Coffee Shop")).toBe(false);
     expect(result.get("Grocery Store")).toBe(-140);
@@ -123,13 +129,13 @@ describe("aggregateByMerchant", () => {
 
 describe("filterTransactions", () => {
   it("should filter by tagId", () => {
-    const result = filterTransactions(transactions, { tagId: 1 });
+    const result = filterTransactions(transactions, { tagId: "tag1" });
     expect(result).toHaveLength(3);
-    expect(result.every((t) => t.tagIds.includes(1))).toBe(true);
+    expect(result.every((t) => t.tagIds.includes("tag1"))).toBe(true);
   });
 
   it("should filter by merchantId", () => {
-    const result = filterTransactions(transactions, { merchantId: 10 });
+    const result = filterTransactions(transactions, { merchantId: "m10" });
     expect(result).toHaveLength(3);
   });
 
@@ -143,8 +149,8 @@ describe("filterTransactions", () => {
 
   it("should combine filters", () => {
     const result = filterTransactions(transactions, {
-      tagId: 1,
-      merchantId: 10,
+      tagId: "tag1",
+      merchantId: "m10",
       startDate: "2024-02-01",
     });
     expect(result).toHaveLength(2);

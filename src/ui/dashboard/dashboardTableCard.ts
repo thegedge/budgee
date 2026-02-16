@@ -108,12 +108,12 @@ export class DashboardTableCard extends LitElement {
   }
 
   #onDelete() {
-    this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config.id } }));
+    this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config._id } }));
   }
 
   #onResize(colSpan: ColSpan) {
     this.dispatchEvent(
-      new CustomEvent("table-resized", { detail: { id: this.config.id, colSpan } }),
+      new CustomEvent("table-resized", { detail: { id: this.config._id, colSpan } }),
     );
   }
 
@@ -159,18 +159,18 @@ export class DashboardTableCard extends LitElement {
     this._pageSize = e.detail.pageSize;
   }
 
-  #merchantName(merchantId: number | undefined): string {
+  #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
-    return this.merchants.find((m) => m.id === merchantId)?.name ?? "";
+    return this.merchants.find((m) => m._id === merchantId)?.name ?? "";
   }
 
-  #accountName(accountId: number | undefined): string {
+  #accountName(accountId: string | undefined): string {
     if (!accountId) return "";
-    return this.accounts.find((a) => a.id === accountId)?.name ?? "";
+    return this.accounts.find((a) => a._id === accountId)?.name ?? "";
   }
 
-  #tagNames(tagIds: number[]): string {
-    return tagIds.map((id) => this.tags.find((t) => t.id === id)?.name ?? `#${id}`).join(", ");
+  #tagNames(tagIds: string[]): string {
+    return tagIds.map((id) => this.tags.find((t) => t._id === id)?.name ?? `#${id}`).join(", ");
   }
 
   #columnLabel(col: DashboardTableColumn): string {
@@ -202,7 +202,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${sorted.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config.id}"
+        storageKey="dashboard-table-${this.config._id}"
         @page-change=${this.#onPageChange}
       >
         <table>
@@ -251,8 +251,8 @@ export class DashboardTableCard extends LitElement {
   }
 
   #buildMerchantRows(): MerchantRow[] {
-    const countMap = new Map<number, number>();
-    const amountMap = new Map<number, number>();
+    const countMap = new Map<string, number>();
+    const amountMap = new Map<string, number>();
     for (const tx of this.transactions) {
       if (tx.merchantId == null) continue;
       countMap.set(tx.merchantId, (countMap.get(tx.merchantId) ?? 0) + 1);
@@ -260,8 +260,8 @@ export class DashboardTableCard extends LitElement {
     }
     return this.merchants.map((m) => ({
       merchant: m,
-      transactionCount: countMap.get(m.id!) ?? 0,
-      totalAmount: amountMap.get(m.id!) ?? 0,
+      transactionCount: countMap.get(m._id!) ?? 0,
+      totalAmount: amountMap.get(m._id!) ?? 0,
     }));
   }
 
@@ -275,7 +275,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${rows.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config.id}"
+        storageKey="dashboard-table-${this.config._id}"
         @page-change=${this.#onPageChange}
       >
         <table>
@@ -318,8 +318,8 @@ export class DashboardTableCard extends LitElement {
   }
 
   #buildTagRows(): TagRow[] {
-    const countMap = new Map<number, number>();
-    const amountMap = new Map<number, number>();
+    const countMap = new Map<string, number>();
+    const amountMap = new Map<string, number>();
     for (const tx of this.transactions) {
       for (const tagId of tx.tagIds) {
         countMap.set(tagId, (countMap.get(tagId) ?? 0) + 1);
@@ -328,8 +328,8 @@ export class DashboardTableCard extends LitElement {
     }
     return this.tags.map((t) => ({
       tag: t,
-      transactionCount: countMap.get(t.id!) ?? 0,
-      totalAmount: amountMap.get(t.id!) ?? 0,
+      transactionCount: countMap.get(t._id!) ?? 0,
+      totalAmount: amountMap.get(t._id!) ?? 0,
     }));
   }
 
@@ -343,7 +343,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${rows.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config.id}"
+        storageKey="dashboard-table-${this.config._id}"
         @page-change=${this.#onPageChange}
       >
         <table>

@@ -26,8 +26,8 @@ interface MonthlyTotal {
 
 @customElement("account-detail")
 export class AccountDetail extends LitElement {
-  @property({ type: Number })
-  accountId = 0;
+  @property({ type: String })
+  accountId = "";
 
   @state()
   private _account?: Account;
@@ -243,7 +243,7 @@ export class AccountDetail extends LitElement {
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
-  #navigateToTransaction(id: number) {
+  #navigateToTransaction(id: string) {
     window.history.pushState({}, "", `/transactions/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
@@ -407,7 +407,7 @@ export class AccountDetail extends LitElement {
             <tbody>
               ${pageTransactions.map(
                 (t) => html`
-                <tr @click=${() => this.#navigateToTransaction(t.id!)}>
+                <tr @click=${() => this.#navigateToTransaction(t._id!)}>
                   <td>${t.date}</td>
                   <td>${t.originalDescription}</td>
                   <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>

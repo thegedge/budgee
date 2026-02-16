@@ -1,30 +1,40 @@
 import { db } from "../database/db";
+import { allDocs } from "../database/pouchHelpers";
 import type { Merchant } from "../database/types";
 
 export class Merchants {
   private constructor() {}
 
-  static all(): Promise<Merchant[]> {
-    return db.merchants.toArray();
+  static async all(): Promise<Merchant[]> {
+    return allDocs(db.merchants);
   }
 
-  static get(id: number): Promise<Merchant | undefined> {
-    return db.merchants.get(id);
+  static async get(id: string): Promise<Merchant | undefined> {
+    try {
+      return await db.merchants.get(id);
+    } catch {
+      return undefined;
+    }
   }
 
-  static create(name: string): Promise<number> {
-    return db.merchants.add({ name }) as Promise<number>;
+  static async create(name: string): Promise<string> {
+    const id = crypto.randomUUID();
+    await db.merchants.put({ _id: id, name });
+    return id;
   }
 
-  static update(id: number, changes: Partial<Merchant>): Promise<number> {
-    return db.merchants.update(id, changes);
+  static async update(id: string, changes: Partial<Merchant>): Promise<void> {
+    const doc = await db.merchants.get(id);
+    await db.merchants.put({ ...doc, ...changes });
   }
 
-  static remove(id: number): Promise<void> {
-    return db.merchants.delete(id);
+  static async remove(id: string): Promise<void> {
+    const doc = await db.merchants.get(id);
+    await db.merchants.remove(doc);
   }
 
-  static byName(name: string): Promise<Merchant | undefined> {
-    return db.merchants.where("name").equalsIgnoreCase(name).first();
+  static async byName(name: string): Promise<Merchant | undefined> {
+    const all = await allDocs(db.merchants);
+    return all.find((m) => m.name.toLowerCase() === name.toLowerCase());
   }
 }

@@ -59,8 +59,8 @@ export class AccountList extends LitElement {
   async #load() {
     const [accounts, transactions] = await Promise.all([Accounts.all(), Transactions.all()]);
 
-    const countMap = new Map<number, number>();
-    const balanceMap = new Map<number, number>();
+    const countMap = new Map<string, number>();
+    const balanceMap = new Map<string, number>();
     for (const tx of transactions as Transaction[]) {
       if (tx.accountId == null) continue;
       countMap.set(tx.accountId, (countMap.get(tx.accountId) ?? 0) + 1);
@@ -69,8 +69,8 @@ export class AccountList extends LitElement {
 
     this._rows = accounts.map((a) => ({
       account: a,
-      transactionCount: countMap.get(a.id!) ?? 0,
-      balance: balanceMap.get(a.id!) ?? 0,
+      transactionCount: countMap.get(a._id!) ?? 0,
+      balance: balanceMap.get(a._id!) ?? 0,
     }));
   }
 
@@ -127,7 +127,7 @@ export class AccountList extends LitElement {
     });
   }
 
-  #navigateToAccount(id: number) {
+  #navigateToAccount(id: string) {
     window.history.pushState({}, "", `/accounts/${id}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
@@ -179,7 +179,7 @@ export class AccountList extends LitElement {
           <tbody>
             ${pageRows.map(
               (row) => html`
-              <tr @click=${() => this.#navigateToAccount(row.account.id!)}>
+              <tr @click=${() => this.#navigateToAccount(row.account._id!)}>
                 <td>${row.account.name}</td>
                 <td>${row.account.type ?? ""}</td>
                 <td>${row.transactionCount}</td>

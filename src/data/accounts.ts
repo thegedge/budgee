@@ -1,26 +1,35 @@
 import { db } from "../database/db";
+import { allDocs } from "../database/pouchHelpers";
 import type { Account } from "../database/types";
 
 export class Accounts {
   private constructor() {}
 
-  static all(): Promise<Account[]> {
-    return db.accounts.toArray();
+  static async all(): Promise<Account[]> {
+    return allDocs(db.accounts);
   }
 
-  static get(id: number): Promise<Account | undefined> {
-    return db.accounts.get(id);
+  static async get(id: string): Promise<Account | undefined> {
+    try {
+      return await db.accounts.get(id);
+    } catch {
+      return undefined;
+    }
   }
 
-  static create(account: Omit<Account, "id">): Promise<number> {
-    return db.accounts.add(account) as Promise<number>;
+  static async create(account: Omit<Account, "_id" | "_rev">): Promise<string> {
+    const id = crypto.randomUUID();
+    await db.accounts.put({ ...account, _id: id });
+    return id;
   }
 
-  static update(id: number, changes: Partial<Account>): Promise<number> {
-    return db.accounts.update(id, changes);
+  static async update(id: string, changes: Partial<Account>): Promise<void> {
+    const doc = await db.accounts.get(id);
+    await db.accounts.put({ ...doc, ...changes });
   }
 
-  static remove(id: number): Promise<void> {
-    return db.accounts.delete(id);
+  static async remove(id: string): Promise<void> {
+    const doc = await db.accounts.get(id);
+    await db.accounts.remove(doc);
   }
 }

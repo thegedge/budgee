@@ -3,14 +3,14 @@ import type { MerchantRule, Transaction } from "../database/types";
 import { applyRules } from "./applyRules";
 
 describe("applyRules", () => {
-  const baseTransaction: Omit<Transaction, "id"> = {
+  const baseTransaction: Omit<Transaction, "_id" | "_rev"> = {
     date: "2024-01-01",
     amount: -5.75,
     originalDescription: "Starbucks Coffee #123",
     tagIds: [],
   };
 
-  function containsRule(value: string, tagIds: number[]): MerchantRule {
+  function containsRule(value: string, tagIds: string[]): MerchantRule {
     return {
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value }],
@@ -19,34 +19,34 @@ describe("applyRules", () => {
   }
 
   it("should add tags from a matching rule", () => {
-    const rules = [containsRule("starbucks", [1, 2])];
+    const rules = [containsRule("starbucks", ["t1", "t2"])];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1, 2]);
+    expect(result.tagIds).toEqual(["t1", "t2"]);
   });
 
   it("should be case-insensitive", () => {
-    const rules = [containsRule("STARBUCKS", [1])];
+    const rules = [containsRule("STARBUCKS", ["t1"])];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should not modify transaction when no rules match", () => {
-    const rules = [containsRule("walmart", [1])];
+    const rules = [containsRule("walmart", ["t1"])];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual([]);
   });
 
   it("should merge tags without duplicates", () => {
-    const transaction = { ...baseTransaction, tagIds: [1, 3] };
-    const rules = [containsRule("starbucks", [1, 2])];
+    const transaction = { ...baseTransaction, tagIds: ["t1", "t3"] };
+    const rules = [containsRule("starbucks", ["t1", "t2"])];
     const result = applyRules(transaction, rules);
-    expect(result.tagIds).toEqual([1, 3, 2]);
+    expect(result.tagIds).toEqual(["t1", "t3", "t2"]);
   });
 
   it("should apply only the first matching rule", () => {
-    const rules = [containsRule("starbucks", [1]), containsRule("coffee", [2])];
+    const rules = [containsRule("starbucks", ["t1"]), containsRule("coffee", ["t2"])];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should set merchantId from matching rule", () => {
@@ -54,12 +54,12 @@ describe("applyRules", () => {
       {
         logic: "and",
         conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
-        merchantId: 42,
-        tagIds: [1],
+        merchantId: "m42",
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
-    expect(result.merchantId).toBe(42);
+    expect(result.merchantId).toBe("m42");
   });
 
   it("should support startsWith operator", () => {
@@ -67,11 +67,11 @@ describe("applyRules", () => {
       {
         logic: "and",
         conditions: [{ field: "description", operator: "startsWith", value: "starbucks" }],
-        tagIds: [1],
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support equals operator", () => {
@@ -79,11 +79,11 @@ describe("applyRules", () => {
       {
         logic: "and",
         conditions: [{ field: "description", operator: "equals", value: "starbucks coffee #123" }],
-        tagIds: [1],
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support regex operator", () => {
@@ -91,11 +91,11 @@ describe("applyRules", () => {
       {
         logic: "and",
         conditions: [{ field: "description", operator: "regex", value: "starbucks.*#\\d+" }],
-        tagIds: [1],
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support OR logic across conditions", () => {
@@ -106,11 +106,11 @@ describe("applyRules", () => {
           { field: "description", operator: "contains", value: "walmart" },
           { field: "description", operator: "contains", value: "coffee" },
         ],
-        tagIds: [1],
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
-    expect(result.tagIds).toEqual([1]);
+    expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should require all conditions for AND logic", () => {
@@ -121,7 +121,7 @@ describe("applyRules", () => {
           { field: "description", operator: "contains", value: "starbucks" },
           { field: "description", operator: "contains", value: "walmart" },
         ],
-        tagIds: [1],
+        tagIds: ["t1"],
       },
     ];
     const result = applyRules(baseTransaction, rules);
