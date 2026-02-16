@@ -64,8 +64,10 @@ export class DashboardTableCard extends LitElement {
     iconButtonStyles,
     css`
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
         position: relative;
+        overflow: auto;
         border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;

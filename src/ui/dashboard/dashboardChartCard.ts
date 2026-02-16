@@ -42,7 +42,8 @@ export class DashboardChartCard extends LitElement {
     iconButtonStyles,
     css`
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
         position: relative;
         border: 1px solid var(--budgee-border);
         padding: 1rem;
@@ -61,6 +62,10 @@ export class DashboardChartCard extends LitElement {
       .actions {
         display: flex;
         gap: 0.25rem;
+      }
+      chart-wrapper {
+        flex: 1;
+        min-height: 0;
       }
       .resize-handle {
         position: absolute;

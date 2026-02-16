@@ -52,6 +52,9 @@ export class ChartConfigurator extends LitElement {
   private _colSpan: NonNullable<DashboardChart["colSpan"]> = 1;
 
   @state()
+  private _rowSpan: NonNullable<DashboardChart["rowSpan"]> = 1;
+
+  @state()
   private _excludedTagIds: number[] = [];
 
   @state()
@@ -132,6 +135,7 @@ export class ChartConfigurator extends LitElement {
       this._tagId = this.editingChart.tagId;
       this._merchantId = this.editingChart.merchantId;
       this._colSpan = this.editingChart.colSpan ?? 1;
+      this._rowSpan = this.editingChart.rowSpan ?? 1;
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
       this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
       this._initialized = true;
@@ -154,6 +158,7 @@ export class ChartConfigurator extends LitElement {
           tagId: this._tagId,
           merchantId: this._merchantId,
           colSpan: this._colSpan,
+          rowSpan: this._rowSpan,
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
           excludedMerchantIds:
             this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
@@ -287,7 +292,7 @@ export class ChartConfigurator extends LitElement {
           <option value="">All</option>
           ${this.merchants.map((m) => html`<option value=${m.id!} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
         </select>
-        <label>Size:</label>
+        <label>Width:</label>
         <select @change=${(e: Event) => {
           this._colSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
             DashboardChart["colSpan"]
@@ -299,6 +304,17 @@ export class ChartConfigurator extends LitElement {
           <option value="4" ?selected=${this._colSpan === 4}>4 col</option>
           <option value="5" ?selected=${this._colSpan === 5}>5 col</option>
           <option value="6" ?selected=${this._colSpan === 6}>6 col</option>
+        </select>
+        <label>Height:</label>
+        <select @change=${(e: Event) => {
+          this._rowSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
+            DashboardChart["rowSpan"]
+          >;
+        }}>
+          <option value="1" ?selected=${this._rowSpan === 1}>1 row</option>
+          <option value="2" ?selected=${this._rowSpan === 2}>2 rows</option>
+          <option value="3" ?selected=${this._rowSpan === 3}>3 rows</option>
+          <option value="4" ?selected=${this._rowSpan === 4}>4 rows</option>
         </select>
       </div>
       ${this.#renderExclusions()}

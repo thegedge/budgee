@@ -84,6 +84,7 @@ export class Dashboard extends LitElement {
       .chart-grid {
         display: grid;
         grid-template-columns: 1fr;
+        grid-auto-rows: minmax(200px, auto);
         gap: 1rem;
         margin-bottom: 1rem;
       }
@@ -100,6 +101,7 @@ export class Dashboard extends LitElement {
       .table-grid {
         display: grid;
         grid-template-columns: 1fr;
+        grid-auto-rows: minmax(200px, auto);
         gap: 1rem;
         margin-bottom: 1rem;
       }
@@ -230,6 +232,7 @@ export class Dashboard extends LitElement {
         tagId: detail.tagId,
         merchantId: detail.merchantId,
         colSpan: detail.colSpan,
+        rowSpan: detail.rowSpan,
         excludedTagIds: detail.excludedTagIds,
         excludedMerchantIds: detail.excludedMerchantIds,
       });
@@ -267,6 +270,7 @@ export class Dashboard extends LitElement {
         model: detail.model,
         columns: detail.columns,
         colSpan: detail.colSpan,
+        rowSpan: detail.rowSpan,
       });
     } else {
       await DashboardTables.create({
@@ -320,7 +324,7 @@ export class Dashboard extends LitElement {
                 (chart) => html`
                 <dashboard-chart-card
                   data-chart-id=${chart.id!}
-                  style="grid-column: span ${chart.colSpan ?? 1}"
+                  style="grid-column: span ${chart.colSpan ?? 1}; grid-row: span ${chart.rowSpan ?? 1}"
                   .config=${chart}
                   .transactions=${this._transactions}
                   .tags=${this._tags}
@@ -344,7 +348,7 @@ export class Dashboard extends LitElement {
                 (table) => html`
                 <dashboard-table-card
                   data-table-id=${table.id!}
-                  style="grid-column: span ${table.colSpan ?? 1}"
+                  style="grid-column: span ${table.colSpan ?? 1}; grid-row: span ${table.rowSpan ?? 1}"
                   .config=${table}
                   .transactions=${this._transactions!}
                   .tags=${this._tags}
