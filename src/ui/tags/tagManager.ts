@@ -1,11 +1,11 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Tags } from "../../data/tags";
 import { colorToHex } from "../../data/tagColor";
+import { Tags } from "../../data/tags";
 import type { Tag } from "../../database/types";
-import "../iconPicker";
-import "../paginatedTable";
-import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
+import "../shared/iconPicker";
+import "../shared/paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {

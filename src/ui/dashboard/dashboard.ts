@@ -1,3 +1,4 @@
+import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
@@ -8,14 +9,13 @@ import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import { aggregateByPeriod } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
-import type { ChartData } from "chart.js";
-import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
-import "../modal";
-import "../paginatedTable";
-import type { PageChangeDetail } from "../paginatedTable";
-import { tableStyles } from "../tableStyles";
+import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
+import "../shared/modal";
+import "../shared/paginatedTable";
+import type { PageChangeDetail } from "../shared/paginatedTable";
+import { tableStyles } from "../tableStyles";
 import "./dashboardChartCard";
 
 declare global {

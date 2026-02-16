@@ -5,10 +5,10 @@ import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import "../merchants/merchantAutocomplete";
-import "../paginatedTable";
-import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
-import "../tags/tagAutocomplete";
+import "../shared/paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
+import "../tags/tagAutocomplete";
 
 declare global {
   interface HTMLElementTagNameMap {

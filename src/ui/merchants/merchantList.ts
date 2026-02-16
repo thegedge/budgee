@@ -3,8 +3,8 @@ import { customElement, state } from "lit/decorators.js";
 import { Merchants } from "../../data/merchants";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Transaction } from "../../database/types";
-import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
-import "../paginatedTable";
+import "../shared/paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {

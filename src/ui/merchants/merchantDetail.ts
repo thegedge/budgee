@@ -1,15 +1,15 @@
+import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { ChartData } from "chart.js";
 import { Merchants } from "../../data/merchants";
 import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Transaction } from "../../database/types";
-import type { PageChangeDetail } from "../paginatedTable";
-import "../paginatedTable";
 import "../charts/chartWrapper";
-import { tableStyles } from "../tableStyles";
 import { cssVar } from "../cssVar";
+import "../shared/paginatedTable";
+import type { PageChangeDetail } from "../shared/paginatedTable";
+import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
