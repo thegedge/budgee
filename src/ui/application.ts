@@ -100,7 +100,7 @@ export class Application extends LitElement {
       path: "/import",
       render: () =>
         html`
-          <trans-importer></trans-importer>
+          <database-manager></database-manager>
         `,
     },
   ]);
@@ -214,7 +214,7 @@ export class Application extends LitElement {
         ${this.navLink("/merchants", "Merchants", buildingStorefrontIcon)}
         ${this.navLink("/tags", "Tags", tagIcon)}
         ${this.navLink("/rules", "Rules", adjustmentsHorizontalIcon)}
-        ${this.navLink("/import", "Import / Export", arrowDownTrayIcon)}
+        ${this.navLink("/import", "Database", arrowDownTrayIcon)}
       </nav>
       <div class="container">
         ${this._router.outlet()}

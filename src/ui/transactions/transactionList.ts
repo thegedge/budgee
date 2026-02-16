@@ -9,6 +9,7 @@ import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 import "../tags/tagAutocomplete";
+import "./transactionImporter";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -59,6 +60,9 @@ export class TransactionList extends LitElement {
 
   @state()
   private _bulkMerchantName = "";
+
+  @state()
+  private _showImporter = false;
 
   static styles = [
     tableStyles,
@@ -155,12 +159,30 @@ export class TransactionList extends LitElement {
         line-height: 1;
         padding: 0 2px;
       }
+      .import-toggle {
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        background-color: var(--budgee-primary);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+      }
+      .import-toggle:hover {
+        background-color: var(--budgee-primary-hover);
+      }
     `,
   ];
 
   connectedCallback() {
     super.connectedCallback();
     this.#refresh();
+  }
+
+  async #onImported() {
+    this._showImporter = false;
+    await this.#refresh();
   }
 
   async #refresh() {
@@ -475,6 +497,12 @@ export class TransactionList extends LitElement {
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
     return html`
+      <button class="import-toggle" @click=${() => {
+        this._showImporter = !this._showImporter;
+      }}>
+        ${this._showImporter ? "Hide Import" : "Import CSV"}
+      </button>
+      ${this._showImporter ? html`<transaction-importer @imported=${this.#onImported}></transaction-importer>` : nothing}
       ${this.#renderFilterBar()}
       ${this.#renderBulkBar()}
       <paginated-table
