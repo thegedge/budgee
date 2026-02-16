@@ -117,8 +117,23 @@ export class DashboardChartCard extends LitElement {
     }
 
     const values = entries.map(([, val]) => val);
-    const bgColors = isPie ? this.#pieColors(entries) : cssVar("--budgee-primary", 0.5);
-    const borderColors = isPie ? cssVar("--budgee-surface") : cssVar("--budgee-primary");
+    const isUnfilteredMonthlyBar =
+      this.config.chartType === "bar" &&
+      this.config.granularity === "month" &&
+      !this.config.tagId &&
+      !this.config.merchantId;
+    const bgColors = isPie
+      ? this.#pieColors(entries)
+      : isUnfilteredMonthlyBar
+        ? values.map((v) =>
+            v < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
+          )
+        : cssVar("--budgee-primary", 0.5);
+    const borderColors = isPie
+      ? cssVar("--budgee-surface")
+      : isUnfilteredMonthlyBar
+        ? values.map((v) => (v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive")))
+        : cssVar("--budgee-primary");
 
     const datasets: ChartData["datasets"] = [
       {
@@ -206,6 +221,8 @@ export class DashboardChartCard extends LitElement {
   }
 
   #onResizeHandlePointerDown(e: PointerEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     const handle = e.currentTarget as HTMLElement;
     handle.setPointerCapture(e.pointerId);
     this.setAttribute("data-resizing", "");

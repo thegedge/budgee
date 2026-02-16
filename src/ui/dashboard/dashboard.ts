@@ -1,17 +1,13 @@
-import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
 import { DashboardCharts } from "../../data/dashboardCharts";
 import { Merchants } from "../../data/merchants";
-import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
-import { aggregateByPeriod } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import "../charts/chartConfigurator";
 import "../charts/chartWrapper";
-import { cssVar } from "../cssVar";
 import "../shared/modal";
 import "../shared/paginatedTable";
 import type { PageChangeDetail } from "../shared/paginatedTable";
@@ -118,6 +114,17 @@ export class Dashboard extends LitElement {
     this._tags = await Tags.all();
     this._merchants = await Merchants.all();
     this._charts = await DashboardCharts.all();
+
+    if (this._charts.length === 0) {
+      await DashboardCharts.create({
+        title: "Monthly Overview",
+        chartType: "bar",
+        granularity: "month",
+        colSpan: 3,
+        position: 0,
+      });
+      this._charts = await DashboardCharts.all();
+    }
   }
 
   #initSortable() {
@@ -201,43 +208,6 @@ export class Dashboard extends LitElement {
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
-  get #monthlyChartData(): ChartData {
-    const aggregated = aggregateByPeriod(this._transactions!, "month");
-    const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
-    const values = entries.map(([, val]) => val);
-    const window = movingAverageWindow(values.length);
-    return {
-      labels: entries.map(([key]) => key),
-      datasets: [
-        {
-          label: "Monthly Spending",
-          data: values,
-          backgroundColor: values.map((val) =>
-            val < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
-          ),
-          borderColor: values.map((val) =>
-            val < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
-          ),
-          borderWidth: 1,
-        },
-        ...(values.length >= 2
-          ? [
-              {
-                type: "line" as const,
-                label: `Moving Avg (${window}-mo)`,
-                data: movingAverage(values, window),
-                borderColor: cssVar("--budgee-text-muted", 0.5),
-                borderWidth: 1.5,
-                pointRadius: 0,
-                fill: false,
-                tension: 0.3,
-              } as ChartData["datasets"][number],
-            ]
-          : []),
-      ],
-    };
-  }
-
   render() {
     if (this._transactions === null) {
       return html`
@@ -262,14 +232,6 @@ export class Dashboard extends LitElement {
 
     return html`
       <h3>Dashboard</h3>
-
-      <div class="card">
-        <h3>Monthly Overview</h3>
-        <chart-wrapper
-          chartType="bar"
-          .data=${this.#monthlyChartData}
-        ></chart-wrapper>
-      </div>
 
       ${
         this._charts.length > 0
