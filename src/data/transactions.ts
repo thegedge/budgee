@@ -35,4 +35,8 @@ export class Transactions {
   static forAccount(accountId: number): Promise<Transaction[]> {
     return db.transactions.where("accountId").equals(accountId).reverse().sortBy("date");
   }
+
+  static deleteForAccount(accountId: number): Promise<number> {
+    return db.transactions.where("accountId").equals(accountId).delete();
+  }
 }

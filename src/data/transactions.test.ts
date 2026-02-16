@@ -62,6 +62,19 @@ describe("Transactions", () => {
     expect(results).toHaveLength(2);
   });
 
+  it("should delete transactions for a specific account", async () => {
+    await db.transactions.bulkAdd([
+      { date: "2024-01-01", amount: -10, originalDescription: "A", tagIds: [], accountId: 1 },
+      { date: "2024-01-02", amount: -20, originalDescription: "B", tagIds: [], accountId: 1 },
+      { date: "2024-01-03", amount: -30, originalDescription: "C", tagIds: [], accountId: 2 },
+    ]);
+    const deleted = await Transactions.deleteForAccount(1);
+    expect(deleted).toBe(2);
+    const remaining = await db.transactions.toArray();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].accountId).toBe(2);
+  });
+
   it("should bulk add transactions", async () => {
     await Transactions.bulkAdd([
       { date: "2024-01-01", amount: -10, originalDescription: "A", tagIds: [] },

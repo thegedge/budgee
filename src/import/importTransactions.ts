@@ -4,15 +4,23 @@ import type { Transaction } from "../database/types";
 import { applyRules } from "./applyRules";
 import type { ColumnMapping } from "./parseCsv";
 
+export type ImportMode = "replace" | "append";
+
 export async function importTransactions(
   rows: Record<string, string>[],
   mapping: ColumnMapping,
+  options: { accountId: number; importMode: ImportMode },
 ): Promise<number> {
   const rules = await MerchantRules.all();
   const transactions: Omit<Transaction, "id">[] = rows
     .map((row) => rowToTransaction(row, mapping))
     .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
-    .map((t) => applyRules(t, rules));
+    .map((t) => applyRules(t, rules))
+    .map((t) => ({ ...t, accountId: options.accountId }));
+
+  if (options.importMode === "replace") {
+    await Transactions.deleteForAccount(options.accountId);
+  }
 
   await Transactions.bulkAdd(transactions);
   return transactions.length;
