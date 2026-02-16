@@ -30,6 +30,7 @@ export class Modal extends LitElement {
     }
     [popover]::backdrop {
       background: var(--budgee-overlay);
+      backdrop-filter: blur(1px);
     }
     .header {
       display: flex;
