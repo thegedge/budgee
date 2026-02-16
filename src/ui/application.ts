@@ -4,12 +4,12 @@ import { customElement } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import adjustmentsHorizontalIcon from "heroicons/24/outline/adjustments-horizontal.svg?raw";
-import arrowDownTrayIcon from "heroicons/24/outline/arrow-down-tray.svg?raw";
-import banknotesIcon from "heroicons/24/outline/banknotes.svg?raw";
-import buildingStorefrontIcon from "heroicons/24/outline/building-storefront.svg?raw";
-import chartBarIcon from "heroicons/24/outline/chart-bar.svg?raw";
-import tagIcon from "heroicons/24/outline/tag.svg?raw";
+import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
+import chartBarIcon from "lucide-static/icons/chart-column.svg?raw";
+import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
+import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
+import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
+import tagIcon from "lucide-static/icons/tag.svg?raw";
 
 import "./dashboard/dashboard";
 import "./import/importer";
@@ -96,7 +96,7 @@ export class Application extends LitElement {
       font-family: sans-serif;
     }
 
-    svg[data-slot="icon"] {
+    svg.lucide {
       display: inline-block;
       width: 1rem;
       height: 1rem;

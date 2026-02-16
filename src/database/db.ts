@@ -58,6 +58,38 @@ export class Database extends Dexie {
             }
           }),
       );
+    const iconRenames: Record<string, string> = {
+      "academic-cap": "graduation-cap",
+      banknotes: "banknote",
+      bolt: "zap",
+      "bug-ant": "bug",
+      "building-storefront": "store",
+      "computer-desktop": "monitor",
+      cube: "box",
+      "currency-dollar": "circle-dollar-sign",
+      envelope: "mail",
+      film: "tv",
+      "globe-alt": "globe",
+      "light-bulb": "lightbulb",
+      "musical-note": "music",
+      "paint-brush": "paintbrush",
+      "plus-circle": "circle-plus",
+      "puzzle-piece": "puzzle",
+      "receipt-percent": "receipt",
+    };
+
+    this.version(7)
+      .stores({})
+      .upgrade((tx) =>
+        tx
+          .table("tags")
+          .toCollection()
+          .modify((tag: Tag) => {
+            if (tag.icon && tag.icon in iconRenames) {
+              tag.icon = iconRenames[tag.icon];
+            }
+          }),
+      );
   }
 }
 

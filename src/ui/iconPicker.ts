@@ -2,103 +2,139 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import academicCap from "heroicons/24/outline/academic-cap.svg?raw";
-import banknotes from "heroicons/24/outline/banknotes.svg?raw";
-import beaker from "heroicons/24/outline/beaker.svg?raw";
-import bell from "heroicons/24/outline/bell.svg?raw";
-import bolt from "heroicons/24/outline/bolt.svg?raw";
-import bugAnt from "heroicons/24/outline/bug-ant.svg?raw";
-import bookOpen from "heroicons/24/outline/book-open.svg?raw";
-import briefcase from "heroicons/24/outline/briefcase.svg?raw";
-import buildingStorefront from "heroicons/24/outline/building-storefront.svg?raw";
-import cake from "heroicons/24/outline/cake.svg?raw";
-import calculator from "heroicons/24/outline/calculator.svg?raw";
-import calendar from "heroicons/24/outline/calendar.svg?raw";
-import camera from "heroicons/24/outline/camera.svg?raw";
-import clock from "heroicons/24/outline/clock.svg?raw";
-import cloud from "heroicons/24/outline/cloud.svg?raw";
-import computerDesktop from "heroicons/24/outline/computer-desktop.svg?raw";
-import creditCard from "heroicons/24/outline/credit-card.svg?raw";
-import cube from "heroicons/24/outline/cube.svg?raw";
-import currencyDollar from "heroicons/24/outline/currency-dollar.svg?raw";
-import envelope from "heroicons/24/outline/envelope.svg?raw";
-import film from "heroicons/24/outline/film.svg?raw";
-import fire from "heroicons/24/outline/fire.svg?raw";
-import gift from "heroicons/24/outline/gift.svg?raw";
-import globeAlt from "heroicons/24/outline/globe-alt.svg?raw";
-import heart from "heroicons/24/outline/heart.svg?raw";
-import home from "heroicons/24/outline/home.svg?raw";
-import key from "heroicons/24/outline/key.svg?raw";
-import lightBulb from "heroicons/24/outline/light-bulb.svg?raw";
-import mapPin from "heroicons/24/outline/map-pin.svg?raw";
-import musicalNote from "heroicons/24/outline/musical-note.svg?raw";
-import newspaper from "heroicons/24/outline/newspaper.svg?raw";
-import paintBrush from "heroicons/24/outline/paint-brush.svg?raw";
-import phone from "heroicons/24/outline/phone.svg?raw";
-import plusCircle from "heroicons/24/outline/plus-circle.svg?raw";
-import puzzlePiece from "heroicons/24/outline/puzzle-piece.svg?raw";
-import receiptPercent from "heroicons/24/outline/receipt-percent.svg?raw";
-import scale from "heroicons/24/outline/scale.svg?raw";
-import scissors from "heroicons/24/outline/scissors.svg?raw";
-import shieldCheck from "heroicons/24/outline/shield-check.svg?raw";
-import shoppingBag from "heroicons/24/outline/shopping-bag.svg?raw";
-import shoppingCart from "heroicons/24/outline/shopping-cart.svg?raw";
-import sparkles from "heroicons/24/outline/sparkles.svg?raw";
-import star from "heroicons/24/outline/star.svg?raw";
-import sun from "heroicons/24/outline/sun.svg?raw";
-import ticket from "heroicons/24/outline/ticket.svg?raw";
-import trophy from "heroicons/24/outline/trophy.svg?raw";
-import truck from "heroicons/24/outline/truck.svg?raw";
-import tv from "heroicons/24/outline/tv.svg?raw";
-import user from "heroicons/24/outline/user.svg?raw";
-import users from "heroicons/24/outline/users.svg?raw";
-import wifi from "heroicons/24/outline/wifi.svg?raw";
-import wrench from "heroicons/24/outline/wrench.svg?raw";
+import apple from "lucide-static/icons/apple.svg?raw";
+import banknote from "lucide-static/icons/banknote.svg?raw";
+import beaker from "lucide-static/icons/beaker.svg?raw";
+import beer from "lucide-static/icons/beer.svg?raw";
+import bell from "lucide-static/icons/bell.svg?raw";
+import bike from "lucide-static/icons/bike.svg?raw";
+import bookOpen from "lucide-static/icons/book-open.svg?raw";
+import box from "lucide-static/icons/box.svg?raw";
+import briefcase from "lucide-static/icons/briefcase.svg?raw";
+import bug from "lucide-static/icons/bug.svg?raw";
+import cake from "lucide-static/icons/cake.svg?raw";
+import calculator from "lucide-static/icons/calculator.svg?raw";
+import calendar from "lucide-static/icons/calendar.svg?raw";
+import camera from "lucide-static/icons/camera.svg?raw";
+import car from "lucide-static/icons/car.svg?raw";
+import carrot from "lucide-static/icons/carrot.svg?raw";
+import chefHat from "lucide-static/icons/chef-hat.svg?raw";
+import circledDollar from "lucide-static/icons/circle-dollar-sign.svg?raw";
+import circledPlus from "lucide-static/icons/circle-plus.svg?raw";
+import question from "lucide-static/icons/circle-question-mark.svg?raw";
+import clock from "lucide-static/icons/clock.svg?raw";
+import cloud from "lucide-static/icons/cloud.svg?raw";
+import coffee from "lucide-static/icons/coffee.svg?raw";
+import creditCard from "lucide-static/icons/credit-card.svg?raw";
+import cupSoda from "lucide-static/icons/cup-soda.svg?raw";
+import dumbbell from "lucide-static/icons/dumbbell.svg?raw";
+import flask from "lucide-static/icons/flask-conical.svg?raw";
+import gamepad from "lucide-static/icons/gamepad-2.svg?raw";
+import gift from "lucide-static/icons/gift.svg?raw";
+import globe from "lucide-static/icons/globe.svg?raw";
+import graduationCap from "lucide-static/icons/graduation-cap.svg?raw";
+import hamburger from "lucide-static/icons/hamburger.svg?raw";
+import heart from "lucide-static/icons/heart.svg?raw";
+import home from "lucide-static/icons/home.svg?raw";
+import joystick from "lucide-static/icons/joystick.svg?raw";
+import key from "lucide-static/icons/key.svg?raw";
+import lightbulb from "lucide-static/icons/lightbulb.svg?raw";
+import mail from "lucide-static/icons/mail.svg?raw";
+import mapPin from "lucide-static/icons/map-pin.svg?raw";
+import milk from "lucide-static/icons/milk.svg?raw";
+import monitor from "lucide-static/icons/monitor.svg?raw";
+import music from "lucide-static/icons/music.svg?raw";
+import newspaper from "lucide-static/icons/newspaper.svg?raw";
+import paintbrush from "lucide-static/icons/paintbrush.svg?raw";
+import pawPrint from "lucide-static/icons/paw-print.svg?raw";
+import phone from "lucide-static/icons/phone.svg?raw";
+import pizza from "lucide-static/icons/pizza.svg?raw";
+import plane from "lucide-static/icons/plane.svg?raw";
+import puzzle from "lucide-static/icons/puzzle.svg?raw";
+import receipt from "lucide-static/icons/receipt.svg?raw";
+import scale from "lucide-static/icons/scale.svg?raw";
+import scissors from "lucide-static/icons/scissors.svg?raw";
+import shieldCheck from "lucide-static/icons/shield-check.svg?raw";
+import shirt from "lucide-static/icons/shirt.svg?raw";
+import shoppingBag from "lucide-static/icons/shopping-bag.svg?raw";
+import shoppingCart from "lucide-static/icons/shopping-cart.svg?raw";
+import sparkles from "lucide-static/icons/sparkles.svg?raw";
+import star from "lucide-static/icons/star.svg?raw";
+import store from "lucide-static/icons/store.svg?raw";
+import sun from "lucide-static/icons/sun.svg?raw";
+import ticket from "lucide-static/icons/ticket.svg?raw";
+import trophy from "lucide-static/icons/trophy.svg?raw";
+import truck from "lucide-static/icons/truck.svg?raw";
+import tv from "lucide-static/icons/tv.svg?raw";
+import user from "lucide-static/icons/user.svg?raw";
+import users from "lucide-static/icons/users.svg?raw";
+import utensils from "lucide-static/icons/utensils.svg?raw";
+import wallet from "lucide-static/icons/wallet.svg?raw";
+import wifi from "lucide-static/icons/wifi.svg?raw";
+import wine from "lucide-static/icons/wine.svg?raw";
+import wrench from "lucide-static/icons/wrench.svg?raw";
+import zap from "lucide-static/icons/zap.svg?raw";
 
 export const ICON_MAP: Record<string, string> = {
-  "academic-cap": academicCap,
-  banknotes: banknotes,
+  apple: apple,
+  banknote: banknote,
   beaker: beaker,
+  beer: beer,
   bell: bell,
-  bolt: bolt,
-  "bug-ant": bugAnt,
+  bike: bike,
   "book-open": bookOpen,
   briefcase: briefcase,
-  "building-storefront": buildingStorefront,
+  bug: bug,
   cake: cake,
   calculator: calculator,
   calendar: calendar,
   camera: camera,
+  car: car,
+  carrot: carrot,
+  "chef-hat": chefHat,
+  "circle-dollar-sign": circledDollar,
+  "circle-plus": circledPlus,
   clock: clock,
   cloud: cloud,
-  "computer-desktop": computerDesktop,
+  coffee: coffee,
   "credit-card": creditCard,
-  cube: cube,
-  "currency-dollar": currencyDollar,
-  envelope: envelope,
-  film: film,
-  fire: fire,
+  box: box,
+  "cup-soda": cupSoda,
+  dumbbell: dumbbell,
+  flask: flask,
+  gamepad: gamepad,
   gift: gift,
-  "globe-alt": globeAlt,
+  globe: globe,
+  "graduation-cap": graduationCap,
+  hamburger: hamburger,
   heart: heart,
   home: home,
+  joystick: joystick,
   key: key,
-  "light-bulb": lightBulb,
+  lightbulb: lightbulb,
+  mail: mail,
   "map-pin": mapPin,
-  "musical-note": musicalNote,
+  milk: milk,
+  monitor: monitor,
+  music: music,
   newspaper: newspaper,
-  "paint-brush": paintBrush,
+  paintbrush: paintbrush,
+  "paw-print": pawPrint,
   phone: phone,
-  "plus-circle": plusCircle,
-  "puzzle-piece": puzzlePiece,
-  "receipt-percent": receiptPercent,
+  pizza: pizza,
+  plane: plane,
+  puzzle: puzzle,
+  question: question,
+  receipt: receipt,
   scale: scale,
   scissors: scissors,
   "shield-check": shieldCheck,
+  shirt: shirt,
   "shopping-bag": shoppingBag,
   "shopping-cart": shoppingCart,
   sparkles: sparkles,
   star: star,
+  store: store,
   sun: sun,
   ticket: ticket,
   trophy: trophy,
@@ -106,8 +142,12 @@ export const ICON_MAP: Record<string, string> = {
   tv: tv,
   user: user,
   users: users,
+  utensils: utensils,
+  wallet: wallet,
   wifi: wifi,
+  wine: wine,
   wrench: wrench,
+  zap: zap,
 };
 
 const ICON_ENTRIES = Object.entries(ICON_MAP);
