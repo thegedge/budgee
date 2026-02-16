@@ -50,7 +50,7 @@ export class MerchantDetail extends LitElement {
         display: block;
       }
       .back-link {
-        color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+        color: var(--budgee-primary);
         cursor: pointer;
         text-decoration: underline;
         font-size: 0.9rem;
@@ -58,18 +58,18 @@ export class MerchantDetail extends LitElement {
         display: inline-block;
       }
       .header {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
       }
       .header h2 {
         margin-top: 0;
         margin-bottom: 0.25rem;
       }
       .meta {
-        color: var(--budgee-text-muted, lch(56.7% 0 none));
+        color: var(--budgee-text-muted);
         font-size: 0.9rem;
       }
       .top-row {
@@ -79,10 +79,10 @@ export class MerchantDetail extends LitElement {
         margin-bottom: 1rem;
       }
       .section {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
       }
       .section h3 {
         margin-top: 0;
@@ -91,10 +91,10 @@ export class MerchantDetail extends LitElement {
         gap: 0.75rem;
       }
       .section-transactions {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
         margin-bottom: 1rem;
       }
       .section-transactions h3 {
@@ -102,16 +102,16 @@ export class MerchantDetail extends LitElement {
       }
       select {
         padding: 2px 6px;
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         border-radius: 4px;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
         font-size: 0.875rem;
       }
       tr {
         cursor: pointer;
       }
       tr:hover {
-        background-color: var(--budgee-bg, lch(98.3% 0 none));
+        background-color: var(--budgee-bg);
       }
     `,
   ];
@@ -160,7 +160,7 @@ export class MerchantDetail extends LitElement {
         {
           label: this._merchant?.name ?? "Merchant",
           data: values,
-          backgroundColor: cssVar("--budgee-primary-50"),
+          backgroundColor: cssVar("--budgee-primary", 0.5),
           borderColor: cssVar("--budgee-primary"),
           borderWidth: 1,
         },
@@ -170,7 +170,7 @@ export class MerchantDetail extends LitElement {
                 type: "line" as const,
                 label: `Moving Avg (${window}-mo)`,
                 data: movingAverage(values, window),
-                borderColor: cssVar("--budgee-gray-50"),
+                borderColor: cssVar("--budgee-text-muted", 0.5),
                 borderWidth: 1.5,
                 pointRadius: 0,
                 fill: false,

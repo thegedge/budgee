@@ -38,10 +38,10 @@ export class DashboardChartCard extends LitElement {
     :host {
       display: block;
       position: relative;
-      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+      border: 1px solid var(--budgee-border);
       padding: 1rem;
       border-radius: 4px;
-      background: var(--budgee-surface, lch(100% 0 none));
+      background: var(--budgee-surface);
     }
     .header {
       display: flex;
@@ -61,16 +61,16 @@ export class DashboardChartCard extends LitElement {
       font-size: 0.8rem;
     }
     .edit-btn {
-      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+      background-color: var(--budgee-primary);
     }
     .edit-btn:hover {
-      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
+      background-color: var(--budgee-primary-hover);
     }
     .delete-btn {
-      background-color: var(--budgee-danger, lch(72.8% 28.9 22.1));
+      background-color: var(--budgee-danger);
     }
     .delete-btn:hover {
-      background-color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
+      background-color: var(--budgee-danger-hover);
     }
     .actions {
       display: flex;
@@ -88,7 +88,7 @@ export class DashboardChartCard extends LitElement {
     }
     .resize-handle:hover,
     :host([data-resizing]) .resize-handle {
-      background: var(--budgee-primary, lch(72.1% 25.1 246.4));
+      background: var(--budgee-primary);
     }
   `;
 
@@ -117,7 +117,7 @@ export class DashboardChartCard extends LitElement {
     }
 
     const values = entries.map(([, val]) => val);
-    const bgColors = isPie ? this.#pieColors(entries) : cssVar("--budgee-primary-50");
+    const bgColors = isPie ? this.#pieColors(entries) : cssVar("--budgee-primary", 0.5);
     const borderColors = isPie ? cssVar("--budgee-surface") : cssVar("--budgee-primary");
 
     const datasets: ChartData["datasets"] = [
@@ -136,7 +136,7 @@ export class DashboardChartCard extends LitElement {
         type: "line",
         label: `${this.config.title} (${window}-pt avg)`,
         data: movingAverage(values, window),
-        borderColor: cssVar("--budgee-gray-50"),
+        borderColor: cssVar("--budgee-text-muted", 0.5),
         borderWidth: 1.5,
         pointRadius: 0,
         fill: false,

@@ -1,15 +1,19 @@
 :root {
-  --budgee-primary: #7eb8da;
-  --budgee-primary-hover: #5a9cbf;
-  --budgee-danger: #e8a0a0;
-  --budgee-danger-hover: #d07070;
-  --budgee-positive: #7ec8a0;
-  --budgee-negative: #d09090;
-  --budgee-bg: #fafafa;
-  --budgee-surface: #ffffff;
-  --budgee-border: #e0e0e0;
-  --budgee-text: #333;
-  --budgee-text-muted: #888;
+  --budgee-bg: lch(98.3% 0 none);
+  --budgee-border: lch(89.2% 0 none);
+  --budgee-danger-hover: lch(58.2% 41.3 24.4);
+  --budgee-danger: lch(72.8% 28.9 22.1);
+  --budgee-negative: lch(66% 26.2 22);
+  --budgee-overlay: lch(0% 0 none / 0.5);
+  --budgee-positive: lch(75% 34.3 158);
+  --budgee-primary-hover: lch(61.4% 26.9 245.6);
+  --budgee-primary: lch(72.1% 25.1 246.4);
+  --budgee-row-alt: lch(94.8% 0 none);
+  --budgee-row-hover: lch(92% 0 none);
+  --budgee-success: lch(63.6% 33.6 180.1);
+  --budgee-surface: lch(100% 0 none);
+  --budgee-text-muted: lch(56.7% 0 none);
+  --budgee-text: lch(21.2% 0 none);
 }
 
 body {

@@ -45,7 +45,7 @@ export class PaginatedTable extends LitElement {
       justify-content: space-between;
       padding: 0.5rem 0;
       font-size: 0.875rem;
-      color: var(--budgee-text-muted, lch(56.7% 0 none));
+      color: var(--budgee-text-muted);
     }
     .pagination-controls {
       display: flex;
@@ -54,27 +54,27 @@ export class PaginatedTable extends LitElement {
     }
     select {
       padding: 2px 6px;
-      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+      border: 1px solid var(--budgee-border);
       border-radius: 4px;
-      background: var(--budgee-surface, lch(100% 0 none));
+      background: var(--budgee-surface);
     }
     .filter-input {
       padding: 4px 8px;
-      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+      border: 1px solid var(--budgee-border);
       border-radius: 4px;
-      background: var(--budgee-surface, lch(100% 0 none));
+      background: var(--budgee-surface);
       font-size: 0.875rem;
     }
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+      background-color: var(--budgee-primary);
       color: white;
       border: none;
       border-radius: 4px;
     }
     button:hover:not(:disabled) {
-      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
+      background-color: var(--budgee-primary-hover);
     }
     button:disabled {
       opacity: 0.5;

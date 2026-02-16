@@ -8,6 +8,7 @@ import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../tags/tagAutocomplete";
 import "../charts/chartWrapper";
 import { tableStyles } from "../tableStyles";
+import { cssVar } from "../cssVar";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -47,11 +48,11 @@ export class TransactionDetail extends LitElement {
         display: block;
       }
       .header {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
       }
       .header h2 {
         margin-top: 0;
@@ -61,22 +62,22 @@ export class TransactionDetail extends LitElement {
         font-weight: bold;
       }
       .meta {
-        color: var(--budgee-text-muted, lch(56.7% 0 none));
+        color: var(--budgee-text-muted);
         font-size: 0.9rem;
       }
       .section {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
       }
       .section h3 {
         margin-top: 0;
       }
       .tag-badge {
         display: inline-block;
-        background: var(--budgee-primary, lch(72.1% 25.1 246.4));
+        background: var(--budgee-primary);
         color: white;
         padding: 2px 8px;
         border-radius: 8px;
@@ -94,7 +95,7 @@ export class TransactionDetail extends LitElement {
         width: 100%;
         min-height: 60px;
         padding: 8px;
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         border-radius: 4px;
         font-family: inherit;
         font-size: 0.9rem;
@@ -105,7 +106,7 @@ export class TransactionDetail extends LitElement {
         display: inline-block;
         padding: 0.5rem 1rem;
         cursor: pointer;
-        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+        background-color: var(--budgee-primary);
         color: white;
         border: none;
         border-radius: 4px;
@@ -113,10 +114,10 @@ export class TransactionDetail extends LitElement {
         font-size: 0.9rem;
       }
       .create-rule:hover {
-        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
+        background-color: var(--budgee-primary-hover);
       }
       .back-link {
-        color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+        color: var(--budgee-primary);
         cursor: pointer;
         text-decoration: underline;
         font-size: 0.9rem;
@@ -227,8 +228,8 @@ export class TransactionDetail extends LitElement {
         {
           label: this._merchant?.name ?? "Merchant",
           data: values,
-          backgroundColor: "rgba(126, 184, 218, 0.5)",
-          borderColor: "#7eb8da",
+          backgroundColor: cssVar("--budgee-primary", 0.5),
+          borderColor: cssVar("--budgee-primary"),
           borderWidth: 1,
         },
         ...(values.length >= 2
@@ -237,7 +238,7 @@ export class TransactionDetail extends LitElement {
                 type: "line" as const,
                 label: `Moving Avg (${window}-mo)`,
                 data: movingAverage(values, window),
-                borderColor: "rgba(80, 80, 80, 0.5)",
+                borderColor: cssVar("--budgee-text-muted", 0.5),
                 borderWidth: 1.5,
                 pointRadius: 0,
                 fill: false,

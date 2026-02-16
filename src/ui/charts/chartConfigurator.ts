@@ -10,6 +10,7 @@ import type { Granularity } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
 import "./chartWrapper";
+import { cssVar } from "../cssVar";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -68,11 +69,11 @@ export class ChartConfigurator extends LitElement {
   static styles = css`
     :host {
       display: block;
-      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+      border: 1px solid var(--budgee-border);
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
-      background: var(--budgee-surface, lch(100% 0 none));
+      background: var(--budgee-surface);
     }
     h4 {
       margin-top: 0;
@@ -92,14 +93,14 @@ export class ChartConfigurator extends LitElement {
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+      background-color: var(--budgee-primary);
       color: white;
       border: none;
       border-radius: 4px;
       margin-right: 0.5rem;
     }
     button:hover {
-      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
+      background-color: var(--budgee-primary-hover);
     }
     .preview {
       margin-top: 1rem;
@@ -142,8 +143,8 @@ export class ChartConfigurator extends LitElement {
         {
           label: this._title || "Amount",
           data: entries.map(([, val]) => val),
-          backgroundColor: "rgba(126, 184, 218, 0.5)",
-          borderColor: "#7eb8da",
+          backgroundColor: cssVar("--budgee-primary", 0.5),
+          borderColor: cssVar("--budgee-primary"),
           borderWidth: 1,
         },
       ],

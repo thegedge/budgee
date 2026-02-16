@@ -14,14 +14,14 @@ export class Modal extends LitElement {
 
   static styles = css`
     [popover] {
-      background: var(--budgee-surface, lch(100% 0 none));
+      background: var(--budgee-surface);
       border-radius: 8px;
       padding: 1.5rem;
       max-width: 800px;
       width: min(90vw, 800px);
       max-height: 80vh;
       overflow-y: auto;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 24px lch(0% 0 none / 0.2);
       border: none;
       margin: auto;
       position: fixed;
@@ -29,7 +29,7 @@ export class Modal extends LitElement {
       height: fit-content;
     }
     [popover]::backdrop {
-      background: rgba(0, 0, 0, 0.5);
+      background: var(--budgee-overlay);
     }
     .header {
       display: flex;
@@ -45,12 +45,12 @@ export class Modal extends LitElement {
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: var(--budgee-text-muted, lch(56.7% 0 none));
+      color: var(--budgee-text-muted);
       padding: 0;
       line-height: 1;
     }
     .close:hover {
-      color: var(--budgee-text, lch(21.2% 0 none));
+      color: var(--budgee-text);
     }
   `;
 

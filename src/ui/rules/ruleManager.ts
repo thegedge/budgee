@@ -83,11 +83,11 @@ export class RuleManager extends LitElement {
         display: block;
       }
       .section {
-        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
+        border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, lch(100% 0 none));
+        background: var(--budgee-surface);
       }
       .section h3 {
         margin-top: 0;
@@ -95,21 +95,21 @@ export class RuleManager extends LitElement {
       button {
         padding: 4px 12px;
         cursor: pointer;
-        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+        background-color: var(--budgee-primary);
         color: white;
         border: none;
         border-radius: 4px;
       }
       button:hover {
-        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
+        background-color: var(--budgee-primary-hover);
       }
       .delete-btn {
-        background-color: var(--budgee-danger, lch(72.8% 28.9 22.1));
+        background-color: var(--budgee-danger);
         font-size: 0.8rem;
         padding: 2px 8px;
       }
       .delete-btn:hover {
-        background-color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
+        background-color: var(--budgee-danger-hover);
       }
       .confirm-actions {
         display: flex;
@@ -118,7 +118,7 @@ export class RuleManager extends LitElement {
       }
       .condition-summary {
         font-size: 0.85rem;
-        color: var(--budgee-text-muted, lch(56.7% 0 none));
+        color: var(--budgee-text-muted);
       }
       .sections-grid {
         display: grid;
