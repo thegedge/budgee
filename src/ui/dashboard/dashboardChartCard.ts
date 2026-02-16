@@ -1,7 +1,12 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { aggregateByPeriod, aggregateByTag, filterTransactions } from "../../database/aggregations";
-import type { DashboardChart, Tag, Transaction } from "../../database/types";
+import {
+  aggregateByMerchant,
+  aggregateByPeriod,
+  aggregateByTag,
+  filterTransactions,
+} from "../../database/aggregations";
+import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../charts/chartWrapper";
@@ -24,6 +29,9 @@ export class DashboardChartCard extends LitElement {
 
   @property({ type: Array })
   tags: Tag[] = [];
+
+  @property({ type: Array })
+  merchants: Merchant[] = [];
 
   static styles = css`
     :host {
@@ -87,10 +95,13 @@ export class DashboardChartCard extends LitElement {
     });
 
     const { granularity } = this.config;
-    const isByTag = granularity === "byTag";
-    const aggregated = isByTag
-      ? aggregateByTag(filtered, this.tags)
-      : aggregateByPeriod(filtered, granularity);
+    const aggregated =
+      granularity === "byTag"
+        ? aggregateByTag(filtered, this.tags)
+        : granularity === "byMerchant"
+          ? aggregateByMerchant(filtered, this.merchants)
+          : aggregateByPeriod(filtered, granularity);
+    const isByDimension = granularity === "byTag" || granularity === "byMerchant";
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
     const values = entries.map(([, val]) => val);
 
@@ -104,7 +115,7 @@ export class DashboardChartCard extends LitElement {
       },
     ];
 
-    if (!isByTag && this.config.chartType === "bar" && values.length >= 2) {
+    if (!isByDimension && this.config.chartType === "bar" && values.length >= 2) {
       const window = movingAverageWindow(values.length);
       datasets.push({
         type: "line",

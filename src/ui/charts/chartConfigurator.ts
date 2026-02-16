@@ -1,6 +1,11 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { aggregateByPeriod, aggregateByTag, filterTransactions } from "../../database/aggregations";
+import {
+  aggregateByMerchant,
+  aggregateByPeriod,
+  aggregateByTag,
+  filterTransactions,
+} from "../../database/aggregations";
 import type { Granularity } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
@@ -13,6 +18,8 @@ declare global {
 }
 
 type ChartKind = DashboardChart["chartType"];
+
+const PIE_TYPES: ReadonlySet<ChartKind> = new Set(["pie", "doughnut"]);
 
 @customElement("chart-configurator")
 export class ChartConfigurator extends LitElement {
@@ -124,7 +131,9 @@ export class ChartConfigurator extends LitElement {
     const aggregated =
       this._granularity === "byTag"
         ? aggregateByTag(filtered, this.tags)
-        : aggregateByPeriod(filtered, this._granularity);
+        : this._granularity === "byMerchant"
+          ? aggregateByMerchant(filtered, this.merchants)
+          : aggregateByPeriod(filtered, this._granularity);
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
 
     return {
@@ -181,20 +190,37 @@ export class ChartConfigurator extends LitElement {
         <label>Type:</label>
         <select @change=${(e: Event) => {
           this._chartType = (e.target as HTMLSelectElement).value as ChartKind;
+          if (
+            PIE_TYPES.has(this._chartType) &&
+            !["byTag", "byMerchant", "month"].includes(this._granularity)
+          ) {
+            this._granularity = "byTag";
+          }
         }}>
           <option value="bar" ?selected=${this._chartType === "bar"}>Bar</option>
           <option value="line" ?selected=${this._chartType === "line"}>Line</option>
           <option value="pie" ?selected=${this._chartType === "pie"}>Pie</option>
           <option value="doughnut" ?selected=${this._chartType === "doughnut"}>Doughnut</option>
         </select>
-        <label>Granularity:</label>
+        <label>${PIE_TYPES.has(this._chartType) ? "Split by:" : "Granularity:"}</label>
         <select @change=${(e: Event) => {
           this._granularity = (e.target as HTMLSelectElement).value as Granularity;
         }}>
-          <option value="day" ?selected=${this._granularity === "day"}>Day</option>
-          <option value="month" ?selected=${this._granularity === "month"}>Month</option>
-          <option value="year" ?selected=${this._granularity === "year"}>Year</option>
-          <option value="byTag" ?selected=${this._granularity === "byTag"}>By Tag</option>
+          ${
+            PIE_TYPES.has(this._chartType)
+              ? html`
+              <option value="byTag" ?selected=${this._granularity === "byTag"}>Tag</option>
+              <option value="byMerchant" ?selected=${this._granularity === "byMerchant"}>Merchant</option>
+              <option value="month" ?selected=${this._granularity === "month"}>Month</option>
+            `
+              : html`
+              <option value="day" ?selected=${this._granularity === "day"}>Day</option>
+              <option value="month" ?selected=${this._granularity === "month"}>Month</option>
+              <option value="year" ?selected=${this._granularity === "year"}>Year</option>
+              <option value="byTag" ?selected=${this._granularity === "byTag"}>By Tag</option>
+              <option value="byMerchant" ?selected=${this._granularity === "byMerchant"}>By Merchant</option>
+            `
+          }
         </select>
         <label>Start date:</label>
         <input

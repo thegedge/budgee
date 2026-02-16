@@ -1,7 +1,7 @@
 import type { Transaction } from "./types";
 
 export type PeriodGranularity = "day" | "month" | "year";
-export type Granularity = PeriodGranularity | "byTag";
+export type Granularity = PeriodGranularity | "byTag" | "byMerchant";
 
 interface FilterOptions {
   tagId?: number;
@@ -37,6 +37,27 @@ export function aggregateByTag(
     const total = totals.get(tag.id!);
     if (total !== undefined) {
       result.set(tag.name, total);
+    }
+  }
+  return result;
+}
+
+export function aggregateByMerchant(
+  transactions: Transaction[],
+  merchants: { id?: number; name: string }[],
+): Map<string, number> {
+  const totals = new Map<number, number>();
+  for (const tx of transactions) {
+    if (tx.merchantId !== undefined) {
+      totals.set(tx.merchantId, (totals.get(tx.merchantId) ?? 0) + tx.amount);
+    }
+  }
+
+  const result = new Map<string, number>();
+  for (const merchant of merchants) {
+    const total = totals.get(merchant.id!);
+    if (total !== undefined) {
+      result.set(merchant.name, total);
     }
   }
   return result;

@@ -279,6 +279,7 @@ export class Dashboard extends LitElement {
                   .config=${chart}
                   .transactions=${this._transactions}
                   .tags=${this._tags}
+                  .merchants=${this._merchants}
                   @chart-edit=${this.#onChartEdit}
                   @chart-resized=${this.#onChartResized}
                   @chart-deleted=${this.#onChartDeleted}
