@@ -1,5 +1,13 @@
 import Dexie, { type Table } from "dexie";
-import type { Account, DashboardChart, Merchant, MerchantRule, Tag, Transaction } from "./types";
+import type {
+  Account,
+  DashboardChart,
+  DashboardTable,
+  Merchant,
+  MerchantRule,
+  Tag,
+  Transaction,
+} from "./types";
 import { randomTagColor } from "../data/tagColor";
 
 export class Database extends Dexie {
@@ -9,6 +17,7 @@ export class Database extends Dexie {
   accounts!: Table<Account, number>;
   merchantRules!: Table<MerchantRule, number>;
   dashboardCharts!: Table<DashboardChart, number>;
+  dashboardTables!: Table<DashboardTable, number>;
 
   constructor() {
     super("BudgeeDatabase");
@@ -90,6 +99,10 @@ export class Database extends Dexie {
             }
           }),
       );
+
+    this.version(8).stores({
+      dashboardTables: "++id",
+    });
   }
 }
 

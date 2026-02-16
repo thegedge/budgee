@@ -1,18 +1,28 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
+import { Accounts } from "../../data/accounts";
 import { DashboardCharts } from "../../data/dashboardCharts";
+import { DashboardTables } from "../../data/dashboardTables";
 import { Merchants } from "../../data/merchants";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
-import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
+import type {
+  Account,
+  DashboardChart,
+  DashboardTable,
+  Merchant,
+  Tag,
+  Transaction,
+} from "../../database/types";
 import "../charts/chartConfigurator";
 import "../charts/chartWrapper";
 import "../shared/modal";
 import "../shared/paginatedTable";
-import type { PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 import "./dashboardChartCard";
+import "./dashboardTableCard";
+import "./tableConfigurator";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -32,21 +42,28 @@ export class Dashboard extends LitElement {
   private _merchants: Merchant[] = [];
 
   @state()
+  private _accounts: Account[] = [];
+
+  @state()
   private _charts: DashboardChart[] = [];
 
   @state()
-  private _showConfigurator = false;
+  private _tables: DashboardTable[] = [];
+
+  @state()
+  private _showChartConfigurator = false;
 
   @state()
   private _editingChart?: DashboardChart;
 
   @state()
-  private _recentPage = 1;
+  private _showTableConfigurator = false;
 
   @state()
-  private _recentPageSize = 10;
+  private _editingTable?: DashboardTable;
 
-  private _sortable?: Sortable;
+  private _chartSortable?: Sortable;
+  private _tableSortable?: Sortable;
 
   static styles = [
     tableStyles,
@@ -80,6 +97,22 @@ export class Dashboard extends LitElement {
           grid-template-columns: 1fr 1fr 1fr;
         }
       }
+      .table-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      @media (min-width: 700px) {
+        .table-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (min-width: 1200px) {
+        .table-grid {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
       button {
         padding: 0.5rem 1rem;
         cursor: pointer;
@@ -92,6 +125,11 @@ export class Dashboard extends LitElement {
       button:hover {
         background-color: var(--budgee-primary-hover);
       }
+      .button-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
     `,
   ];
 
@@ -102,18 +140,26 @@ export class Dashboard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._sortable?.destroy();
+    this._chartSortable?.destroy();
+    this._tableSortable?.destroy();
   }
 
   updated() {
-    this.#initSortable();
+    this.#initSortable(".chart-grid", "chart", (s) => {
+      this._chartSortable = s;
+    });
+    this.#initSortable(".table-grid", "table", (s) => {
+      this._tableSortable = s;
+    });
   }
 
   async #refresh() {
     this._transactions = await Transactions.all();
     this._tags = await Tags.all();
     this._merchants = await Merchants.all();
+    this._accounts = await Accounts.all();
     this._charts = await DashboardCharts.all();
+    this._tables = await DashboardTables.all();
 
     if (this._charts.length === 0) {
       await DashboardCharts.create({
@@ -127,34 +173,48 @@ export class Dashboard extends LitElement {
     }
   }
 
-  #initSortable() {
-    const grid = this.shadowRoot?.querySelector(".chart-grid") as HTMLElement | null;
+  #initSortable(
+    selector: string,
+    kind: "chart" | "table",
+    setter: (s: Sortable | undefined) => void,
+  ) {
+    const existing = kind === "chart" ? this._chartSortable : this._tableSortable;
+    const grid = this.shadowRoot?.querySelector(selector) as HTMLElement | null;
     if (!grid) {
-      this._sortable?.destroy();
-      this._sortable = undefined;
+      existing?.destroy();
+      setter(undefined);
       return;
     }
 
-    if (this._sortable?.el === grid) return;
+    if (existing?.el === grid) return;
 
-    this._sortable?.destroy();
-    this._sortable = Sortable.create(grid, {
-      animation: 150,
-      onEnd: () => this.#persistOrder(),
-    });
+    existing?.destroy();
+    setter(
+      Sortable.create(grid, {
+        animation: 150,
+        onEnd: () => this.#persistOrder(kind),
+      }),
+    );
   }
 
-  async #persistOrder() {
-    const grid = this.shadowRoot?.querySelector(".chart-grid");
+  async #persistOrder(kind: "chart" | "table") {
+    const selector = kind === "chart" ? ".chart-grid" : ".table-grid";
+    const attr = kind === "chart" ? "data-chart-id" : "data-table-id";
+    const grid = this.shadowRoot?.querySelector(selector);
     if (!grid) return;
 
-    const cards = grid.querySelectorAll("dashboard-chart-card");
+    const cards = grid.querySelectorAll(`[${attr}]`);
     const ids: number[] = [];
     cards.forEach((card) => {
-      const id = Number(card.getAttribute("data-chart-id"));
+      const id = Number(card.getAttribute(attr));
       if (id) ids.push(id);
     });
-    await DashboardCharts.reorder(ids);
+
+    if (kind === "chart") {
+      await DashboardCharts.reorder(ids);
+    } else {
+      await DashboardTables.reorder(ids);
+    }
     await this.#refresh();
   }
 
@@ -179,14 +239,14 @@ export class Dashboard extends LitElement {
         position: this._charts.length,
       });
     }
-    this._showConfigurator = false;
+    this._showChartConfigurator = false;
     this._editingChart = undefined;
     await this.#refresh();
   }
 
   #onChartEdit(e: CustomEvent) {
     this._editingChart = e.detail.chart;
-    this._showConfigurator = true;
+    this._showChartConfigurator = true;
   }
 
   async #onChartResized(e: CustomEvent) {
@@ -199,15 +259,39 @@ export class Dashboard extends LitElement {
     await this.#refresh();
   }
 
-  #onRecentPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._recentPage = e.detail.page;
-    this._recentPageSize = e.detail.pageSize;
+  async #onTableSaved(e: CustomEvent) {
+    const detail = e.detail;
+    if (detail.id) {
+      await DashboardTables.update(detail.id, {
+        title: detail.title,
+        model: detail.model,
+        columns: detail.columns,
+        colSpan: detail.colSpan,
+      });
+    } else {
+      await DashboardTables.create({
+        ...detail,
+        position: this._tables.length,
+      });
+    }
+    this._showTableConfigurator = false;
+    this._editingTable = undefined;
+    await this.#refresh();
   }
 
-  #createRuleFrom(transaction: Transaction) {
-    const params = new URLSearchParams({ description: transaction.originalDescription });
-    window.history.pushState({}, "", `/rules?${params}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+  #onTableEdit(e: CustomEvent) {
+    this._editingTable = e.detail.table;
+    this._showTableConfigurator = true;
+  }
+
+  async #onTableResized(e: CustomEvent) {
+    await DashboardTables.update(e.detail.id, { colSpan: e.detail.colSpan });
+    await this.#refresh();
+  }
+
+  async #onTableDeleted(e: CustomEvent) {
+    await DashboardTables.remove(e.detail.id);
+    await this.#refresh();
   }
 
   render() {
@@ -224,13 +308,6 @@ export class Dashboard extends LitElement {
         <p>No transactions to display.</p>
       `;
     }
-
-    const sortedTransactions = [...this._transactions].sort((a, b) => b.date.localeCompare(a.date));
-    const recentStart = (this._recentPage - 1) * this._recentPageSize;
-    const recentTransactions = sortedTransactions.slice(
-      recentStart,
-      recentStart + this._recentPageSize,
-    );
 
     return html`
       <h3>Dashboard</h3>
@@ -259,20 +336,53 @@ export class Dashboard extends LitElement {
           : nothing
       }
 
-      <button @click=${() => {
-        this._showConfigurator = true;
-        this._editingChart = undefined;
-      }}>
-        Add Chart
-      </button>
+      ${
+        this._tables.length > 0
+          ? html`
+            <div class="table-grid">
+              ${this._tables.map(
+                (table) => html`
+                <dashboard-table-card
+                  data-table-id=${table.id!}
+                  style="grid-column: span ${table.colSpan ?? 1}"
+                  .config=${table}
+                  .transactions=${this._transactions!}
+                  .tags=${this._tags}
+                  .merchants=${this._merchants}
+                  .accounts=${this._accounts}
+                  @table-edit=${this.#onTableEdit}
+                  @table-resized=${this.#onTableResized}
+                  @table-deleted=${this.#onTableDeleted}
+                ></dashboard-table-card>
+              `,
+              )}
+            </div>
+          `
+          : nothing
+      }
+
+      <div class="button-bar">
+        <button @click=${() => {
+          this._showChartConfigurator = true;
+          this._editingChart = undefined;
+        }}>
+          Add Chart
+        </button>
+        <button @click=${() => {
+          this._showTableConfigurator = true;
+          this._editingTable = undefined;
+        }}>
+          Add Table
+        </button>
+      </div>
 
       ${
-        this._showConfigurator
+        this._showChartConfigurator
           ? html`
             <budgee-modal
               heading=${this._editingChart ? "Edit Chart" : "Add Chart"}
               @modal-close=${() => {
-                this._showConfigurator = false;
+                this._showChartConfigurator = false;
                 this._editingChart = undefined;
               }}
             >
@@ -289,40 +399,20 @@ export class Dashboard extends LitElement {
       }
 
       ${
-        sortedTransactions.length > 0
+        this._showTableConfigurator
           ? html`
-            <div class="card">
-              <h3>Recent Transactions</h3>
-              <paginated-table
-                .totalItems=${sortedTransactions.length}
-                .defaultPageSize=${10}
-                storageKey="dashboard-recent"
-                @page-change=${this.#onRecentPageChange}
-              >
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Description</th>
-                      <th class="col-amount">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${recentTransactions.map(
-                      (t) => html`
-                      <tr class="clickable-row" @click=${() => this.#createRuleFrom(t)}>
-                        <td>${t.date}</td>
-                        <td>${t.originalDescription}</td>
-                        <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
-                          ${t.amount.toFixed(2)}
-                        </td>
-                      </tr>
-                    `,
-                    )}
-                  </tbody>
-                </table>
-              </paginated-table>
-            </div>
+            <budgee-modal
+              heading=${this._editingTable ? "Edit Table" : "Add Table"}
+              @modal-close=${() => {
+                this._showTableConfigurator = false;
+                this._editingTable = undefined;
+              }}
+            >
+              <table-configurator
+                .editingTable=${this._editingTable}
+                @table-saved=${this.#onTableSaved}
+              ></table-configurator>
+            </budgee-modal>
           `
           : nothing
       }

@@ -57,3 +57,20 @@ export interface DashboardChart {
   excludedTagIds?: number[];
   excludedMerchantIds?: number[];
 }
+
+export type DashboardTableModel = "transactions" | "merchants" | "tags";
+
+export type TransactionColumn = "date" | "amount" | "description" | "merchant" | "tags" | "account";
+export type MerchantColumn = "name" | "transactionCount" | "totalAmount";
+export type TagColumn = "name" | "transactionCount" | "totalAmount";
+
+export type DashboardTableColumn = TransactionColumn | MerchantColumn | TagColumn;
+
+export interface DashboardTable {
+  id?: number;
+  title: string;
+  model: DashboardTableModel;
+  columns: DashboardTableColumn[];
+  position: number;
+  colSpan?: 1 | 2 | 3;
+}
