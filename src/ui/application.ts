@@ -135,6 +135,13 @@ export class Application extends LitElement {
         border-color 0.15s;
     }
 
+    nav a.active,
+    nav a:hover,
+    nav button:hover {
+      color: var(--budgee-primary);
+      border-left-color: var(--budgee-primary);
+    }
+
     .container {
       flex: 1;
       min-width: 0;
