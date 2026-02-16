@@ -108,23 +108,20 @@ export class DashboardChartCard extends LitElement {
       entries.sort(([, a], [, b]) => Math.abs(b) - Math.abs(a));
     }
 
-    const values = entries.map(([, val]) => val);
-    const isUnfilteredMonthlyBar =
-      this.config.chartType === "bar" &&
-      this.config.granularity === "month" &&
-      !this.config.tagId &&
-      !this.config.merchantId;
+    const rawValues = entries.map(([, val]) => val);
+    const isBar = this.config.chartType === "bar";
+    const values = isBar ? rawValues.map(Math.abs) : rawValues;
     const bgColors = isPie
       ? this.#pieColors(entries)
-      : isUnfilteredMonthlyBar
-        ? values.map((v) =>
+      : isBar
+        ? rawValues.map((v) =>
             v < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
           )
         : cssVar("--budgee-primary", 0.5);
     const borderColors = isPie
       ? cssVar("--budgee-surface")
-      : isUnfilteredMonthlyBar
-        ? values.map((v) => (v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive")))
+      : isBar
+        ? rawValues.map((v) => (v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive")))
         : cssVar("--budgee-primary");
 
     const datasets: ChartData["datasets"] = [
