@@ -260,7 +260,13 @@ export class IconPicker extends LitElement {
     const popup = this.shadowRoot?.querySelector(".popup") as HTMLElement | null;
     if (!trigger || !popup) return;
     const rect = trigger.getBoundingClientRect();
-    popup.style.top = `${rect.bottom + 4}px`;
+    const popupHeight = popup.offsetHeight;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow < popupHeight + 4 && rect.top > spaceBelow) {
+      popup.style.top = `${rect.top - popupHeight - 4}px`;
+    } else {
+      popup.style.top = `${rect.bottom + 4}px`;
+    }
     popup.style.left = `${rect.left}px`;
   }
 
