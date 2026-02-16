@@ -82,11 +82,10 @@ export class TagManager extends LitElement {
         color: var(--budgee-danger-hover, #d07070);
         font-size: 0.85rem;
       }
-      .col-icon {
-        width: min-content;
-      }
+      .col-icon,
       .col-remove {
-        width: min-content;
+        width: 1%;
+        white-space: nowrap;
       }
     `,
   ];
