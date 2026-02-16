@@ -112,6 +112,7 @@ export class DashboardChartCard extends LitElement {
 
     if (isPie) {
       entries = this.#groupSmallSlices(entries);
+      entries.sort(([, a], [, b]) => Math.abs(b) - Math.abs(a));
     }
 
     const values = entries.map(([, val]) => val);
