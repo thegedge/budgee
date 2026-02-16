@@ -1,4 +1,5 @@
-import { db } from "../database/db";
+import { MerchantRules } from "../data/merchantRules";
+import { Transactions } from "../data/transactions";
 import type { Transaction } from "../database/types";
 import { applyRules } from "./applyRules";
 import type { ColumnMapping } from "./parseCsv";
@@ -7,13 +8,13 @@ export async function importTransactions(
   rows: Record<string, string>[],
   mapping: ColumnMapping,
 ): Promise<number> {
-  const rules = await db.merchantRules.toArray();
+  const rules = await MerchantRules.all();
   const transactions: Omit<Transaction, "id">[] = rows
     .map((row) => rowToTransaction(row, mapping))
     .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
-  await db.transactions.bulkAdd(transactions);
+  await Transactions.bulkAdd(transactions);
   return transactions.length;
 }
 

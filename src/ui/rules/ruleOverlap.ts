@@ -1,6 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { db } from "../../database/db";
+import { MerchantRules } from "../../data/merchantRules";
+import { Merchants } from "../../data/merchants";
+import { Transactions } from "../../data/transactions";
 import type { MerchantRule } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
 import { tableStyles } from "../tableStyles";
@@ -67,9 +69,9 @@ export class RuleOverlap extends LitElement {
 
   async #analyze() {
     const [rules, transactions, merchants] = await Promise.all([
-      db.merchantRules.toArray(),
-      db.transactions.toArray(),
-      db.merchants.toArray(),
+      MerchantRules.all(),
+      Transactions.all(),
+      Merchants.all(),
     ]);
 
     this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));

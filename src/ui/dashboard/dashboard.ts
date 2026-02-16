@@ -1,11 +1,14 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
-import { db } from "../../database/db";
+import { DashboardCharts } from "../../data/dashboardCharts";
+import { Merchants } from "../../data/merchants";
+import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { Tags } from "../../data/tags";
+import { Transactions } from "../../data/transactions";
 import { aggregateByPeriod } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
-import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
 import "../modal";
@@ -111,10 +114,10 @@ export class Dashboard extends LitElement {
   }
 
   async #refresh() {
-    this._transactions = await db.transactions.toArray();
-    this._tags = await db.tags.toArray();
-    this._merchants = await db.merchants.toArray();
-    this._charts = (await db.dashboardCharts.toArray()).sort((a, b) => a.position - b.position);
+    this._transactions = await Transactions.all();
+    this._tags = await Tags.all();
+    this._merchants = await Merchants.all();
+    this._charts = await DashboardCharts.all();
   }
 
   #initSortable() {
@@ -139,21 +142,19 @@ export class Dashboard extends LitElement {
     if (!grid) return;
 
     const cards = grid.querySelectorAll("dashboard-chart-card");
-    const updates: Promise<number>[] = [];
-    cards.forEach((card, i) => {
+    const ids: number[] = [];
+    cards.forEach((card) => {
       const id = Number(card.getAttribute("data-chart-id"));
-      if (id) {
-        updates.push(db.dashboardCharts.update(id, { position: i }));
-      }
+      if (id) ids.push(id);
     });
-    await Promise.all(updates);
+    await DashboardCharts.reorder(ids);
     await this.#refresh();
   }
 
   async #onChartSaved(e: CustomEvent) {
     const detail = e.detail;
     if (detail.id) {
-      await db.dashboardCharts.update(detail.id, {
+      await DashboardCharts.update(detail.id, {
         title: detail.title,
         chartType: detail.chartType,
         granularity: detail.granularity,
@@ -164,7 +165,7 @@ export class Dashboard extends LitElement {
         colSpan: detail.colSpan,
       });
     } else {
-      await db.dashboardCharts.add({
+      await DashboardCharts.create({
         ...detail,
         position: this._charts.length,
       });
@@ -180,12 +181,12 @@ export class Dashboard extends LitElement {
   }
 
   async #onChartResized(e: CustomEvent) {
-    await db.dashboardCharts.update(e.detail.id, { colSpan: e.detail.colSpan });
+    await DashboardCharts.update(e.detail.id, { colSpan: e.detail.colSpan });
     await this.#refresh();
   }
 
   async #onChartDeleted(e: CustomEvent) {
-    await db.dashboardCharts.delete(e.detail.id);
+    await DashboardCharts.remove(e.detail.id);
     await this.#refresh();
   }
 

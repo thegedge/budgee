@@ -1,12 +1,12 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { db } from "../../database/db";
+import { Tags } from "../../data/tags";
+import { colorToHex } from "../../data/tagColor";
 import type { Tag } from "../../database/types";
 import "../iconPicker";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import { tableStyles } from "../tableStyles";
-import { colorToHex, randomTagColor } from "../../data/tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -106,7 +106,7 @@ export class TagManager extends LitElement {
   }
 
   async #refreshTags() {
-    this._tags = await db.tags.toArray();
+    this._tags = await Tags.all();
   }
 
   async #addTag() {
@@ -116,7 +116,7 @@ export class TagManager extends LitElement {
     this._error = "";
 
     try {
-      await db.tags.add({ name, color: randomTagColor() });
+      await Tags.create(name);
       this._newTagName = "";
       await this.#refreshTags();
     } catch {
@@ -125,12 +125,12 @@ export class TagManager extends LitElement {
   }
 
   async #deleteTag(id: number) {
-    await db.tags.delete(id);
+    await Tags.remove(id);
     await this.#refreshTags();
   }
 
   async #saveTagIcon(tag: Tag, icon: string) {
-    await db.tags.update(tag.id!, { icon: icon || undefined });
+    await Tags.update(tag.id!, { icon: icon || undefined });
     await this.#refreshTags();
   }
 
@@ -139,7 +139,7 @@ export class TagManager extends LitElement {
   }
 
   async #saveTagColor(tag: Tag, color: string) {
-    await db.tags.update(tag.id!, { color });
+    await Tags.update(tag.id!, { color });
     await this.#refreshTags();
   }
 

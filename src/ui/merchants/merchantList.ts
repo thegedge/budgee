@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { db } from "../../database/db";
+import { Merchants } from "../../data/merchants";
+import { Transactions } from "../../data/transactions";
 import type { Merchant, Transaction } from "../../database/types";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
@@ -56,10 +57,7 @@ export class MerchantList extends LitElement {
   }
 
   async #load() {
-    const [merchants, transactions] = await Promise.all([
-      db.merchants.toArray(),
-      db.transactions.toArray(),
-    ]);
+    const [merchants, transactions] = await Promise.all([Merchants.all(), Transactions.all()]);
 
     const countMap = new Map<number, number>();
     const spendMap = new Map<number, number>();

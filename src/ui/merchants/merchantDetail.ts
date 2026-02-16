@@ -1,9 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { ChartData } from "chart.js";
-import { db } from "../../database/db";
-import type { Merchant, Transaction } from "../../database/types";
+import { Merchants } from "../../data/merchants";
 import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { Transactions } from "../../data/transactions";
+import type { Merchant, Transaction } from "../../database/types";
 import type { PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../charts/chartWrapper";
@@ -124,8 +125,8 @@ export class MerchantDetail extends LitElement {
   async #load() {
     if (!this.merchantId) return;
     const [merchant, transactions] = await Promise.all([
-      db.merchants.get(this.merchantId),
-      db.transactions.where("merchantId").equals(this.merchantId).reverse().sortBy("date"),
+      Merchants.get(this.merchantId),
+      Transactions.forMerchant(this.merchantId),
     ]);
     this._merchant = merchant;
     this._transactions = transactions;

@@ -1,10 +1,11 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { db } from "../../database/db";
-import type { Merchant, Tag, Transaction } from "../../database/types";
-import { randomTagColor } from "../../data/tagColor";
-import type { ChartData } from "chart.js";
+import { Merchants } from "../../data/merchants";
 import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { Tags } from "../../data/tags";
+import { Transactions } from "../../data/transactions";
+import type { Merchant, Tag, Transaction } from "../../database/types";
+import type { ChartData } from "chart.js";
 import "../tags/tagAutocomplete";
 import "../charts/chartWrapper";
 import { tableStyles } from "../tableStyles";
@@ -135,11 +136,11 @@ export class TransactionDetail extends LitElement {
   async #load() {
     if (!this.transactionId) return;
 
-    this._transaction = await db.transactions.get(this.transactionId);
-    this._tags = await db.tags.toArray();
+    this._transaction = await Transactions.get(this.transactionId);
+    this._tags = await Tags.all();
 
     if (this._transaction?.merchantId) {
-      this._merchant = await db.merchants.get(this._transaction.merchantId);
+      this._merchant = await Merchants.get(this._transaction.merchantId);
     }
 
     if (this._transaction) {
@@ -154,12 +155,7 @@ export class TransactionDetail extends LitElement {
       return;
     }
 
-    const all = await db.transactions
-      .where("merchantId")
-      .equals(this._transaction.merchantId)
-      .reverse()
-      .sortBy("date");
-
+    const all = await Transactions.forMerchant(this._transaction.merchantId);
     this._relatedTransactions = all.filter((t) => t.id !== this._transaction!.id).slice(0, 10);
   }
 
@@ -169,10 +165,7 @@ export class TransactionDetail extends LitElement {
       return;
     }
 
-    const all = await db.transactions
-      .where("merchantId")
-      .equals(this._transaction.merchantId)
-      .toArray();
+    const all = await Transactions.forMerchantAll(this._transaction.merchantId);
 
     const byMonth = new Map<string, number>();
     for (const tx of all) {
@@ -190,31 +183,31 @@ export class TransactionDetail extends LitElement {
     const tag = e.detail.tag as Tag;
     if (this._transaction.tagIds.includes(tag.id!)) return;
     const updatedTagIds = [...this._transaction.tagIds, tag.id!];
-    await db.transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
     this._transaction = { ...this._transaction, tagIds: updatedTagIds };
   }
 
   async #onTagCreated(e: CustomEvent) {
     if (!this._transaction) return;
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name, color: randomTagColor() });
+    const tagId = await Tags.create(name);
     const updatedTagIds = [...this._transaction.tagIds, tagId];
-    await db.transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
     this._transaction = { ...this._transaction, tagIds: updatedTagIds };
-    this._tags = await db.tags.toArray();
+    this._tags = await Tags.all();
   }
 
   async #removeTag(tagId: number) {
     if (!this._transaction) return;
     const updatedTagIds = this._transaction.tagIds.filter((id) => id !== tagId);
-    await db.transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
     this._transaction = { ...this._transaction, tagIds: updatedTagIds };
   }
 
   async #onMemoBlur(e: Event) {
     if (!this._transaction) return;
     const memo = (e.target as HTMLTextAreaElement).value;
-    await db.transactions.update(this._transaction.id!, { memo });
+    await Transactions.update(this._transaction.id!, { memo });
     this._transaction = { ...this._transaction, memo };
   }
 

@@ -1,8 +1,9 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { db } from "../../database/db";
+import { Merchants } from "../../data/merchants";
+import { Tags } from "../../data/tags";
+import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
-import { randomTagColor } from "../../data/tagColor";
 import "../merchants/merchantAutocomplete";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
@@ -163,9 +164,9 @@ export class TransactionList extends LitElement {
   }
 
   async #refresh() {
-    this._transactions = await db.transactions.toArray();
-    this._tags = await db.tags.toArray();
-    const merchants = await db.merchants.toArray();
+    this._transactions = await Transactions.all();
+    this._tags = await Tags.all();
+    const merchants = await Merchants.all();
     this._merchants = new Map(merchants.map((m) => [m.id!, m.name]));
     this._merchantList = merchants;
   }
@@ -174,22 +175,22 @@ export class TransactionList extends LitElement {
     const tag = e.detail.tag as Tag;
     if (transaction.tagIds.includes(tag.id!)) return;
     const updatedTagIds = [...transaction.tagIds, tag.id!];
-    await db.transactions.update(transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
     await this.#refresh();
   }
 
   async #onTagCreated(transaction: Transaction, e: CustomEvent) {
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name, color: randomTagColor() });
+    const tagId = await Tags.create(name);
     const updatedTagIds = [...transaction.tagIds, tagId];
-    await db.transactions.update(transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
     await this.#refresh();
   }
 
   async #removeTag(transaction: Transaction, tagId: number, e: Event) {
     e.stopPropagation();
     const updatedTagIds = transaction.tagIds.filter((id) => id !== tagId);
-    await db.transactions.update(transaction.id!, { tagIds: updatedTagIds });
+    await Transactions.update(transaction.id!, { tagIds: updatedTagIds });
     await this.#refresh();
   }
 
@@ -319,8 +320,8 @@ export class TransactionList extends LitElement {
 
   async #bulkCreateTag(e: CustomEvent) {
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name, color: randomTagColor() });
-    await this.#applyTagToSelected(tagId as number);
+    const tagId = await Tags.create(name);
+    await this.#applyTagToSelected(tagId);
   }
 
   async #applyTagToSelected(tagId: number) {
@@ -328,7 +329,7 @@ export class TransactionList extends LitElement {
     const selected = this._transactions.filter((t) => this._selectedIds.has(t.id!));
     for (const t of selected) {
       if (t.tagIds.includes(tagId)) continue;
-      await db.transactions.update(t.id!, { tagIds: [...t.tagIds, tagId] });
+      await Transactions.update(t.id!, { tagIds: [...t.tagIds, tagId] });
     }
     this.#clearSelection();
     await this.#refresh();
@@ -340,12 +341,12 @@ export class TransactionList extends LitElement {
 
     let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
     if (!merchant) {
-      const id = await db.merchants.add({ name });
-      merchant = { id: id as number, name };
+      const id = await Merchants.create(name);
+      merchant = { id, name };
     }
 
     for (const id of this._selectedIds) {
-      await db.transactions.update(id, { merchantId: merchant.id });
+      await Transactions.update(id, { merchantId: merchant.id });
     }
     this.#clearSelection();
     await this.#refresh();

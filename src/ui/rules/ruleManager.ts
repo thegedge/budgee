@@ -1,9 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { db } from "../../database/db";
+import { MerchantRules } from "../../data/merchantRules";
+import { Merchants } from "../../data/merchants";
+import { Tags } from "../../data/tags";
+import { Transactions } from "../../data/transactions";
 import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
-import { matchesRule } from "../../import/applyRules";
-import { randomTagColor } from "../../data/tagColor";
 import "../modal";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
@@ -139,10 +140,10 @@ export class RuleManager extends LitElement {
   }
 
   async #refresh() {
-    this._rules = await db.merchantRules.toArray();
-    this._tags = await db.tags.toArray();
-    this._merchants = await db.merchants.toArray();
-    const allTx = await db.transactions.toArray();
+    this._rules = await MerchantRules.all();
+    this._tags = await Tags.all();
+    this._merchants = await Merchants.all();
+    const allTx = await Transactions.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
     this._overlapRefresh++;
   }
@@ -153,16 +154,16 @@ export class RuleManager extends LitElement {
     const allTagIds = [...(tagIds as number[])];
     if (newTagNames?.length) {
       for (const name of newTagNames as string[]) {
-        const existing = await db.tags.where("name").equalsIgnoreCase(name).first();
-        const tagId = existing?.id ?? (await db.tags.add({ name, color: randomTagColor() }));
+        const existing = await Tags.byName(name);
+        const tagId = existing?.id ?? (await Tags.create(name));
         allTagIds.push(tagId);
       }
     }
 
     let merchantId: number | undefined;
     if (merchantName) {
-      const existing = await db.merchants.where("name").equalsIgnoreCase(merchantName).first();
-      merchantId = existing?.id ?? (await db.merchants.add({ name: merchantName }));
+      const existing = await Merchants.byName(merchantName);
+      merchantId = existing?.id ?? (await Merchants.create(merchantName));
     }
 
     // Check for existing rule to merge with (only for new rules, not edits)
@@ -178,7 +179,7 @@ export class RuleManager extends LitElement {
           conditions: mergedConditions,
           tagIds: mergedTagIds,
         };
-        await db.merchantRules.put(merged);
+        await MerchantRules.put(merged);
         this._showEditor = false;
         this._editingRule = null;
         this._editingMerchantName = "";
@@ -194,15 +195,15 @@ export class RuleManager extends LitElement {
       : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
 
     if (id) {
-      await db.merchantRules.put(rule);
+      await MerchantRules.put(rule);
       this._showEditor = false;
       this._editingRule = null;
       this._editingMerchantName = "";
       this._prefillDescription = "";
       this._pendingRerunRule = rule;
     } else {
-      rule.id = await db.merchantRules.add(rule);
-      await this.#applyRuleToExisting(rule);
+      rule.id = await MerchantRules.create(rule);
+      await MerchantRules.applyToTransactions(rule);
       this._showEditor = false;
       this._editingRule = null;
       this._editingMerchantName = "";
@@ -212,33 +213,15 @@ export class RuleManager extends LitElement {
     await this.#refresh();
   }
 
-  async #applyRuleToExisting(rule: MerchantRule) {
-    const allTx = await db.transactions.toArray();
-    const updates: Transaction[] = [];
-    for (const tx of allTx) {
-      const description = tx.originalDescription.toLowerCase();
-      if (matchesRule(description, rule)) {
-        updates.push({
-          ...tx,
-          merchantId: rule.merchantId ?? tx.merchantId,
-          tagIds: [...new Set([...tx.tagIds, ...rule.tagIds])],
-        });
-      }
-    }
-    if (updates.length > 0) {
-      await db.transactions.bulkPut(updates);
-    }
-  }
-
   async #deleteRule(id: number) {
-    await db.merchantRules.delete(id);
+    await MerchantRules.remove(id);
     await this.#refresh();
   }
 
   async #editRule(rule: MerchantRule) {
     let merchantName = "";
     if (rule.merchantId) {
-      const merchant = await db.merchants.get(rule.merchantId);
+      const merchant = await Merchants.get(rule.merchantId);
       merchantName = merchant?.name ?? "";
     }
     this._editingRule = rule;
@@ -451,7 +434,7 @@ export class RuleManager extends LitElement {
               <p>Apply this rule to existing unmerchanted transactions?</p>
               <div class="confirm-actions">
                 <button @click=${async () => {
-                  await this.#applyRuleToExisting(this._pendingRerunRule!);
+                  await MerchantRules.applyToTransactions(this._pendingRerunRule!);
                   this._pendingRerunRule = null;
                   await this.#refresh();
                 }}>Apply</button>
