@@ -225,14 +225,20 @@ export class IconPicker extends LitElement {
     }
   };
 
+  #boundScroll = () => {
+    if (this._open) this.#positionPopup();
+  };
+
   connectedCallback() {
     super.connectedCallback();
     document.addEventListener("click", this.#boundDocClick, true);
+    window.addEventListener("scroll", this.#boundScroll, true);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener("click", this.#boundDocClick, true);
+    window.removeEventListener("scroll", this.#boundScroll, true);
   }
 
   #toggle() {
