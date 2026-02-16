@@ -31,6 +31,10 @@ export const tableStyles = css`
   .clickable-row {
     cursor: pointer;
   }
+  .col-amount {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
   .amount-negative {
     color: var(--budgee-negative, #d09090);
   }

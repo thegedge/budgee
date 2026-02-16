@@ -167,7 +167,7 @@ export class MerchantList extends LitElement {
               <th class="sortable" @click=${() => this.#onSortClick("count")}>
                 Transactions${this.#sortIndicator("count")}
               </th>
-              <th class="sortable" @click=${() => this.#onSortClick("spend")}>
+              <th class="sortable col-amount" @click=${() => this.#onSortClick("spend")}>
                 Total Spend${this.#sortIndicator("spend")}
               </th>
             </tr>
@@ -178,7 +178,7 @@ export class MerchantList extends LitElement {
               <tr @click=${() => this.#navigateToMerchant(row.merchant.id!)}>
                 <td>${row.merchant.name}</td>
                 <td>${row.transactionCount}</td>
-                <td class=${row.totalSpend < 0 ? "amount-negative" : "amount-positive"}>
+                <td class="col-amount ${row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
                   ${row.totalSpend.toFixed(2)}
                 </td>
               </tr>

@@ -321,7 +321,7 @@ export class TransactionDetail extends LitElement {
                   <tr>
                     <th>Date</th>
                     <th>Description</th>
-                    <th>Amount</th>
+                    <th class="col-amount">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -330,7 +330,7 @@ export class TransactionDetail extends LitElement {
                     <tr>
                       <td>${t.date}</td>
                       <td>${t.originalDescription}</td>
-                      <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                      <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                         ${t.amount.toFixed(2)}
                       </td>
                     </tr>
@@ -356,7 +356,7 @@ export class TransactionDetail extends LitElement {
                 <thead>
                   <tr>
                     <th>Month</th>
-                    <th>Total</th>
+                    <th class="col-amount">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -364,7 +364,7 @@ export class TransactionDetail extends LitElement {
                     ({ month, total }) => html`
                     <tr>
                       <td>${month}</td>
-                      <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
+                      <td class="col-amount ${total < 0 ? "amount-negative" : "amount-positive"}">
                         ${total.toFixed(2)}
                       </td>
                     </tr>

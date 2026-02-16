@@ -336,7 +336,7 @@ export class Dashboard extends LitElement {
                     <tr>
                       <th>Date</th>
                       <th>Description</th>
-                      <th>Amount</th>
+                      <th class="col-amount">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -345,7 +345,7 @@ export class Dashboard extends LitElement {
                       <tr class="clickable-row" @click=${() => this.#createRuleFrom(t)}>
                         <td>${t.date}</td>
                         <td>${t.originalDescription}</td>
-                        <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                        <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                           ${t.amount.toFixed(2)}
                         </td>
                       </tr>

@@ -71,11 +71,6 @@ export class TransactionList extends LitElement {
       }
       .col-amount {
         width: 8rem;
-        text-align: right;
-      }
-      td.col-amount {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
       }
       .col-date {
         white-space: nowrap;
