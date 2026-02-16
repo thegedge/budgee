@@ -1,16 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import {
-  aggregateByMerchant,
-  aggregateByPeriod,
-  aggregateByTag,
-  filterTransactions,
-} from "../../database/aggregations";
 import type { Granularity } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
-import type { ChartData } from "chart.js";
-import "./chartWrapper";
-import { cssVar } from "../cssVar";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -70,9 +61,6 @@ export class ChartConfigurator extends LitElement {
   private _showExclusions = false;
 
   @state()
-  private _showPreview = false;
-
-  @state()
   private _initialized = false;
 
   static styles = css`
@@ -110,9 +98,6 @@ export class ChartConfigurator extends LitElement {
     }
     button:hover {
       background-color: var(--budgee-primary-hover);
-    }
-    .preview {
-      margin-top: 1rem;
     }
     .exclusions {
       margin-bottom: 1rem;
@@ -153,36 +138,6 @@ export class ChartConfigurator extends LitElement {
     }
   }
 
-  get #chartData(): ChartData {
-    const filtered = filterTransactions(this.transactions, {
-      tagId: this._tagId,
-      merchantId: this._merchantId,
-      startDate: this._startDate || undefined,
-      endDate: this._endDate || undefined,
-    });
-
-    const aggregated =
-      this._granularity === "byTag"
-        ? aggregateByTag(filtered, this.tags, this._excludedTagIds)
-        : this._granularity === "byMerchant"
-          ? aggregateByMerchant(filtered, this.merchants, this._excludedMerchantIds)
-          : aggregateByPeriod(filtered, this._granularity);
-    const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
-
-    return {
-      labels: entries.map(([key]) => key),
-      datasets: [
-        {
-          label: this._title || "Amount",
-          data: entries.map(([, val]) => val),
-          backgroundColor: cssVar("--budgee-primary", 0.5),
-          borderColor: cssVar("--budgee-primary"),
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-
   #onSave() {
     const title = this._title.trim();
     if (!title) return;
@@ -207,7 +162,6 @@ export class ChartConfigurator extends LitElement {
     );
 
     this._title = "";
-    this._showPreview = false;
     this._initialized = false;
   }
 
@@ -345,22 +299,7 @@ export class ChartConfigurator extends LitElement {
         </select>
       </div>
       ${this.#renderExclusions()}
-      <button @click=${() => {
-        this._showPreview = true;
-      }}>Preview</button>
       <button @click=${this.#onSave}>${this.editingChart ? "Update Chart" : "Save to Dashboard"}</button>
-      ${
-        this._showPreview
-          ? html`
-            <div class="preview">
-              <chart-wrapper
-                .chartType=${this._chartType}
-                .data=${this.#chartData}
-              ></chart-wrapper>
-            </div>
-          `
-          : ""
-      }
     `;
   }
 }
