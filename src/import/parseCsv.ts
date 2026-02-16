@@ -3,6 +3,7 @@ import Papa from "papaparse";
 export interface ColumnMapping {
   date?: string;
   amount?: string;
+  credit?: string;
   description?: string;
   account?: string;
 }
@@ -24,7 +25,8 @@ const guessMapping = (headers: string[]): ColumnMapping => {
 
   return {
     date: findMatch(["date", "time"]),
-    amount: findMatch(["amount", "value", "cost", "price"]),
+    amount: findMatch(["amount", "value", "cost", "price", "debit"]),
+    credit: findMatch(["credit", "payment"]),
     description: findMatch(["description", "merchant", "payee", "name", "memo"]),
     account: findMatch(["account", "source", "card"]),
   };

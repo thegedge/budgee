@@ -23,20 +23,25 @@ function rowToTransaction(
 ): Omit<Transaction, "id"> | undefined {
   const dateStr = mapping.date ? row[mapping.date] : undefined;
   const amountStr = mapping.amount ? row[mapping.amount] : undefined;
+  const creditStr = mapping.credit ? row[mapping.credit] : undefined;
   const description = mapping.description ? row[mapping.description] : undefined;
 
-  if (!dateStr || !amountStr || !description) {
+  if (!dateStr || !description) {
     return undefined;
   }
 
-  const amount = Number.parseFloat(amountStr);
-  if (Number.isNaN(amount)) {
+  const amount = amountStr ? Number.parseFloat(amountStr) : NaN;
+  const credit = creditStr ? Number.parseFloat(creditStr) : NaN;
+
+  if (Number.isNaN(amount) && Number.isNaN(credit)) {
     return undefined;
   }
+
+  const total = (Number.isNaN(amount) ? 0 : -amount) + (Number.isNaN(credit) ? 0 : credit);
 
   return {
     date: dateStr,
-    amount: -amount,
+    amount: total,
     originalDescription: description,
     tagIds: [],
   };

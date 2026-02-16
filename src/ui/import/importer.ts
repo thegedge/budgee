@@ -14,7 +14,8 @@ declare global {
 
 const MAPPING_FIELDS: { key: keyof ColumnMapping; label: string }[] = [
   { key: "date", label: "Date" },
-  { key: "amount", label: "Amount" },
+  { key: "amount", label: "Debit" },
+  { key: "credit", label: "Credit" },
   { key: "description", label: "Description" },
   { key: "account", label: "Account" },
 ];

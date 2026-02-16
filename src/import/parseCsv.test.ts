@@ -39,6 +39,17 @@ describe("parseCsv", () => {
     ]);
   });
 
+  it("should parse split debit/credit CSV and guess mapping correctly", async () => {
+    const csvContent = await loadFixture("split-amount.csv");
+    const result = await parseCsv(csvContent);
+
+    expect(result.suggestedMapping.date).toBe("date");
+    expect(result.suggestedMapping.amount).toBe("amount");
+    expect(result.suggestedMapping.credit).toBe("payment");
+    expect(result.suggestedMapping.description).toBe("description");
+    expect(result.suggestedMapping.account).toBe("card");
+  });
+
   it("should parse alternative CSV and guess mapping correctly", async () => {
     const csvContent = await loadFixture("alternative.csv");
     const result = await parseCsv(csvContent);

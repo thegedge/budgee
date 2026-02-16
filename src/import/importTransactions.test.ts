@@ -50,6 +50,27 @@ describe("importTransactions", () => {
     expect(count).toBe(0);
   });
 
+  it("should handle split debit/credit columns", async () => {
+    const splitRows = [
+      { date: "2024-01-01", description: "Groceries", amount: "50.00", payment: "" },
+      { date: "2024-01-02", description: "Payroll", amount: "", payment: "2500.00" },
+    ];
+
+    const splitMapping: ColumnMapping = {
+      date: "date",
+      amount: "amount",
+      credit: "payment",
+      description: "description",
+    };
+
+    const count = await importTransactions(splitRows, splitMapping);
+    expect(count).toBe(2);
+
+    const stored = await db.transactions.toArray();
+    expect(stored[0].amount).toBe(-50);
+    expect(stored[1].amount).toBe(2500);
+  });
+
   it("should apply merchant rules during import", async () => {
     await db.merchantRules.add({
       logic: "and",
