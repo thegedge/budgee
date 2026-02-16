@@ -9,16 +9,15 @@ export type ImportMode = "replace" | "append";
 export async function importTransactions(
   rows: Record<string, string>[],
   mapping: ColumnMapping,
-  options: { accountId: number; importMode: ImportMode },
+  options: { accountId?: number; importMode: ImportMode },
 ): Promise<number> {
   const rules = await MerchantRules.all();
   const transactions: Omit<Transaction, "id">[] = rows
-    .map((row) => rowToTransaction(row, mapping))
+    .map((row) => rowToTransaction(row, mapping, options.accountId))
     .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
-    .map((t) => applyRules(t, rules))
-    .map((t) => ({ ...t, accountId: options.accountId }));
+    .map((t) => applyRules(t, rules));
 
-  if (options.importMode === "replace") {
+  if (options.importMode === "replace" && options.accountId) {
     await Transactions.deleteForAccount(options.accountId);
   }
 
@@ -29,6 +28,7 @@ export async function importTransactions(
 function rowToTransaction(
   row: Record<string, string>,
   mapping: ColumnMapping,
+  accountId?: number,
 ): Omit<Transaction, "id"> | undefined {
   const dateStr = mapping.date ? row[mapping.date] : undefined;
   const amountStr = mapping.amount ? row[mapping.amount] : undefined;
@@ -53,5 +53,6 @@ function rowToTransaction(
     amount: total,
     originalDescription: description,
     tagIds: [],
+    accountId,
   };
 }

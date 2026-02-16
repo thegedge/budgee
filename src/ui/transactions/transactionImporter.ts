@@ -35,10 +35,7 @@ export class TransactionImporter extends LitElement {
   private _accounts: Account[] = [];
 
   @state()
-  private _selectedAccountId?: number;
-
-  @state()
-  private _newAccountName = "";
+  private _accountName = "";
 
   @state()
   private _importMode: ImportMode = "append";
@@ -93,13 +90,8 @@ export class TransactionImporter extends LitElement {
     await this.loadFile(input.files[0]);
   }
 
-  #onAccountChange(e: Event) {
-    const value = (e.target as HTMLSelectElement).value;
-    this._selectedAccountId = value ? Number(value) : undefined;
-  }
-
-  #onNewAccountNameInput(e: Event) {
-    this._newAccountName = (e.target as HTMLInputElement).value;
+  #onAccountNameInput(e: Event) {
+    this._accountName = (e.target as HTMLInputElement).value;
   }
 
   #onImportModeChange(e: Event) {
@@ -112,15 +104,24 @@ export class TransactionImporter extends LitElement {
     this._mapping = { ...this._mapping, [field]: value };
   }
 
+  async #resolveAccountId(): Promise<number | undefined> {
+    if (this._mapping.account) return undefined;
+
+    const name = this._accountName.trim();
+    if (!name) return undefined;
+
+    const existing = this._accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
+    if (existing) return existing.id;
+
+    return Accounts.create({ name });
+  }
+
   async #onImport() {
     if (!this._result) return;
 
-    let accountId = this._selectedAccountId;
-    if (accountId === undefined) {
-      const name = this._newAccountName.trim();
-      if (!name) return;
-      accountId = await Accounts.create({ name });
-    }
+    const needsAccount = !this._mapping.account;
+    const accountId = await this.#resolveAccountId();
+    if (needsAccount && accountId === undefined) return;
 
     const count = await importTransactions(this._result.data, this._mapping, {
       accountId,
@@ -131,8 +132,7 @@ export class TransactionImporter extends LitElement {
     this._step = "upload";
     this._result = undefined;
     this._mapping = {};
-    this._selectedAccountId = undefined;
-    this._newAccountName = "";
+    this._accountName = "";
     this._importMode = "append";
   }
 
@@ -174,25 +174,28 @@ export class TransactionImporter extends LitElement {
         )}
       </div>
 
-      <h4>Account</h4>
+      ${
+        !this._mapping.account
+          ? html`
+        <h4>Account</h4>
+        <div class="mapping-form">
+          <label>Account:</label>
+          <input
+            type="text"
+            list="account-options"
+            .value=${this._accountName}
+            @input=${this.#onAccountNameInput}
+            placeholder="Type or select an account"
+          />
+          <datalist id="account-options">
+            ${this._accounts.map((a) => html`<option value=${a.name}></option>`)}
+          </datalist>
+        </div>
+      `
+          : nothing
+      }
+
       <div class="mapping-form">
-        <label>Account:</label>
-        <select @change=${this.#onAccountChange}>
-          <option value="">-- New Account --</option>
-          ${this._accounts.map(
-            (a) => html`
-            <option value=${a.id!} ?selected=${this._selectedAccountId === a.id}>${a.name}</option>
-          `,
-          )}
-        </select>
-        ${
-          this._selectedAccountId === undefined
-            ? html`
-          <label>Name:</label>
-          <input type="text" .value=${this._newAccountName} @input=${this.#onNewAccountNameInput} />
-        `
-            : nothing
-        }
         <label>Mode:</label>
         <select @change=${this.#onImportModeChange}>
           <option value="append" ?selected=${this._importMode === "append"}>Append to existing</option>
