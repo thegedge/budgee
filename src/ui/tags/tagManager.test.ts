@@ -70,7 +70,9 @@ describe("tag-manager", () => {
     await new Promise((r) => setTimeout(r, 50));
     await el.updateComplete;
 
-    const deleteBtn = el.shadowRoot!.querySelector(".delete-btn") as HTMLButtonElement;
+    const deleteBtn = el.shadowRoot!.querySelector(
+      'button[aria-label="Remove tag"]',
+    ) as HTMLButtonElement;
     expect(deleteBtn).toBeTruthy();
     deleteBtn.click();
     await new Promise((r) => setTimeout(r, 50));

@@ -1,5 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
+import { iconButtonStyles } from "../iconButtonStyles";
 import {
   aggregateByMerchant,
   aggregateByPeriod,
@@ -34,63 +38,46 @@ export class DashboardChartCard extends LitElement {
   @property({ type: Array })
   merchants: Merchant[] = [];
 
-  static styles = css`
-    :host {
-      display: block;
-      position: relative;
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      background: var(--budgee-surface);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-    h4 {
-      margin: 0;
-    }
-    button {
-      padding: 2px 8px;
-      cursor: pointer;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.8rem;
-    }
-    .edit-btn {
-      background-color: var(--budgee-primary);
-    }
-    .edit-btn:hover {
-      background-color: var(--budgee-primary-hover);
-    }
-    .delete-btn {
-      background-color: var(--budgee-danger);
-    }
-    .delete-btn:hover {
-      background-color: var(--budgee-danger-hover);
-    }
-    .actions {
-      display: flex;
-      gap: 0.25rem;
-    }
-    .resize-handle {
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: 6px;
-      height: 100%;
-      cursor: col-resize;
-      background: transparent;
-      transition: background 0.15s;
-    }
-    .resize-handle:hover,
-    :host([data-resizing]) .resize-handle {
-      background: var(--budgee-primary);
-    }
-  `;
+  static styles = [
+    iconButtonStyles,
+    css`
+      :host {
+        display: block;
+        position: relative;
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        background: var(--budgee-surface);
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      h4 {
+        margin: 0;
+      }
+      .actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+      .resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 6px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .resize-handle:hover,
+      :host([data-resizing]) .resize-handle {
+        background: var(--budgee-primary);
+      }
+    `,
+  ];
 
   get #chartData(): ChartData {
     const filtered = filterTransactions(this.transactions, {
@@ -264,8 +251,8 @@ export class DashboardChartCard extends LitElement {
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
-          <button class="edit-btn" @click=${this.#onEdit}>Edit</button>
-          <button class="delete-btn" @click=${this.#onDelete}>Delete</button>
+          <button class="icon-btn" aria-label="Edit" @click=${this.#onEdit}>${unsafeSVG(wrenchIcon)}</button>
+          <button class="icon-btn icon-btn--danger" aria-label="Delete" @click=${this.#onDelete}>${unsafeSVG(trash2Icon)}</button>
         </div>
       </div>
       <chart-wrapper

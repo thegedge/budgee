@@ -1,5 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import xIcon from "lucide-static/icons/x.svg?raw";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -42,16 +44,22 @@ export class Modal extends LitElement {
       margin: 0;
     }
     .close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: none;
       border: none;
-      font-size: 1.5rem;
       cursor: pointer;
       color: var(--budgee-text-muted);
-      padding: 0;
+      padding: 4px;
       line-height: 1;
     }
     .close:hover {
       color: var(--budgee-text);
+    }
+    .close svg {
+      width: 20px;
+      height: 20px;
     }
   `;
 
@@ -77,7 +85,7 @@ export class Modal extends LitElement {
       <div id="popover" popover="auto">
         <div class="header">
           <h3>${this.heading}</h3>
-          <button class="close" @click=${this.#onClose}>&times;</button>
+          <button class="close" aria-label="Close" @click=${this.#onClose}>${unsafeSVG(xIcon)}</button>
         </div>
         <slot></slot>
       </div>

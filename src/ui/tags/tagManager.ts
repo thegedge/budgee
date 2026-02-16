@@ -1,6 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { colorToHex } from "../../data/tagColor";
+import { iconButtonStyles } from "../iconButtonStyles";
 import { Tags } from "../../data/tags";
 import type { Tag } from "../../database/types";
 import "../shared/iconPicker";
@@ -41,6 +44,7 @@ export class TagManager extends LitElement {
 
   static styles = [
     tableStyles,
+    iconButtonStyles,
     css`
       :host {
         display: block;
@@ -70,14 +74,6 @@ export class TagManager extends LitElement {
       }
       button:hover {
         background-color: var(--budgee-primary-hover);
-      }
-      .delete-btn {
-        background-color: var(--budgee-danger);
-        font-size: 0.8rem;
-        padding: 2px 8px;
-      }
-      .delete-btn:hover {
-        background-color: var(--budgee-danger-hover);
       }
       .error {
         color: var(--budgee-danger-hover);
@@ -236,8 +232,8 @@ export class TagManager extends LitElement {
                       ${tag.name}
                     </td>
                     <td class="col-remove">
-                      <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
-                        Remove
+                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id!)}>
+                        ${unsafeSVG(trash2Icon)}
                       </button>
                     </td>
                   </tr>

@@ -1,5 +1,9 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
+import { iconButtonStyles } from "../iconButtonStyles";
 import type {
   Account,
   DashboardTable,
@@ -57,6 +61,7 @@ export class DashboardTableCard extends LitElement {
 
   static styles = [
     tableStyles,
+    iconButtonStyles,
     css`
       :host {
         display: block;
@@ -74,26 +79,6 @@ export class DashboardTableCard extends LitElement {
       }
       h4 {
         margin: 0;
-      }
-      button {
-        padding: 2px 8px;
-        cursor: pointer;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 0.8rem;
-      }
-      .edit-btn {
-        background-color: var(--budgee-primary);
-      }
-      .edit-btn:hover {
-        background-color: var(--budgee-primary-hover);
-      }
-      .delete-btn {
-        background-color: var(--budgee-danger);
-      }
-      .delete-btn:hover {
-        background-color: var(--budgee-danger-hover);
       }
       .actions {
         display: flex;
@@ -417,8 +402,8 @@ export class DashboardTableCard extends LitElement {
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
-          <button class="edit-btn" @click=${this.#onEdit}>Edit</button>
-          <button class="delete-btn" @click=${this.#onDelete}>Delete</button>
+          <button class="icon-btn" aria-label="Edit" @click=${this.#onEdit}>${unsafeSVG(wrenchIcon)}</button>
+          <button class="icon-btn icon-btn--danger" aria-label="Delete" @click=${this.#onDelete}>${unsafeSVG(trash2Icon)}</button>
         </div>
       </div>
       ${this.#renderTable()}

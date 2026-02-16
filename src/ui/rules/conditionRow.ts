@@ -1,6 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import type { RuleCondition, RuleOperator } from "../../database/types";
+import { iconButtonStyles } from "../iconButtonStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -23,33 +26,24 @@ export class ConditionRow extends LitElement {
   @property({ type: Number })
   index = 0;
 
-  static styles = css`
-    :host {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 0.25rem;
-    }
-    select,
-    input {
-      padding: 4px 8px;
-    }
-    input {
-      flex: 1;
-    }
-    button {
-      padding: 2px 8px;
-      cursor: pointer;
-      background-color: var(--budgee-danger);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.8rem;
-    }
-    button:hover {
-      background-color: var(--budgee-danger-hover);
-    }
-  `;
+  static styles = [
+    iconButtonStyles,
+    css`
+      :host {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.25rem;
+      }
+      select,
+      input {
+        padding: 4px 8px;
+      }
+      input {
+        flex: 1;
+      }
+    `,
+  ];
 
   #onOperatorChange(e: Event) {
     const operator = (e.target as HTMLSelectElement).value as RuleOperator;
@@ -91,7 +85,7 @@ export class ConditionRow extends LitElement {
         .value=${this.condition.value}
         @input=${this.#onValueInput}
       />
-      <button @click=${this.#onRemove}>Remove</button>
+      <button class="icon-btn icon-btn--danger" aria-label="Remove condition" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
     `;
   }
 }

@@ -1,6 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { MerchantRules } from "../../data/merchantRules";
+import { iconButtonStyles } from "../iconButtonStyles";
 import { Merchants } from "../../data/merchants";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
@@ -79,6 +83,7 @@ export class RuleManager extends LitElement {
 
   static styles = [
     tableStyles,
+    iconButtonStyles,
     css`
       :host {
         display: block;
@@ -104,12 +109,10 @@ export class RuleManager extends LitElement {
       button:hover {
         background-color: var(--budgee-primary-hover);
       }
-      .delete-btn {
+      .secondary-btn {
         background-color: var(--budgee-danger);
-        font-size: 0.8rem;
-        padding: 2px 8px;
       }
-      .delete-btn:hover {
+      .secondary-btn:hover {
         background-color: var(--budgee-danger-hover);
       }
       .confirm-actions {
@@ -374,13 +377,8 @@ export class RuleManager extends LitElement {
                                   ${rule.tagIds.map((id) => this.#tagLabel(id)).join(", ") || "None"}
                                 </td>
                                 <td>
-                                  <button @click=${() => this.#editRule(rule)}>Edit</button>
-                                  <button
-                                    class="delete-btn"
-                                    @click=${() => this.#deleteRule(rule.id!)}
-                                  >
-                                    Remove
-                                  </button>
+                                  <button class="icon-btn" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
+                                  <button class="icon-btn icon-btn--danger" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id!)}>${unsafeSVG(trash2Icon)}</button>
                                 </td>
                               </tr>
                             `,
@@ -438,7 +436,7 @@ export class RuleManager extends LitElement {
                   this._pendingRerunRule = null;
                   await this.#refresh();
                 }}>Apply</button>
-                <button class="delete-btn" @click=${() => {
+                <button class="secondary-btn" @click=${() => {
                   this._pendingRerunRule = null;
                 }}>Skip</button>
               </div>
