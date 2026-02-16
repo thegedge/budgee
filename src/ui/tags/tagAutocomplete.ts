@@ -43,7 +43,7 @@ export class TagAutocomplete extends LitElement {
       gap: 2px;
       padding: 2px 4px;
       border: 1px solid var(--budgee-border, #e0e0e0);
-      border-radius: 4px;
+      border-radius: 12px;
       min-width: 120px;
       cursor: text;
       background: var(--budgee-surface, #fff);
