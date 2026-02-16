@@ -61,6 +61,15 @@ export class ChartConfigurator extends LitElement {
   private _colSpan: NonNullable<DashboardChart["colSpan"]> = 1;
 
   @state()
+  private _excludedTagIds: number[] = [];
+
+  @state()
+  private _excludedMerchantIds: number[] = [];
+
+  @state()
+  private _showExclusions = false;
+
+  @state()
   private _showPreview = false;
 
   @state()
@@ -105,6 +114,27 @@ export class ChartConfigurator extends LitElement {
     .preview {
       margin-top: 1rem;
     }
+    .exclusions {
+      margin-bottom: 1rem;
+    }
+    .exclusions summary {
+      cursor: pointer;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .checkbox-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .checkbox-list label {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.9rem;
+    }
   `;
 
   updated(changed: Map<string, unknown>) {
@@ -117,6 +147,8 @@ export class ChartConfigurator extends LitElement {
       this._tagId = this.editingChart.tagId;
       this._merchantId = this.editingChart.merchantId;
       this._colSpan = this.editingChart.colSpan ?? 1;
+      this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
+      this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
       this._initialized = true;
     }
   }
@@ -131,9 +163,9 @@ export class ChartConfigurator extends LitElement {
 
     const aggregated =
       this._granularity === "byTag"
-        ? aggregateByTag(filtered, this.tags)
+        ? aggregateByTag(filtered, this.tags, this._excludedTagIds)
         : this._granularity === "byMerchant"
-          ? aggregateByMerchant(filtered, this.merchants)
+          ? aggregateByMerchant(filtered, this.merchants, this._excludedMerchantIds)
           : aggregateByPeriod(filtered, this._granularity);
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
 
@@ -167,6 +199,9 @@ export class ChartConfigurator extends LitElement {
           tagId: this._tagId,
           merchantId: this._merchantId,
           colSpan: this._colSpan,
+          excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
+          excludedMerchantIds:
+            this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
         },
       }),
     );
@@ -174,6 +209,49 @@ export class ChartConfigurator extends LitElement {
     this._title = "";
     this._showPreview = false;
     this._initialized = false;
+  }
+
+  #renderExclusions() {
+    if (this._granularity !== "byTag" && this._granularity !== "byMerchant") return "";
+
+    const items = this._granularity === "byTag" ? this.tags : this.merchants;
+    const excludedIds =
+      this._granularity === "byTag" ? this._excludedTagIds : this._excludedMerchantIds;
+    const label = this._granularity === "byTag" ? "tags" : "merchants";
+
+    return html`
+      <details class="exclusions" ?open=${this._showExclusions} @toggle=${(e: Event) => {
+        this._showExclusions = (e.target as HTMLDetailsElement).open;
+      }}>
+        <summary>Exclude ${label}</summary>
+        <div class="checkbox-list">
+          ${items.map(
+            (item) => html`
+            <label>
+              <input
+                type="checkbox"
+                ?checked=${excludedIds.includes(item.id!)}
+                @change=${(e: Event) => this.#toggleExclusion(item.id!, (e.target as HTMLInputElement).checked)}
+              />
+              ${item.name}
+            </label>
+          `,
+          )}
+        </div>
+      </details>
+    `;
+  }
+
+  #toggleExclusion(id: number, excluded: boolean) {
+    if (this._granularity === "byTag") {
+      this._excludedTagIds = excluded
+        ? [...this._excludedTagIds, id]
+        : this._excludedTagIds.filter((i) => i !== id);
+    } else {
+      this._excludedMerchantIds = excluded
+        ? [...this._excludedMerchantIds, id]
+        : this._excludedMerchantIds.filter((i) => i !== id);
+    }
   }
 
   render() {
@@ -266,6 +344,7 @@ export class ChartConfigurator extends LitElement {
           <option value="3" ?selected=${this._colSpan === 3}>Large (3 col)</option>
         </select>
       </div>
+      ${this.#renderExclusions()}
       <button @click=${() => {
         this._showPreview = true;
       }}>Preview</button>

@@ -103,9 +103,9 @@ export class DashboardChartCard extends LitElement {
     const { granularity } = this.config;
     const aggregated =
       granularity === "byTag"
-        ? aggregateByTag(filtered, this.tags)
+        ? aggregateByTag(filtered, this.tags, this.config.excludedTagIds)
         : granularity === "byMerchant"
-          ? aggregateByMerchant(filtered, this.merchants)
+          ? aggregateByMerchant(filtered, this.merchants, this.config.excludedMerchantIds)
           : aggregateByPeriod(filtered, granularity);
     const isByDimension = granularity === "byTag" || granularity === "byMerchant";
     const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";

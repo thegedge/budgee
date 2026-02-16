@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Transaction } from "./types";
-import { aggregateByPeriod, filterTransactions } from "./aggregations";
+import {
+  aggregateByMerchant,
+  aggregateByPeriod,
+  aggregateByTag,
+  filterTransactions,
+} from "./aggregations";
 
 const transactions: Transaction[] = [
   {
@@ -58,6 +63,60 @@ describe("aggregateByPeriod", () => {
     const result = aggregateByPeriod(transactions, "year");
     expect(result.get("2024")).toBe(2395);
     expect(result.get("2025")).toBe(-60);
+    expect(result.size).toBe(2);
+  });
+});
+
+const tags = [
+  { id: 1, name: "Food" },
+  { id: 2, name: "Coffee" },
+  { id: 3, name: "Income" },
+];
+
+const merchants = [
+  { id: 10, name: "Grocery Store" },
+  { id: 20, name: "Coffee Shop" },
+];
+
+describe("aggregateByTag", () => {
+  it("should aggregate all tags by default", () => {
+    const result = aggregateByTag(transactions, tags);
+    expect(result.size).toBe(3);
+    expect(result.get("Food")).toBe(-140);
+    expect(result.get("Coffee")).toBe(-25);
+    expect(result.get("Income")).toBe(2500);
+  });
+
+  it("should exclude specified tags from grouping", () => {
+    const result = aggregateByTag(transactions, tags, [3]);
+    expect(result.size).toBe(2);
+    expect(result.has("Income")).toBe(false);
+    expect(result.get("Food")).toBe(-140);
+  });
+
+  it("should handle empty exclusion list", () => {
+    const result = aggregateByTag(transactions, tags, []);
+    expect(result.size).toBe(3);
+  });
+});
+
+describe("aggregateByMerchant", () => {
+  it("should aggregate all merchants by default", () => {
+    const result = aggregateByMerchant(transactions, merchants);
+    expect(result.size).toBe(2);
+    expect(result.get("Grocery Store")).toBe(-140);
+    expect(result.get("Coffee Shop")).toBe(-25);
+  });
+
+  it("should exclude specified merchants from grouping", () => {
+    const result = aggregateByMerchant(transactions, merchants, [20]);
+    expect(result.size).toBe(1);
+    expect(result.has("Coffee Shop")).toBe(false);
+    expect(result.get("Grocery Store")).toBe(-140);
+  });
+
+  it("should handle empty exclusion list", () => {
+    const result = aggregateByMerchant(transactions, merchants, []);
     expect(result.size).toBe(2);
   });
 });

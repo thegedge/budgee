@@ -170,6 +170,8 @@ export class Dashboard extends LitElement {
         tagId: detail.tagId,
         merchantId: detail.merchantId,
         colSpan: detail.colSpan,
+        excludedTagIds: detail.excludedTagIds,
+        excludedMerchantIds: detail.excludedMerchantIds,
       });
     } else {
       await DashboardCharts.create({
