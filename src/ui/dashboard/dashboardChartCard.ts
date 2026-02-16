@@ -110,13 +110,17 @@ export class DashboardChartCard extends LitElement {
     const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
     const values = entries.map(([, val]) => val);
 
+    const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";
+    const bgColors = isPie ? this.#pieColors(entries) : "rgba(126, 184, 218, 0.5)";
+    const borderColors = isPie ? "#fff" : "#7eb8da";
+
     const datasets: ChartData["datasets"] = [
       {
         label: this.config.title,
         data: values,
-        backgroundColor: "rgba(126, 184, 218, 0.5)",
-        borderColor: "#7eb8da",
-        borderWidth: 1,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: isPie ? 2 : 1,
       },
     ];
 
@@ -138,6 +142,24 @@ export class DashboardChartCard extends LitElement {
       labels: entries.map(([key]) => key),
       datasets,
     };
+  }
+
+  #pieColors(entries: [string, number][]): string[] {
+    if (this.config.granularity === "byTag") {
+      const tagByName = new Map(this.tags.map((t) => [t.name, t]));
+      return entries.map(([name]) => tagByName.get(name)?.color ?? this.#generateColor(name));
+    }
+    return entries.map(([name]) => this.#generateColor(name));
+  }
+
+  #generateColor(seed: string): string {
+    // Deterministic hash-based color from label
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+    }
+    const hue = ((hash % 360) + 360) % 360;
+    return `hsl(${hue}, 65%, 55%)`;
   }
 
   #onEdit() {
