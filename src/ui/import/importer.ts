@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { exportDatabase } from "../../database/exportDb";
+import { importDatabase } from "../../database/importDb";
 import { importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 import { tableStyles } from "../tableStyles";
@@ -85,6 +86,20 @@ export class Importer extends LitElement {
     this._mapping = { ...this._mapping, [field]: value };
   }
 
+  async #onDatabaseImport(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    if (!confirm("This will replace all existing data. Are you sure?")) {
+      input.value = "";
+      return;
+    }
+
+    await importDatabase(input.files[0]);
+    input.value = "";
+    window.location.reload();
+  }
+
   async #onImport() {
     if (!this._result) return;
     const count = await importTransactions(this._result.data, this._mapping);
@@ -100,6 +115,10 @@ export class Importer extends LitElement {
       ${this._step === "upload" ? this.#renderUpload() : this.#renderMapping()}
 
       <hr style="margin: 2rem 0;" />
+
+      <h2>Import Database</h2>
+      <p>Restore from a full JSON backup. This will replace all existing data.</p>
+      <input type="file" accept=".json" @change=${this.#onDatabaseImport} />
 
       <h2>Export Database</h2>
       <p>Download a full backup of your data as JSON.</p>
