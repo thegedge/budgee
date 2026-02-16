@@ -1,5 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import type { Account, DashboardChart, Merchant, MerchantRule, Tag, Transaction } from "./types";
+import { randomTagColor } from "../ui/tags/tagColor";
 
 export class Database extends Dexie {
   transactions!: Table<Transaction, number>;
@@ -44,6 +45,19 @@ export class Database extends Dexie {
     });
 
     this.version(5).stores({});
+
+    this.version(6)
+      .stores({})
+      .upgrade((tx) =>
+        tx
+          .table("tags")
+          .toCollection()
+          .modify((tag: Tag) => {
+            if (!tag.color) {
+              tag.color = randomTagColor();
+            }
+          }),
+      );
   }
 }
 

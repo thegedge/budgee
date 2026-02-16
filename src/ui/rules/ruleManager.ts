@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
+import { randomTagColor } from "../tags/tagColor";
 import "../modal";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
@@ -153,7 +154,7 @@ export class RuleManager extends LitElement {
     if (newTagNames?.length) {
       for (const name of newTagNames as string[]) {
         const existing = await db.tags.where("name").equalsIgnoreCase(name).first();
-        const tagId = existing?.id ?? (await db.tags.add({ name }));
+        const tagId = existing?.id ?? (await db.tags.add({ name, color: randomTagColor() }));
         allTagIds.push(tagId);
       }
     }

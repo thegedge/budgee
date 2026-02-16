@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, Tag, Transaction } from "../../database/types";
+import { randomTagColor } from "../tags/tagColor";
 import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../tags/tagAutocomplete";
@@ -195,7 +196,7 @@ export class TransactionDetail extends LitElement {
   async #onTagCreated(e: CustomEvent) {
     if (!this._transaction) return;
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name });
+    const tagId = await db.tags.add({ name, color: randomTagColor() });
     const updatedTagIds = [...this._transaction.tagIds, tagId];
     await db.transactions.update(this._transaction.id!, { tagIds: updatedTagIds });
     this._transaction = { ...this._transaction, tagIds: updatedTagIds };

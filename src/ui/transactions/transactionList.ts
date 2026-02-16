@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, Tag, Transaction } from "../../database/types";
+import { randomTagColor } from "../tags/tagColor";
 import "../merchants/merchantAutocomplete";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
@@ -179,7 +180,7 @@ export class TransactionList extends LitElement {
 
   async #onTagCreated(transaction: Transaction, e: CustomEvent) {
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name });
+    const tagId = await db.tags.add({ name, color: randomTagColor() });
     const updatedTagIds = [...transaction.tagIds, tagId];
     await db.transactions.update(transaction.id!, { tagIds: updatedTagIds });
     await this.#refresh();
@@ -318,7 +319,7 @@ export class TransactionList extends LitElement {
 
   async #bulkCreateTag(e: CustomEvent) {
     const name = e.detail.name as string;
-    const tagId = await db.tags.add({ name });
+    const tagId = await db.tags.add({ name, color: randomTagColor() });
     await this.#applyTagToSelected(tagId as number);
   }
 

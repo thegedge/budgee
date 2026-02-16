@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { Tag } from "../../database/types";
 import { ICON_MAP } from "../iconPicker";
+import { contrastTextColor } from "./tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -227,16 +228,19 @@ export class TagAutocomplete extends LitElement {
 
     return html`
       <div class="input-wrapper" @click=${() => this.shadowRoot?.querySelector("input")?.focus()}>
-        ${this.selectedTagIds.map(
-          (tagId) => html`
-          <span class="tag-pill" @click=${(e: Event) => {
+        ${this.selectedTagIds.map((tagId) => {
+          const tag = this.tags.find((t) => t.id === tagId);
+          const bg = tag?.color ?? "var(--budgee-primary, #7eb8da)";
+          const fg = tag?.color ? contrastTextColor(tag.color) : "white";
+          return html`
+          <span class="tag-pill" style="background:${bg};color:${fg}" @click=${(e: Event) => {
             e.stopPropagation();
             this.#removeTag(tagId);
           }}>
             ${this.#tagLabel(tagId)} &times;
           </span>
-        `,
-        )}
+        `;
+        })}
         <input
           type="text"
           placeholder=${this.selectedTagIds.length > 0 ? "" : "Add tag..."}

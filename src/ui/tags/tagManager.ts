@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag } from "../../database/types";
 import "../iconPicker";
+import { contrastTextColor, randomTagColor } from "./tagColor";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -83,9 +84,18 @@ export class TagManager extends LitElement {
         font-size: 0.85rem;
       }
       .col-icon,
+      .col-color,
       .col-remove {
         width: 1%;
         white-space: nowrap;
+      }
+      .color-swatch {
+        width: 2rem;
+        height: 1.5rem;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        border-radius: 4px;
       }
     `,
   ];
@@ -106,7 +116,7 @@ export class TagManager extends LitElement {
     this._error = "";
 
     try {
-      await db.tags.add({ name });
+      await db.tags.add({ name, color: randomTagColor() });
       this._newTagName = "";
       await this.#refreshTags();
     } catch {
@@ -121,6 +131,49 @@ export class TagManager extends LitElement {
 
   async #saveTagIcon(tag: Tag, icon: string) {
     await db.tags.update(tag.id!, { icon: icon || undefined });
+    await this.#refreshTags();
+  }
+
+  #hslToHex(color?: string): string {
+    if (!color) return "#7eb8da";
+    if (color.startsWith("#")) return color;
+    const match = color.match(/hsl\(\s*(\d+),\s*(\d+)%,\s*(\d+)%\s*\)/);
+    if (!match) return "#7eb8da";
+    const [h, s, l] = [Number(match[1]), Number(match[2]) / 100, Number(match[3]) / 100];
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    if (h < 60) {
+      r = c;
+      g = x;
+    } else if (h < 120) {
+      r = x;
+      g = c;
+    } else if (h < 180) {
+      g = c;
+      b = x;
+    } else if (h < 240) {
+      g = x;
+      b = c;
+    } else if (h < 300) {
+      r = x;
+      b = c;
+    } else {
+      r = c;
+      b = x;
+    }
+    const toHex = (v: number) =>
+      Math.round((v + m) * 255)
+        .toString(16)
+        .padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  async #saveTagColor(tag: Tag, color: string) {
+    await db.tags.update(tag.id!, { color });
     await this.#refreshTags();
   }
 
@@ -188,6 +241,7 @@ export class TagManager extends LitElement {
               <thead>
                 <tr>
                   <th class="col-icon">Icon</th>
+                  <th class="col-color">Color</th>
                   <th class="sortable" @click=${this.#onNameSortClick}>Name${indicator}</th>
                   <th class="col-remove"></th>
                 </tr>
@@ -203,7 +257,18 @@ export class TagManager extends LitElement {
                           this.#saveTagIcon(tag, e.detail.icon)}
                       ></icon-picker>
                     </td>
-                    <td>${tag.name}</td>
+                    <td class="col-color">
+                      <input
+                        type="color"
+                        class="color-swatch"
+                        .value=${this.#hslToHex(tag.color)}
+                        @change=${(e: Event) =>
+                          this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
+                      />
+                    </td>
+                    <td style="color: ${contrastTextColor(tag.color ?? "#7eb8da")}; background: ${tag.color ?? "var(--budgee-primary, #7eb8da)"}">
+                      ${tag.name}
+                    </td>
                     <td class="col-remove">
                       <button class="delete-btn" @click=${() => this.#deleteTag(tag.id!)}>
                         Remove
