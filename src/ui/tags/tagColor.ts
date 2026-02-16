@@ -12,7 +12,7 @@ export function randomTagColor(): string {
  */
 export function contrastTextColor(color: string): "white" | "black" {
   const luminance = relativeLuminance(color);
-  return luminance > 0.179 ? "black" : "white";
+  return luminance > 0.25 ? "black" : "white";
 }
 
 function relativeLuminance(color: string): number {

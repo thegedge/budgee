@@ -3,10 +3,10 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Tag } from "../../database/types";
 import "../iconPicker";
-import { contrastTextColor, randomTagColor } from "./tagColor";
-import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
+import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import { tableStyles } from "../tableStyles";
+import { randomTagColor } from "./tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -266,7 +266,7 @@ export class TagManager extends LitElement {
                           this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
                       />
                     </td>
-                    <td style="color: ${contrastTextColor(tag.color ?? "#7eb8da")}; background: ${tag.color ?? "var(--budgee-primary, #7eb8da)"}">
+                    <td>
                       ${tag.name}
                     </td>
                     <td class="col-remove">
