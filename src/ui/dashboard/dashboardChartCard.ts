@@ -237,7 +237,7 @@ export class DashboardChartCard extends LitElement {
       handle.removeEventListener("pointerup", onPointerUp);
 
       const currentSpan = parseInt(getComputedStyle(this).gridColumnEnd.replace("span ", "")) || 1;
-      const colSpan = Math.max(1, Math.min(3, currentSpan)) as ColSpan;
+      const colSpan = Math.max(1, Math.min(6, currentSpan)) as ColSpan;
       this.#onResize(colSpan);
     };
 

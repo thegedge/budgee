@@ -293,9 +293,12 @@ export class ChartConfigurator extends LitElement {
             DashboardChart["colSpan"]
           >;
         }}>
-          <option value="1" ?selected=${this._colSpan === 1}>Small (1 col)</option>
-          <option value="2" ?selected=${this._colSpan === 2}>Medium (2 col)</option>
-          <option value="3" ?selected=${this._colSpan === 3}>Large (3 col)</option>
+          <option value="1" ?selected=${this._colSpan === 1}>1 col</option>
+          <option value="2" ?selected=${this._colSpan === 2}>2 col</option>
+          <option value="3" ?selected=${this._colSpan === 3}>3 col</option>
+          <option value="4" ?selected=${this._colSpan === 4}>4 col</option>
+          <option value="5" ?selected=${this._colSpan === 5}>5 col</option>
+          <option value="6" ?selected=${this._colSpan === 6}>6 col</option>
         </select>
       </div>
       ${this.#renderExclusions()}

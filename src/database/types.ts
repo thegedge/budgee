@@ -53,7 +53,7 @@ export interface DashboardChart {
   tagId?: number;
   merchantId?: number;
   position: number;
-  colSpan?: 1 | 2 | 3;
+  colSpan?: 1 | 2 | 3 | 4 | 5 | 6;
   excludedTagIds?: number[];
   excludedMerchantIds?: number[];
 }
@@ -72,5 +72,5 @@ export interface DashboardTable {
   model: DashboardTableModel;
   columns: DashboardTableColumn[];
   position: number;
-  colSpan?: 1 | 2 | 3;
+  colSpan?: 1 | 2 | 3 | 4 | 5 | 6;
 }
