@@ -178,7 +178,24 @@ export class TransactionList extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.#refresh();
+    document.addEventListener("budgee-import-csv", this.#onCsvDrop);
   }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("budgee-import-csv", this.#onCsvDrop);
+  }
+
+  #onCsvDrop = (e: Event) => {
+    const file = (e as CustomEvent).detail.file as File;
+    this._showImporter = true;
+    this.updateComplete.then(() => {
+      const importer = this.shadowRoot?.querySelector("transaction-importer");
+      if (importer) {
+        (importer as import("./transactionImporter").TransactionImporter).loadFile(file);
+      }
+    });
+  };
 
   async #onImported() {
     this._showImporter = false;

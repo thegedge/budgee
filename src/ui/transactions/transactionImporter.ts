@@ -78,16 +78,19 @@ export class TransactionImporter extends LitElement {
     `,
   ];
 
+  async loadFile(file: File) {
+    this._accounts = await Accounts.all();
+    this._result = await parseCsv(file);
+    this._mapping = { ...this._result.suggestedMapping };
+    this._step = "mapping";
+  }
+
   async #onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) {
       return;
     }
-    const file = input.files[0];
-    this._accounts = await Accounts.all();
-    this._result = await parseCsv(file);
-    this._mapping = { ...this._result.suggestedMapping };
-    this._step = "mapping";
+    await this.loadFile(input.files[0]);
   }
 
   #onAccountChange(e: Event) {
