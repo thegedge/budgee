@@ -6,7 +6,7 @@ import "../iconPicker";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import { tableStyles } from "../tableStyles";
-import { randomTagColor } from "./tagColor";
+import { colorToHex, randomTagColor } from "./tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -134,42 +134,8 @@ export class TagManager extends LitElement {
     await this.#refreshTags();
   }
 
-  #hslToHex(color?: string): string {
-    if (!color) return "#7eb8da";
-    if (color.startsWith("#")) return color;
-    const match = color.match(/hsl\(\s*(\d+),\s*(\d+)%,\s*(\d+)%\s*\)/);
-    if (!match) return "#7eb8da";
-    const [h, s, l] = [Number(match[1]), Number(match[2]) / 100, Number(match[3]) / 100];
-    const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-    const m = l - c / 2;
-    let r = 0;
-    let g = 0;
-    let b = 0;
-    if (h < 60) {
-      r = c;
-      g = x;
-    } else if (h < 120) {
-      r = x;
-      g = c;
-    } else if (h < 180) {
-      g = c;
-      b = x;
-    } else if (h < 240) {
-      g = x;
-      b = c;
-    } else if (h < 300) {
-      r = x;
-      b = c;
-    } else {
-      r = c;
-      b = x;
-    }
-    const toHex = (v: number) =>
-      Math.round((v + m) * 255)
-        .toString(16)
-        .padStart(2, "0");
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  #toHex(color?: string): string {
+    return color ? colorToHex(color) : "#7eb8da";
   }
 
   async #saveTagColor(tag: Tag, color: string) {
@@ -261,7 +227,7 @@ export class TagManager extends LitElement {
                       <input
                         type="color"
                         class="color-swatch"
-                        .value=${this.#hslToHex(tag.color)}
+                        .value=${this.#toHex(tag.color)}
                         @change=${(e: Event) =>
                           this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
                       />
