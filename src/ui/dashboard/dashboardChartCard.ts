@@ -6,6 +6,8 @@ import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../charts/chartWrapper";
 
+type ColSpan = NonNullable<DashboardChart["colSpan"]>;
+
 declare global {
   interface HTMLElementTagNameMap {
     "dashboard-chart-card": DashboardChartCard;
@@ -64,6 +66,16 @@ export class DashboardChartCard extends LitElement {
       display: flex;
       gap: 0.25rem;
     }
+    .size-btn {
+      background-color: var(--budgee-secondary, #aaa);
+      font-size: 0.7rem;
+    }
+    .size-btn:hover {
+      background-color: var(--budgee-secondary-hover, #888);
+    }
+    .size-btn[data-active] {
+      background-color: var(--budgee-primary, #7eb8da);
+    }
   `;
 
   get #chartData(): ChartData {
@@ -120,11 +132,26 @@ export class DashboardChartCard extends LitElement {
     this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config.id } }));
   }
 
+  #onResize(colSpan: ColSpan) {
+    this.dispatchEvent(
+      new CustomEvent("chart-resized", { detail: { id: this.config.id, colSpan } }),
+    );
+  }
+
   render() {
     return html`
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
+          ${([1, 2, 3] as const).map(
+            (s) => html`
+              <button
+                class="size-btn"
+                ?data-active=${(this.config.colSpan ?? 1) === s}
+                @click=${() => this.#onResize(s)}
+              >${s}col</button>
+            `,
+          )}
           <button class="edit-btn" @click=${this.#onEdit}>Edit</button>
           <button class="delete-btn" @click=${this.#onDelete}>Delete</button>
         </div>

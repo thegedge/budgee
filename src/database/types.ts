@@ -52,4 +52,5 @@ export interface DashboardChart {
   tagId?: number;
   merchantId?: number;
   position: number;
+  colSpan?: 1 | 2 | 3;
 }

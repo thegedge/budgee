@@ -50,6 +50,9 @@ export class ChartConfigurator extends LitElement {
   private _merchantId?: number;
 
   @state()
+  private _colSpan: NonNullable<DashboardChart["colSpan"]> = 1;
+
+  @state()
   private _showPreview = false;
 
   @state()
@@ -105,6 +108,7 @@ export class ChartConfigurator extends LitElement {
       this._endDate = this.editingChart.endDate ?? "";
       this._tagId = this.editingChart.tagId;
       this._merchantId = this.editingChart.merchantId;
+      this._colSpan = this.editingChart.colSpan ?? 1;
       this._initialized = true;
     }
   }
@@ -152,6 +156,7 @@ export class ChartConfigurator extends LitElement {
           endDate: this._endDate || undefined,
           tagId: this._tagId,
           merchantId: this._merchantId,
+          colSpan: this._colSpan,
         },
       }),
     );
@@ -222,6 +227,16 @@ export class ChartConfigurator extends LitElement {
         }}>
           <option value="">All</option>
           ${this.merchants.map((m) => html`<option value=${m.id!} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
+        </select>
+        <label>Size:</label>
+        <select @change=${(e: Event) => {
+          this._colSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
+            DashboardChart["colSpan"]
+          >;
+        }}>
+          <option value="1" ?selected=${this._colSpan === 1}>Small (1 col)</option>
+          <option value="2" ?selected=${this._colSpan === 2}>Medium (2 col)</option>
+          <option value="3" ?selected=${this._colSpan === 3}>Large (3 col)</option>
         </select>
       </div>
       <button @click=${() => {

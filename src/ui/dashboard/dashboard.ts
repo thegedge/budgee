@@ -160,6 +160,7 @@ export class Dashboard extends LitElement {
         endDate: detail.endDate,
         tagId: detail.tagId,
         merchantId: detail.merchantId,
+        colSpan: detail.colSpan,
       });
     } else {
       await db.dashboardCharts.add({
@@ -175,6 +176,11 @@ export class Dashboard extends LitElement {
   #onChartEdit(e: CustomEvent) {
     this._editingChart = e.detail.chart;
     this._showConfigurator = true;
+  }
+
+  async #onChartResized(e: CustomEvent) {
+    await db.dashboardCharts.update(e.detail.id, { colSpan: e.detail.colSpan });
+    await this.#refresh();
   }
 
   async #onChartDeleted(e: CustomEvent) {
@@ -269,10 +275,12 @@ export class Dashboard extends LitElement {
                 (chart) => html`
                 <dashboard-chart-card
                   data-chart-id=${chart.id!}
+                  style="grid-column: span ${chart.colSpan ?? 1}"
                   .config=${chart}
                   .transactions=${this._transactions}
                   .tags=${this._tags}
                   @chart-edit=${this.#onChartEdit}
+                  @chart-resized=${this.#onChartResized}
                   @chart-deleted=${this.#onChartDeleted}
                 ></dashboard-chart-card>
               `,
