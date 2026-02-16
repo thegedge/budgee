@@ -57,8 +57,6 @@ export class Importer extends LitElement {
         background: var(--budgee-surface);
       }
       .preview {
-        max-height: 200px;
-        overflow-y: auto;
       }
       .mapping-form {
         display: grid;
