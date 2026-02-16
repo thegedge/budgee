@@ -22,5 +22,6 @@ export const iconButtonStyles = css`
   }
   .icon-btn--danger:hover {
     color: var(--budgee-danger);
+    background-color: color-mix(in lch, var(--budgee-danger) 15%, transparent);
   }
 `;
