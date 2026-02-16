@@ -3,7 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
-import { randomTagColor } from "../tags/tagColor";
+import { randomTagColor } from "../../data/tagColor";
 import "../modal";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";

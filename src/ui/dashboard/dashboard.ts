@@ -5,7 +5,7 @@ import { db } from "../../database/db";
 import { aggregateByPeriod } from "../../database/aggregations";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
-import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
+import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import "../charts/chartWrapper";
 import "../charts/chartConfigurator";
 import "../modal";

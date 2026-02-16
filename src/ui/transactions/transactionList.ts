@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { db } from "../../database/db";
 import type { Merchant, Tag, Transaction } from "../../database/types";
-import { randomTagColor } from "../tags/tagColor";
+import { randomTagColor } from "../../data/tagColor";
 import "../merchants/merchantAutocomplete";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";

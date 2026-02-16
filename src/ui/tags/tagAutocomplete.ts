@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { Tag } from "../../database/types";
 import { ICON_MAP } from "../iconPicker";
-import { contrastTextColor } from "./tagColor";
+import { contrastTextColor } from "../../data/tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {

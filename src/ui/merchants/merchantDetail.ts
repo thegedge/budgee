@@ -3,7 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import type { ChartData } from "chart.js";
 import { db } from "../../database/db";
 import type { Merchant, Transaction } from "../../database/types";
-import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
+import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import type { PageChangeDetail } from "../paginatedTable";
 import "../paginatedTable";
 import "../charts/chartWrapper";

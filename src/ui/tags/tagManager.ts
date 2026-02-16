@@ -6,7 +6,7 @@ import "../iconPicker";
 import "../paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../paginatedTable";
 import { tableStyles } from "../tableStyles";
-import { colorToHex, randomTagColor } from "./tagColor";
+import { colorToHex, randomTagColor } from "../../data/tagColor";
 
 declare global {
   interface HTMLElementTagNameMap {

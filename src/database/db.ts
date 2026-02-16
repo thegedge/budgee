@@ -1,6 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import type { Account, DashboardChart, Merchant, MerchantRule, Tag, Transaction } from "./types";
-import { randomTagColor } from "../ui/tags/tagColor";
+import { randomTagColor } from "../data/tagColor";
 
 export class Database extends Dexie {
   transactions!: Table<Transaction, number>;
