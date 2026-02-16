@@ -77,6 +77,31 @@ describe("importTransactions", () => {
     expect(stored[1].amount).toBe(2500);
   });
 
+  it("should negate a positive debit amount when credit column is empty", async () => {
+    const csvRows = [
+      {
+        date: "2026-02-06",
+        description: "SQ *HAPPY GOAT COFFEE COM Ottawa, ON",
+        amount: "3.94",
+        payment: "",
+        card: "1234********5678",
+      },
+    ];
+
+    const debitMapping: ColumnMapping = {
+      date: "date",
+      amount: "amount",
+      credit: "payment",
+      description: "description",
+    };
+
+    const count = await importTransactions(csvRows, debitMapping, defaultOptions);
+    expect(count).toBe(1);
+
+    const stored = await db.transactions.toArray();
+    expect(stored[0].amount).toBe(-3.94);
+  });
+
   it("should apply merchant rules during import", async () => {
     await db.merchantRules.add({
       logic: "and",
