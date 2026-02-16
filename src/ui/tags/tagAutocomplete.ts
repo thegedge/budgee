@@ -55,6 +55,7 @@ export class TagAutocomplete extends LitElement {
     .tag-pill {
       display: inline-flex;
       align-items: center;
+      gap: 3px;
       background: var(--budgee-primary, #7eb8da);
       color: white;
       padding: 1px 6px;
