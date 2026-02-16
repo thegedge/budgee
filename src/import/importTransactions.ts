@@ -1,3 +1,4 @@
+import { Accounts } from "../data/accounts";
 import { MerchantRules } from "../data/merchantRules";
 import { Transactions } from "../data/transactions";
 import type { Transaction } from "../database/types";
@@ -12,8 +13,18 @@ export async function importTransactions(
   options: { accountId?: number; importMode: ImportMode },
 ): Promise<number> {
   const rules = await MerchantRules.all();
+  const accountIdsByName = mapping.account
+    ? await resolveAccountIds(rows, mapping.account)
+    : undefined;
+
   const transactions: Omit<Transaction, "id">[] = rows
-    .map((row) => rowToTransaction(row, mapping, options.accountId))
+    .map((row) =>
+      rowToTransaction(
+        row,
+        mapping,
+        accountIdsByName?.get(row[mapping.account!]) ?? options.accountId,
+      ),
+    )
     .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
@@ -23,6 +34,33 @@ export async function importTransactions(
 
   await Transactions.bulkAdd(transactions);
   return transactions.length;
+}
+
+async function resolveAccountIds(
+  rows: Record<string, string>[],
+  accountColumn: string,
+): Promise<Map<string, number>> {
+  const uniqueNames = [...new Set(rows.map((r) => r[accountColumn]).filter(Boolean))];
+  const existingAccounts = await Accounts.all();
+
+  const nameToId = new Map<string, number>();
+  for (const account of existingAccounts) {
+    nameToId.set(account.name.toLowerCase(), account.id!);
+  }
+
+  const result = new Map<string, number>();
+  for (const name of uniqueNames) {
+    const existing = nameToId.get(name.toLowerCase());
+    if (existing) {
+      result.set(name, existing);
+    } else {
+      const id = await Accounts.create({ name });
+      result.set(name, id);
+      nameToId.set(name.toLowerCase(), id);
+    }
+  }
+
+  return result;
 }
 
 function rowToTransaction(

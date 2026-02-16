@@ -23,11 +23,20 @@ describe("importTransactions", () => {
     date: "Date",
     amount: "Amount",
     description: "Description",
+  };
+
+  const mappingWithAccount: ColumnMapping = {
+    ...mapping,
     account: "Account",
   };
 
   it("should insert transactions into the database", async () => {
-    const count = await importTransactions(rows, mapping, defaultOptions);
+    const simpleMapping: ColumnMapping = {
+      date: "Date",
+      amount: "Amount",
+      description: "Description",
+    };
+    const count = await importTransactions(rows, simpleMapping, defaultOptions);
     expect(count).toBe(2);
 
     const stored = await db.transactions.toArray();
@@ -136,6 +145,34 @@ describe("importTransactions", () => {
     const stored = await db.transactions.toArray();
     expect(stored).toHaveLength(1);
     expect(stored[0].originalDescription).toBe("Coffee");
+  });
+
+  it("should create accounts from account column and assign correct accountIds", async () => {
+    const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
+    expect(count).toBe(2);
+
+    const accounts = await db.accounts.toArray();
+    const visaAccount = accounts.find((a) => a.name === "Visa");
+    const checkingAccount = accounts.find((a) => a.name === "Checking");
+    expect(visaAccount).toBeDefined();
+    expect(checkingAccount).toBeDefined();
+
+    const stored = await db.transactions.toArray();
+    expect(stored[0].accountId).toBe(visaAccount!.id);
+    expect(stored[1].accountId).toBe(checkingAccount!.id);
+  });
+
+  it("should reuse existing accounts when importing with account column", async () => {
+    const existingId = await db.accounts.add({ name: "Visa" });
+
+    const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
+    expect(count).toBe(2);
+
+    const accounts = await db.accounts.where("name").equals("Visa").toArray();
+    expect(accounts).toHaveLength(1);
+
+    const stored = await db.transactions.toArray();
+    expect(stored[0].accountId).toBe(existingId);
   });
 
   it("should only replace transactions for the specified account", async () => {
