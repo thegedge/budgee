@@ -7,10 +7,12 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
 import chartBarIcon from "lucide-static/icons/chart-column.svg?raw";
 import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
+import landmarkIcon from "lucide-static/icons/landmark.svg?raw";
 import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
 import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
 import tagIcon from "lucide-static/icons/tag.svg?raw";
 
+import "./accounts/accountList";
 import "./dashboard/dashboard";
 import "./import/importer";
 import "./merchants/merchantList";
@@ -47,6 +49,21 @@ export class Application extends LitElement {
         html`<transaction-detail .transactionId=${Number(id)}></transaction-detail>`,
       enter: async () => {
         await import("./transactions/transactionDetail");
+        return true;
+      },
+    },
+    {
+      path: "/accounts",
+      render: () =>
+        html`
+          <account-list></account-list>
+        `,
+    },
+    {
+      path: "/accounts/:id",
+      render: ({ id }) => html`<account-detail .accountId=${Number(id)}></account-detail>`,
+      enter: async () => {
+        await import("./accounts/accountDetail");
         return true;
       },
     },
@@ -193,6 +210,7 @@ export class Application extends LitElement {
       <nav>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
         ${this.navLink("/transactions", "Transactions", banknotesIcon)}
+        ${this.navLink("/accounts", "Accounts", landmarkIcon)}
         ${this.navLink("/merchants", "Merchants", buildingStorefrontIcon)}
         ${this.navLink("/tags", "Tags", tagIcon)}
         ${this.navLink("/rules", "Rules", adjustmentsHorizontalIcon)}

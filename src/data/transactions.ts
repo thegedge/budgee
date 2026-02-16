@@ -31,4 +31,8 @@ export class Transactions {
   static async forMerchantAll(merchantId: number): Promise<Transaction[]> {
     return db.transactions.where("merchantId").equals(merchantId).toArray();
   }
+
+  static forAccount(accountId: number): Promise<Transaction[]> {
+    return db.transactions.where("accountId").equals(accountId).reverse().sortBy("date");
+  }
 }
