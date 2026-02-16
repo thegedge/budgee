@@ -45,11 +45,6 @@ export class TransactionImporter extends LitElement {
     css`
       :host {
         display: block;
-        border: 1px solid var(--budgee-border);
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        background: var(--budgee-surface);
       }
       .mapping-form {
         display: grid;
@@ -138,7 +133,6 @@ export class TransactionImporter extends LitElement {
 
   render() {
     return html`
-      <h3>Import Transactions</h3>
       ${this._step === "upload" ? this.#renderUpload() : this.#renderMapping()}
     `;
   }

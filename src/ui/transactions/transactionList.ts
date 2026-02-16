@@ -5,6 +5,7 @@ import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import "../merchants/merchantAutocomplete";
+import "../shared/modal";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -493,11 +494,17 @@ export class TransactionList extends LitElement {
 
     return html`
       <button class="import-toggle" @click=${() => {
-        this._showImporter = !this._showImporter;
+        this._showImporter = true;
       }}>
-        ${this._showImporter ? "Hide Import" : "Import CSV"}
+        Import CSV
       </button>
-      ${this._showImporter ? html`<transaction-importer @imported=${this.#onImported}></transaction-importer>` : nothing}
+      ${
+        this._showImporter
+          ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
+              this._showImporter = false;
+            }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+          : nothing
+      }
       ${this.#renderFilterBar()}
       ${this.#renderBulkBar()}
       <paginated-table
