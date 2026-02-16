@@ -14,7 +14,7 @@ export class Modal extends LitElement {
 
   static styles = css`
     [popover] {
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
       border-radius: 8px;
       padding: 1.5rem;
       max-width: 800px;
@@ -45,12 +45,12 @@ export class Modal extends LitElement {
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
       padding: 0;
       line-height: 1;
     }
     .close:hover {
-      color: var(--budgee-text, #333);
+      color: var(--budgee-text, lch(21.2% 0 none));
     }
   `;
 

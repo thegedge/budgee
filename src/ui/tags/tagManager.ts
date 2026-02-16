@@ -44,11 +44,11 @@ export class TagManager extends LitElement {
     css`
       :host {
         display: block;
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
       }
       .tag-form {
         display: flex;
@@ -63,24 +63,24 @@ export class TagManager extends LitElement {
       button {
         padding: 4px 12px;
         cursor: pointer;
-        background-color: var(--budgee-primary, #7eb8da);
+        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         color: white;
         border: none;
         border-radius: 4px;
       }
       button:hover {
-        background-color: var(--budgee-primary-hover, #5a9cbf);
+        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
       }
       .delete-btn {
-        background-color: var(--budgee-danger, #e8a0a0);
+        background-color: var(--budgee-danger, lch(72.8% 28.9 22.1));
         font-size: 0.8rem;
         padding: 2px 8px;
       }
       .delete-btn:hover {
-        background-color: var(--budgee-danger-hover, #d07070);
+        background-color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
       }
       .error {
-        color: var(--budgee-danger-hover, #d07070);
+        color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
         font-size: 0.85rem;
       }
       .col-icon,

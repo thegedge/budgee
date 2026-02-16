@@ -10,6 +10,7 @@ import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/
 import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../charts/movingAverage";
 import "../charts/chartWrapper";
+import { cssVar } from "../cssVar";
 
 type ColSpan = NonNullable<DashboardChart["colSpan"]>;
 
@@ -37,10 +38,10 @@ export class DashboardChartCard extends LitElement {
     :host {
       display: block;
       position: relative;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       padding: 1rem;
       border-radius: 4px;
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
     }
     .header {
       display: flex;
@@ -60,16 +61,16 @@ export class DashboardChartCard extends LitElement {
       font-size: 0.8rem;
     }
     .edit-btn {
-      background-color: var(--budgee-primary, #7eb8da);
+      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
     }
     .edit-btn:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
+      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
     }
     .delete-btn {
-      background-color: var(--budgee-danger, #e8a0a0);
+      background-color: var(--budgee-danger, lch(72.8% 28.9 22.1));
     }
     .delete-btn:hover {
-      background-color: var(--budgee-danger-hover, #d07070);
+      background-color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
     }
     .actions {
       display: flex;
@@ -87,7 +88,7 @@ export class DashboardChartCard extends LitElement {
     }
     .resize-handle:hover,
     :host([data-resizing]) .resize-handle {
-      background: var(--budgee-primary, #7eb8da);
+      background: var(--budgee-primary, lch(72.1% 25.1 246.4));
     }
   `;
 
@@ -116,8 +117,8 @@ export class DashboardChartCard extends LitElement {
     }
 
     const values = entries.map(([, val]) => val);
-    const bgColors = isPie ? this.#pieColors(entries) : "rgba(126, 184, 218, 0.5)";
-    const borderColors = isPie ? "#fff" : "#7eb8da";
+    const bgColors = isPie ? this.#pieColors(entries) : cssVar("--budgee-primary-50");
+    const borderColors = isPie ? cssVar("--budgee-surface") : cssVar("--budgee-primary");
 
     const datasets: ChartData["datasets"] = [
       {
@@ -135,7 +136,7 @@ export class DashboardChartCard extends LitElement {
         type: "line",
         label: `${this.config.title} (${window}-pt avg)`,
         data: movingAverage(values, window),
-        borderColor: "rgba(80, 80, 80, 0.5)",
+        borderColor: cssVar("--budgee-gray-50"),
         borderWidth: 1.5,
         pointRadius: 0,
         fill: false,
@@ -187,7 +188,7 @@ export class DashboardChartCard extends LitElement {
       hash = (hash * 31 + seed.charCodeAt(i)) | 0;
     }
     const hue = ((hash % 360) + 360) % 360;
-    return `hsl(${hue}, 65%, 55%)`;
+    return `lch(55% 50 ${hue})`;
   }
 
   #onEdit() {

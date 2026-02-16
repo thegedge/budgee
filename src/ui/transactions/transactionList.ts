@@ -66,7 +66,7 @@ export class TransactionList extends LitElement {
         cursor: pointer;
       }
       .merchant-link {
-        color: var(--budgee-primary, #7eb8da);
+        color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         cursor: pointer;
         text-decoration: underline;
       }
@@ -88,8 +88,8 @@ export class TransactionList extends LitElement {
         align-items: center;
         gap: 1rem;
         padding: 0.5rem 0.75rem;
-        background: var(--budgee-bg, #fafafa);
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        background: var(--budgee-bg, lch(98.3% 0 none));
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         border-radius: 4px;
         margin-bottom: 0.5rem;
         flex-wrap: wrap;
@@ -127,9 +127,9 @@ export class TransactionList extends LitElement {
       }
       .filter-group select {
         padding: 2px 6px;
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         border-radius: 4px;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
         font-size: 0.85rem;
       }
       .active-filters {
@@ -143,8 +143,8 @@ export class TransactionList extends LitElement {
         gap: 0.25rem;
         padding: 2px 8px;
         border-radius: 12px;
-        background: var(--budgee-bg, #fafafa);
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        background: var(--budgee-bg, lch(98.3% 0 none));
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         font-size: 0.8rem;
       }
       .chip-remove {

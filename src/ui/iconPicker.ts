@@ -176,7 +176,7 @@ export class IconPicker extends LitElement {
     }
     .trigger {
       background: none;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 4px;
       padding: 4px;
       cursor: pointer;
@@ -188,20 +188,20 @@ export class IconPicker extends LitElement {
       justify-content: center;
     }
     .trigger:hover {
-      background-color: var(--budgee-bg, #fafafa);
+      background-color: var(--budgee-bg, lch(98.3% 0 none));
     }
     .trigger svg {
       width: 1.2rem;
       height: 1.2rem;
     }
     .trigger.placeholder {
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
     }
     .popup {
       position: fixed;
       z-index: 1200;
-      background: var(--budgee-surface, #fff);
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      background: var(--budgee-surface, lch(100% 0 none));
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 8px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       padding: 0.5rem;
@@ -212,7 +212,7 @@ export class IconPicker extends LitElement {
       box-sizing: border-box;
       padding: 4px 8px;
       margin-bottom: 0.5rem;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 4px;
       font-size: 0.85rem;
     }
@@ -235,11 +235,11 @@ export class IconPicker extends LitElement {
       color: inherit;
     }
     .icon-option:hover {
-      background-color: var(--budgee-bg, #fafafa);
-      border-color: var(--budgee-border, #e0e0e0);
+      background-color: var(--budgee-bg, lch(98.3% 0 none));
+      border-color: var(--budgee-border, lch(89.2% 0 none));
     }
     .icon-option.selected {
-      background-color: var(--budgee-primary, #7eb8da);
+      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
       color: white;
     }
     .icon-option svg {
@@ -251,14 +251,14 @@ export class IconPicker extends LitElement {
       margin-top: 0.5rem;
       padding: 4px;
       background: none;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
     }
     .clear-btn:hover {
-      background-color: var(--budgee-bg, #fafafa);
+      background-color: var(--budgee-bg, lch(98.3% 0 none));
     }
   `;
 

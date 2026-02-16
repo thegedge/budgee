@@ -40,14 +40,14 @@ export class ConditionRow extends LitElement {
     button {
       padding: 2px 8px;
       cursor: pointer;
-      background-color: var(--budgee-danger, #e8a0a0);
+      background-color: var(--budgee-danger, lch(72.8% 28.9 22.1));
       color: white;
       border: none;
       border-radius: 4px;
       font-size: 0.8rem;
     }
     button:hover {
-      background-color: var(--budgee-danger-hover, #d07070);
+      background-color: var(--budgee-danger-hover, lch(58.2% 41.3 24.4));
     }
   `;
 

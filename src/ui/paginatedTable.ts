@@ -45,7 +45,7 @@ export class PaginatedTable extends LitElement {
       justify-content: space-between;
       padding: 0.5rem 0;
       font-size: 0.875rem;
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
     }
     .pagination-controls {
       display: flex;
@@ -54,27 +54,27 @@ export class PaginatedTable extends LitElement {
     }
     select {
       padding: 2px 6px;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 4px;
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
     }
     .filter-input {
       padding: 4px 8px;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 4px;
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
       font-size: 0.875rem;
     }
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
+      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
       color: white;
       border: none;
       border-radius: 4px;
     }
     button:hover:not(:disabled) {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
+      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
     }
     button:disabled {
       opacity: 0.5;

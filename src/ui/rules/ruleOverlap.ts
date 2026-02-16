@@ -40,11 +40,11 @@ export class RuleOverlap extends LitElement {
       }
       .condition-summary {
         font-size: 0.85rem;
-        color: var(--budgee-text-muted, #888);
+        color: var(--budgee-text-muted, lch(56.7% 0 none));
       }
       .samples {
         font-size: 0.8rem;
-        color: var(--budgee-text-muted, #888);
+        color: var(--budgee-text-muted, lch(56.7% 0 none));
         font-style: italic;
         white-space: pre-wrap;
       }

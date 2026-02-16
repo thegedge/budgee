@@ -68,11 +68,11 @@ export class ChartConfigurator extends LitElement {
   static styles = css`
     :host {
       display: block;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
     }
     h4 {
       margin-top: 0;
@@ -92,14 +92,14 @@ export class ChartConfigurator extends LitElement {
     button {
       padding: 4px 12px;
       cursor: pointer;
-      background-color: var(--budgee-primary, #7eb8da);
+      background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
       color: white;
       border: none;
       border-radius: 4px;
       margin-right: 0.5rem;
     }
     button:hover {
-      background-color: var(--budgee-primary-hover, #5a9cbf);
+      background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
     }
     .preview {
       margin-top: 1rem;

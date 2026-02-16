@@ -36,11 +36,11 @@ export class Importer extends LitElement {
     css`
       :host {
         display: block;
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
       }
       .preview {
         max-height: 200px;
@@ -59,13 +59,13 @@ export class Importer extends LitElement {
       button {
         padding: 0.5rem 1rem;
         cursor: pointer;
-        background-color: var(--budgee-primary, #7eb8da);
+        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         color: white;
         border: none;
         border-radius: 4px;
       }
       button:hover {
-        background-color: var(--budgee-primary-hover, #5a9cbf);
+        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
       }
     `,
   ];

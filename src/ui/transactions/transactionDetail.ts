@@ -47,11 +47,11 @@ export class TransactionDetail extends LitElement {
         display: block;
       }
       .header {
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
       }
       .header h2 {
         margin-top: 0;
@@ -61,22 +61,22 @@ export class TransactionDetail extends LitElement {
         font-weight: bold;
       }
       .meta {
-        color: var(--budgee-text-muted, #888);
+        color: var(--budgee-text-muted, lch(56.7% 0 none));
         font-size: 0.9rem;
       }
       .section {
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
       }
       .section h3 {
         margin-top: 0;
       }
       .tag-badge {
         display: inline-block;
-        background: var(--budgee-primary, #7eb8da);
+        background: var(--budgee-primary, lch(72.1% 25.1 246.4));
         color: white;
         padding: 2px 8px;
         border-radius: 8px;
@@ -94,7 +94,7 @@ export class TransactionDetail extends LitElement {
         width: 100%;
         min-height: 60px;
         padding: 8px;
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         border-radius: 4px;
         font-family: inherit;
         font-size: 0.9rem;
@@ -105,7 +105,7 @@ export class TransactionDetail extends LitElement {
         display: inline-block;
         padding: 0.5rem 1rem;
         cursor: pointer;
-        background-color: var(--budgee-primary, #7eb8da);
+        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         color: white;
         border: none;
         border-radius: 4px;
@@ -113,10 +113,10 @@ export class TransactionDetail extends LitElement {
         font-size: 0.9rem;
       }
       .create-rule:hover {
-        background-color: var(--budgee-primary-hover, #5a9cbf);
+        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
       }
       .back-link {
-        color: var(--budgee-primary, #7eb8da);
+        color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         cursor: pointer;
         text-decoration: underline;
         font-size: 0.9rem;

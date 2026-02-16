@@ -12,6 +12,7 @@ import "../modal";
 import "../paginatedTable";
 import type { PageChangeDetail } from "../paginatedTable";
 import { tableStyles } from "../tableStyles";
+import { cssVar } from "../cssVar";
 import "./dashboardChartCard";
 
 declare global {
@@ -55,11 +56,11 @@ export class Dashboard extends LitElement {
         display: block;
       }
       .card {
-        border: 1px solid var(--budgee-border, #e0e0e0);
+        border: 1px solid var(--budgee-border, lch(89.2% 0 none));
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface, #fff);
+        background: var(--budgee-surface, lch(100% 0 none));
       }
       .card h3 {
         margin-top: 0;
@@ -83,14 +84,14 @@ export class Dashboard extends LitElement {
       button {
         padding: 0.5rem 1rem;
         cursor: pointer;
-        background-color: var(--budgee-primary, #7eb8da);
+        background-color: var(--budgee-primary, lch(72.1% 25.1 246.4));
         color: white;
         border: none;
         border-radius: 4px;
         margin-bottom: 1rem;
       }
       button:hover {
-        background-color: var(--budgee-primary-hover, #5a9cbf);
+        background-color: var(--budgee-primary-hover, lch(61.4% 26.9 245.6));
       }
     `,
   ];
@@ -211,9 +212,11 @@ export class Dashboard extends LitElement {
           label: "Monthly Spending",
           data: values,
           backgroundColor: values.map((val) =>
-            val < 0 ? "rgba(208, 144, 144, 0.5)" : "rgba(126, 200, 160, 0.5)",
+            val < 0 ? cssVar("--budgee-negative-50") : cssVar("--budgee-positive-50"),
           ),
-          borderColor: values.map((val) => (val < 0 ? "#d09090" : "#7ec8a0")),
+          borderColor: values.map((val) =>
+            val < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
+          ),
           borderWidth: 1,
         },
         ...(values.length >= 2
@@ -222,7 +225,7 @@ export class Dashboard extends LitElement {
                 type: "line" as const,
                 label: `Moving Avg (${window}-mo)`,
                 data: movingAverage(values, window),
-                borderColor: "rgba(80, 80, 80, 0.5)",
+                borderColor: cssVar("--budgee-gray-50"),
                 borderWidth: 1.5,
                 pointRadius: 0,
                 fill: false,

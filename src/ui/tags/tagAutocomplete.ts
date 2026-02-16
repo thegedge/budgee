@@ -42,21 +42,21 @@ export class TagAutocomplete extends LitElement {
       flex-wrap: wrap;
       gap: 2px;
       padding: 2px 4px;
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 12px;
       min-width: 120px;
       cursor: text;
-      background: var(--budgee-surface, #fff);
+      background: var(--budgee-surface, lch(100% 0 none));
     }
     .input-wrapper:focus-within {
-      outline: 2px solid var(--budgee-primary, #7eb8da);
+      outline: 2px solid var(--budgee-primary, lch(72.1% 25.1 246.4));
       outline-offset: -1px;
     }
     .tag-pill {
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      background: var(--budgee-primary, #7eb8da);
+      background: var(--budgee-primary, lch(72.1% 25.1 246.4));
       color: white;
       padding: 1px 6px;
       border-radius: 8px;
@@ -83,8 +83,8 @@ export class TagAutocomplete extends LitElement {
     }
     .suggestions {
       position: fixed;
-      background: var(--budgee-surface, #fff);
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      background: var(--budgee-surface, lch(100% 0 none));
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 0 0 4px 4px;
       max-height: 150px;
       overflow-y: auto;
@@ -98,11 +98,11 @@ export class TagAutocomplete extends LitElement {
     }
     .suggestion:hover,
     .suggestion.highlighted {
-      background: var(--budgee-bg, #fafafa);
+      background: var(--budgee-bg, lch(98.3% 0 none));
     }
     .suggestion.create {
       font-style: italic;
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
     }
   `;
 
@@ -231,7 +231,7 @@ export class TagAutocomplete extends LitElement {
       <div class="input-wrapper" @click=${() => this.shadowRoot?.querySelector("input")?.focus()}>
         ${this.selectedTagIds.map((tagId) => {
           const tag = this.tags.find((t) => t.id === tagId);
-          const bg = tag?.color ?? "var(--budgee-primary, #7eb8da)";
+          const bg = tag?.color ?? "var(--budgee-primary, lch(72.1% 25.1 246.4))";
           const fg = tag?.color ? contrastTextColor(tag.color) : "white";
           return html`
           <span class="tag-pill" style="background:${bg};color:${fg}" @click=${(e: Event) => {

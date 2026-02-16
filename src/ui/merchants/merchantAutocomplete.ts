@@ -40,10 +40,10 @@ export class MerchantAutocomplete extends LitElement {
       white-space: nowrap;
     }
     .status.existing {
-      color: var(--budgee-success, #4a9);
+      color: var(--budgee-success, lch(63.6% 33.6 180.1));
     }
     .status.new {
-      color: var(--budgee-text-muted, #888);
+      color: var(--budgee-text-muted, lch(56.7% 0 none));
       font-style: italic;
     }
     .suggestions {
@@ -51,8 +51,8 @@ export class MerchantAutocomplete extends LitElement {
       top: 100%;
       left: 0;
       right: 0;
-      background: var(--budgee-surface, #fff);
-      border: 1px solid var(--budgee-border, #e0e0e0);
+      background: var(--budgee-surface, lch(100% 0 none));
+      border: 1px solid var(--budgee-border, lch(89.2% 0 none));
       border-radius: 0 0 4px 4px;
       max-height: 150px;
       overflow-y: auto;
@@ -66,7 +66,7 @@ export class MerchantAutocomplete extends LitElement {
     }
     .suggestion:hover,
     .suggestion.highlighted {
-      background: var(--budgee-bg, #fafafa);
+      background: var(--budgee-bg, lch(98.3% 0 none));
     }
   `;
 
