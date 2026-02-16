@@ -23,13 +23,13 @@ export const tableStyles = css`
     background-color: var(--budgee-primary-hover, #5a9cbf);
   }
   tbody tr:nth-child(even) {
-    background-color: var(--budgee-bg, #fafafa);
+    background-color: var(--budgee-row-alt, #f0f0f0);
+  }
+  tbody tr:hover {
+    background-color: var(--budgee-row-hover, #e8e8e8);
   }
   .clickable-row {
     cursor: pointer;
-  }
-  .clickable-row:hover {
-    background-color: var(--budgee-bg, #fafafa);
   }
   .amount-negative {
     color: var(--budgee-negative, #d09090);

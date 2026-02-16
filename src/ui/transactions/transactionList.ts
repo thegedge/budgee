@@ -61,11 +61,8 @@ export class TransactionList extends LitElement {
   static styles = [
     tableStyles,
     css`
-      tr {
+      tbody tr {
         cursor: pointer;
-      }
-      tr:hover {
-        background-color: var(--budgee-bg, #fafafa);
       }
       .merchant-link {
         color: var(--budgee-primary, #7eb8da);
