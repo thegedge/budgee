@@ -107,10 +107,14 @@ export class DashboardChartCard extends LitElement {
           ? aggregateByMerchant(filtered, this.merchants)
           : aggregateByPeriod(filtered, granularity);
     const isByDimension = granularity === "byTag" || granularity === "byMerchant";
-    const entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
-    const values = entries.map(([, val]) => val);
-
     const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";
+    let entries = [...aggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
+
+    if (isPie) {
+      entries = this.#groupSmallSlices(entries);
+    }
+
+    const values = entries.map(([, val]) => val);
     const bgColors = isPie ? this.#pieColors(entries) : "rgba(126, 184, 218, 0.5)";
     const borderColors = isPie ? "#fff" : "#7eb8da";
 
@@ -142,6 +146,29 @@ export class DashboardChartCard extends LitElement {
       labels: entries.map(([key]) => key),
       datasets,
     };
+  }
+
+  #groupSmallSlices(entries: [string, number][]): [string, number][] {
+    const total = entries.reduce((sum, [, val]) => sum + Math.abs(val), 0);
+    if (total === 0) return entries;
+
+    const threshold = total * 0.01;
+    const kept: [string, number][] = [];
+    let otherTotal = 0;
+
+    for (const [label, val] of entries) {
+      if (Math.abs(val) < threshold) {
+        otherTotal += val;
+      } else {
+        kept.push([label, val]);
+      }
+    }
+
+    if (otherTotal !== 0) {
+      kept.push(["Other", otherTotal]);
+    }
+
+    return kept;
   }
 
   #pieColors(entries: [string, number][]): string[] {
