@@ -36,6 +36,7 @@ export class DashboardChartCard extends LitElement {
   static styles = css`
     :host {
       display: block;
+      position: relative;
       border: 1px solid var(--budgee-border, #e0e0e0);
       padding: 1rem;
       border-radius: 4px;
@@ -74,15 +75,19 @@ export class DashboardChartCard extends LitElement {
       display: flex;
       gap: 0.25rem;
     }
-    .size-btn {
-      background-color: var(--budgee-secondary, #aaa);
-      font-size: 0.7rem;
+    .resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 6px;
+      height: 100%;
+      cursor: col-resize;
+      background: transparent;
+      transition: background 0.15s;
     }
-    .size-btn:hover {
-      background-color: var(--budgee-secondary-hover, #888);
-    }
-    .size-btn[data-active] {
-      background-color: var(--budgee-primary, #7eb8da);
+    .resize-handle:hover,
+    :host([data-resizing]) .resize-handle {
+      background: var(--budgee-primary, #7eb8da);
     }
   `;
 
@@ -149,20 +154,48 @@ export class DashboardChartCard extends LitElement {
     );
   }
 
+  #onResizeHandlePointerDown(e: PointerEvent) {
+    const handle = e.currentTarget as HTMLElement;
+    handle.setPointerCapture(e.pointerId);
+    this.setAttribute("data-resizing", "");
+
+    const grid = this.closest(".chart-grid") ?? this.parentElement;
+    if (!grid) return;
+
+    const gridRect = grid.getBoundingClientRect();
+    const gridColumns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+
+    const onPointerMove = (ev: PointerEvent) => {
+      // Calculate which column boundary the pointer is nearest to
+      const relativeX = ev.clientX - gridRect.left;
+      const fractionAcrossGrid = relativeX / gridRect.width;
+      const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
+      const hostLeft = this.getBoundingClientRect().left - gridRect.left;
+      const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
+      const newSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol)) as ColSpan;
+      this.style.gridColumn = `span ${newSpan}`;
+    };
+
+    const onPointerUp = () => {
+      this.removeAttribute("data-resizing");
+      handle.removeEventListener("pointermove", onPointerMove);
+      handle.removeEventListener("pointerup", onPointerUp);
+
+      const currentSpan = parseInt(getComputedStyle(this).gridColumnEnd.replace("span ", "")) || 1;
+      const colSpan = Math.max(1, Math.min(3, currentSpan)) as ColSpan;
+      this.#onResize(colSpan);
+    };
+
+    handle.addEventListener("pointermove", onPointerMove);
+    handle.addEventListener("pointerup", onPointerUp);
+  }
+
   render() {
     return html`
+      <div class="resize-handle" @pointerdown=${this.#onResizeHandlePointerDown}></div>
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
-          ${([1, 2, 3] as const).map(
-            (s) => html`
-              <button
-                class="size-btn"
-                ?data-active=${(this.config.colSpan ?? 1) === s}
-                @click=${() => this.#onResize(s)}
-              >${s}col</button>
-            `,
-          )}
           <button class="edit-btn" @click=${this.#onEdit}>Edit</button>
           <button class="delete-btn" @click=${this.#onDelete}>Delete</button>
         </div>
