@@ -7,6 +7,7 @@ import banknotes from "heroicons/24/outline/banknotes.svg?raw";
 import beaker from "heroicons/24/outline/beaker.svg?raw";
 import bell from "heroicons/24/outline/bell.svg?raw";
 import bolt from "heroicons/24/outline/bolt.svg?raw";
+import bugAnt from "heroicons/24/outline/bug-ant.svg?raw";
 import bookOpen from "heroicons/24/outline/book-open.svg?raw";
 import briefcase from "heroicons/24/outline/briefcase.svg?raw";
 import buildingStorefront from "heroicons/24/outline/building-storefront.svg?raw";
@@ -34,6 +35,7 @@ import musicalNote from "heroicons/24/outline/musical-note.svg?raw";
 import newspaper from "heroicons/24/outline/newspaper.svg?raw";
 import paintBrush from "heroicons/24/outline/paint-brush.svg?raw";
 import phone from "heroicons/24/outline/phone.svg?raw";
+import plusCircle from "heroicons/24/outline/plus-circle.svg?raw";
 import puzzlePiece from "heroicons/24/outline/puzzle-piece.svg?raw";
 import receiptPercent from "heroicons/24/outline/receipt-percent.svg?raw";
 import scale from "heroicons/24/outline/scale.svg?raw";
@@ -47,6 +49,7 @@ import sun from "heroicons/24/outline/sun.svg?raw";
 import ticket from "heroicons/24/outline/ticket.svg?raw";
 import trophy from "heroicons/24/outline/trophy.svg?raw";
 import truck from "heroicons/24/outline/truck.svg?raw";
+import tv from "heroicons/24/outline/tv.svg?raw";
 import user from "heroicons/24/outline/user.svg?raw";
 import users from "heroicons/24/outline/users.svg?raw";
 import wifi from "heroicons/24/outline/wifi.svg?raw";
@@ -58,6 +61,7 @@ export const ICON_MAP: Record<string, string> = {
   beaker: beaker,
   bell: bell,
   bolt: bolt,
+  "bug-ant": bugAnt,
   "book-open": bookOpen,
   briefcase: briefcase,
   "building-storefront": buildingStorefront,
@@ -85,6 +89,7 @@ export const ICON_MAP: Record<string, string> = {
   newspaper: newspaper,
   "paint-brush": paintBrush,
   phone: phone,
+  "plus-circle": plusCircle,
   "puzzle-piece": puzzlePiece,
   "receipt-percent": receiptPercent,
   scale: scale,
@@ -98,6 +103,7 @@ export const ICON_MAP: Record<string, string> = {
   ticket: ticket,
   trophy: trophy,
   truck: truck,
+  tv: tv,
   user: user,
   users: users,
   wifi: wifi,
