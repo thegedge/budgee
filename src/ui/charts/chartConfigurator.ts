@@ -240,7 +240,7 @@ export class ChartConfigurator extends LitElement {
           <option value="pie" ?selected=${this._chartType === "pie"}>Pie</option>
           <option value="doughnut" ?selected=${this._chartType === "doughnut"}>Doughnut</option>
         </select>
-        <label>${PIE_TYPES.has(this._chartType) ? "Split by:" : "Granularity:"}</label>
+        <label>${PIE_TYPES.has(this._chartType) ? "Split by:" : "Group by:"}</label>
         <select @change=${(e: Event) => {
           this._granularity = (e.target as HTMLSelectElement).value as Granularity;
         }}>
@@ -255,8 +255,8 @@ export class ChartConfigurator extends LitElement {
               <option value="day" ?selected=${this._granularity === "day"}>Day</option>
               <option value="month" ?selected=${this._granularity === "month"}>Month</option>
               <option value="year" ?selected=${this._granularity === "year"}>Year</option>
-              <option value="byTag" ?selected=${this._granularity === "byTag"}>By Tag</option>
-              <option value="byMerchant" ?selected=${this._granularity === "byMerchant"}>By Merchant</option>
+              <option value="byTag" ?selected=${this._granularity === "byTag"}>Tag</option>
+              <option value="byMerchant" ?selected=${this._granularity === "byMerchant"}>Merchant</option>
             `
           }
         </select>
