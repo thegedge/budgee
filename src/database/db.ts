@@ -247,7 +247,10 @@ export class Collection<T extends { id: string }> {
   }
 }
 
+export type { DatabaseCollections };
+
 export interface Databases {
+  rxdb: RxDatabase<DatabaseCollections>;
   transactions: Collection<Transaction>;
   tags: Collection<Tag>;
   merchants: Collection<Merchant>;
@@ -279,6 +282,7 @@ export async function createDatabases(storage: unknown): Promise<Databases> {
   });
 
   return {
+    rxdb,
     transactions: new Collection(rxdb.transactions),
     tags: new Collection(rxdb.tags),
     merchants: new Collection(rxdb.merchants),
