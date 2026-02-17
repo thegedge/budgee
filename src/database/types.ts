@@ -74,6 +74,7 @@ export interface DashboardChart {
   direction?: "debit" | "credit";
   descriptionFilter?: string;
   descriptionFilterMode?: "include" | "exclude";
+  legendPosition?: "top" | "bottom" | "left" | "right" | "hidden";
 }
 
 export type DashboardTableModel = "transactions" | "merchants" | "tags";

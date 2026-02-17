@@ -61,6 +61,9 @@ export class ChartConfigurator extends LitElement {
   private _descriptionFilterMode: NonNullable<DashboardChart["descriptionFilterMode"]> = "exclude";
 
   @state()
+  private _legendPosition: NonNullable<DashboardChart["legendPosition"]> = "top";
+
+  @state()
   private _showExclusions = false;
 
   @state()
@@ -137,6 +140,7 @@ export class ChartConfigurator extends LitElement {
       this._direction = this.editingChart.direction;
       this._descriptionFilter = this.editingChart.descriptionFilter ?? "";
       this._descriptionFilterMode = this.editingChart.descriptionFilterMode ?? "exclude";
+      this._legendPosition = this.editingChart.legendPosition ?? "top";
       this._initialized = true;
     }
   }
@@ -161,6 +165,7 @@ export class ChartConfigurator extends LitElement {
           direction: this._direction,
           descriptionFilter: this._descriptionFilter || undefined,
           descriptionFilterMode: this._descriptionFilter ? this._descriptionFilterMode : undefined,
+          legendPosition: this._legendPosition,
         },
       }),
     );
@@ -313,6 +318,18 @@ export class ChartConfigurator extends LitElement {
             }}
           />
         </div>
+        <label>Legend:</label>
+        <select @change=${(e: Event) => {
+          this._legendPosition = (e.target as HTMLSelectElement).value as NonNullable<
+            DashboardChart["legendPosition"]
+          >;
+        }}>
+          <option value="top" ?selected=${this._legendPosition === "top"}>Top</option>
+          <option value="bottom" ?selected=${this._legendPosition === "bottom"}>Bottom</option>
+          <option value="left" ?selected=${this._legendPosition === "left"}>Left</option>
+          <option value="right" ?selected=${this._legendPosition === "right"}>Right</option>
+          <option value="hidden" ?selected=${this._legendPosition === "hidden"}>Hidden</option>
+        </select>
       </div>
       ${this.#renderExclusions()}
       <button @click=${this.#onSave}>${this.editingChart ? "Update Chart" : "Save to Dashboard"}</button>
