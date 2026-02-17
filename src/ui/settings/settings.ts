@@ -1,5 +1,6 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { testConnection } from "../../database/replication";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -11,6 +12,8 @@ declare global {
 export class Settings extends LitElement {
   @state() private _enabled = false;
   @state() private _url = "";
+  @state() private _testResult: "success" | "error" | "testing" | null = null;
+  @state() private _testError = "";
 
   static styles = css`
     :host {
@@ -53,6 +56,34 @@ export class Settings extends LitElement {
       color: var(--budgee-text-muted);
       margin-top: 0.25rem;
     }
+
+    button {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--budgee-border);
+      border-radius: 4px;
+      background: var(--budgee-surface);
+      color: var(--budgee-text);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .test-result {
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .test-result.success {
+      color: var(--budgee-positive, green);
+    }
+
+    .test-result.error {
+      color: var(--budgee-negative, red);
+    }
   `;
 
   connectedCallback() {
@@ -71,6 +102,18 @@ export class Settings extends LitElement {
     this._url = (e.target as HTMLInputElement).value;
     localStorage.setItem("budgee-sync-url", this._url);
     this.#dispatchChange();
+  }
+
+  async #onTestConnection() {
+    this._testResult = "testing";
+    this._testError = "";
+    try {
+      await testConnection(this._url);
+      this._testResult = "success";
+    } catch (e) {
+      this._testResult = "error";
+      this._testError = e instanceof Error ? e.message : String(e);
+    }
   }
 
   #dispatchChange() {
@@ -95,6 +138,26 @@ export class Settings extends LitElement {
           placeholder="http://your-server:5984" />
         <p class="hint">The URL of your CouchDB server.</p>
       </div>
+      ${
+        this._url
+          ? html`
+            <div class="field">
+              <button ?disabled=${this._testResult === "testing"} @click=${this.#onTestConnection}>
+                ${this._testResult === "testing" ? "Testing..." : "Test Connection"}
+              </button>
+              ${
+                this._testResult === "success"
+                  ? html`
+                      <p class="test-result success">Connection successful.</p>
+                    `
+                  : this._testResult === "error"
+                    ? html`<p class="test-result error">Connection failed: ${this._testError}</p>`
+                    : nothing
+              }
+            </div>
+          `
+          : nothing
+      }
     `;
   }
 }
