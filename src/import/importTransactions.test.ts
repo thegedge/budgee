@@ -181,6 +181,27 @@ describe("importTransactions", () => {
     expect(stored[0].accountId).toBe(existingId);
   });
 
+  it("should replace transactions when account is mapped from CSV column", async () => {
+    await importTransactions(rows, mappingWithAccount, { importMode: "append" });
+    const initial = await allDocs(db.transactions);
+    expect(initial).toHaveLength(2);
+
+    const newRows = [
+      { Date: "2024-02-01", Amount: "-10.00", Description: "Coffee", Account: "Visa" },
+    ];
+    await importTransactions(newRows, mappingWithAccount, { importMode: "replace" });
+
+    const stored = await allDocs(db.transactions);
+    const accounts = await allDocs(db.accounts);
+    const visaId = accounts.find((a) => a.name === "Visa")!._id;
+    const checkingId = accounts.find((a) => a.name === "Checking")!._id;
+
+    const visaTransactions = stored.filter((t) => t.accountId === visaId);
+    expect(visaTransactions).toHaveLength(1);
+    expect(visaTransactions[0].originalDescription).toBe("Coffee");
+    expect(stored.filter((t) => t.accountId === checkingId)).toHaveLength(1);
+  });
+
   it("should only replace transactions for the specified account", async () => {
     const otherAccountId = uuid();
     await db.accounts.put({ _id: otherAccountId, name: "Other Account" });

@@ -28,8 +28,15 @@ export async function importTransactions(
     .filter((t): t is Omit<Transaction, "_id" | "_rev"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
-  if (options.importMode === "replace" && options.accountId) {
-    await Transactions.deleteForAccount(options.accountId);
+  if (options.importMode === "replace") {
+    const accountIdsToReplace = accountIdsByName
+      ? [...new Set(accountIdsByName.values())]
+      : options.accountId
+        ? [options.accountId]
+        : [];
+    for (const id of accountIdsToReplace) {
+      await Transactions.deleteForAccount(id);
+    }
   }
 
   await Transactions.bulkAdd(transactions);
