@@ -72,7 +72,7 @@ export class ChartWrapper extends LitElement {
       data: this.data,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         ...this.options,
       },
     });
