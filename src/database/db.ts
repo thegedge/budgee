@@ -68,7 +68,7 @@ export class Collection<T extends object> {
 
   async find(request: PouchDB.Find.FindRequest<T>): Promise<PouchDB.Find.FindResponse<T>> {
     const result = await this.#db.find({
-      limit: Number.MAX_SAFE_INTEGER,
+      limit: 2_147_483_647,
       ...request,
       selector: { ...request.selector, docType: this.#docType },
     } as PouchDB.Find.FindRequest<Record<string, unknown>>);
@@ -78,7 +78,7 @@ export class Collection<T extends object> {
   async allDocs(_options?: { include_docs: true }): Promise<PouchDB.Core.AllDocsResponse<T>> {
     const result = await this.#db.find({
       selector: { docType: this.#docType },
-      limit: Number.MAX_SAFE_INTEGER,
+      limit: 2_147_483_647,
     });
     const docs = result.docs as unknown as (T & { _id: string; _rev: string })[];
     return {

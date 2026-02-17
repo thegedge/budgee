@@ -1,0 +1,62 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { uuid } from "../../uuid";
+import { db } from "../../database/db";
+import { clearDb } from "../../database/pouchHelpers";
+import "./accountDetail";
+import { AccountDetail } from "./accountDetail";
+
+describe("account-detail", () => {
+  beforeEach(async () => {
+    await clearDb(db.accounts);
+    await clearDb(db.transactions);
+  });
+
+  it("should be defined", () => {
+    expect(customElements.get("account-detail")).toBe(AccountDetail);
+  });
+
+  it("should show loading when no account loaded", async () => {
+    const el = document.createElement("account-detail") as AccountDetail;
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector("p")!.textContent).toContain("Loading");
+    el.remove();
+  });
+
+  it("should render account name and transactions", async () => {
+    const accountId = uuid();
+    await db.accounts.put({ _id: accountId, name: "Checking", type: "chequing" });
+    await db.transactions.bulkDocs([
+      {
+        _id: uuid(),
+        date: "2025-12-15",
+        amount: -50,
+        originalDescription: "Groceries",
+        tagIds: [],
+        accountId,
+      },
+      {
+        _id: uuid(),
+        date: "2025-12-16",
+        amount: 2500,
+        originalDescription: "Payroll",
+        tagIds: [],
+        accountId,
+      },
+    ]);
+
+    const el = document.createElement("account-detail") as AccountDetail;
+    el.accountId = accountId;
+    document.body.appendChild(el);
+    await new Promise((r) => setTimeout(r, 200));
+    await el.updateComplete;
+
+    const name = el.shadowRoot!.querySelector(".editable")!;
+    expect(name.textContent).toBe("Checking");
+
+    const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+    expect(rows).toHaveLength(2);
+    el.remove();
+  });
+});
