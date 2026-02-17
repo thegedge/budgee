@@ -83,7 +83,6 @@ export class ChartConfigurator extends LitElement {
       grid-template-columns: auto 1fr;
       gap: 0.5rem;
       align-items: center;
-      max-width: 400px;
       margin-bottom: 1rem;
     }
     input,
