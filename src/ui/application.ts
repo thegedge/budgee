@@ -4,7 +4,7 @@ import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { db } from "../database/db";
+import { waitForDb } from "../database/db";
 import { importDatabase } from "../database/importDb";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
@@ -132,13 +132,13 @@ export class Application extends LitElement {
       color: var(--budgee-text);
       font-family: sans-serif;
     }
-    
+
     svg.lucide {
       display: inline-block;
       width: 1rem;
       height: 1rem;
     }
-    
+
     .app-name {
       display: flex;
       align-items: center;
@@ -151,12 +151,12 @@ export class Application extends LitElement {
       border-bottom: 1px solid var(--budgee-border);
       margin-bottom: 0.5rem;
     }
-    
+
     .app-name svg.lucide {
       width: 1.5rem;
       height: 1.5rem;
     }
-    
+
     nav {
       display: flex;
       flex-direction: column;
@@ -167,7 +167,7 @@ export class Application extends LitElement {
       width: 180px;
       flex-shrink: 0;
     }
-    
+
     nav a,
     nav button {
       display: flex;
@@ -189,28 +189,28 @@ export class Application extends LitElement {
         color 0.15s,
         border-color 0.15s;
     }
-    
+
     nav a:hover,
     nav button:hover {
       color: var(--budgee-primary);
     }
-    
+
     nav a.active {
       color: var(--budgee-primary);
       border-left-color: var(--budgee-primary);
     }
-    
+
     .container {
       flex: 1;
       min-width: 0;
       padding: 1.5rem 2rem;
     }
-    
+
     @media (max-width: 768px) {
       :host {
         flex-direction: column;
       }
-    
+
       nav {
         flex-direction: row;
         flex-wrap: wrap;
@@ -219,23 +219,23 @@ export class Application extends LitElement {
         border-bottom: 1px solid var(--budgee-border);
         padding: 0 0.5rem;
       }
-    
+
       nav a,
       nav button {
         border-left: none;
         border-bottom: 2px solid transparent;
         padding: 0.5rem 0.75rem;
       }
-    
+
       nav a.active {
         border-bottom-color: var(--budgee-primary);
       }
-    
+
       .container {
         padding: 1rem;
       }
     }
-    
+
     .drop-overlay {
       position: fixed;
       inset: 0;
@@ -246,7 +246,7 @@ export class Application extends LitElement {
       z-index: 9999;
       pointer-events: none;
     }
-    
+
     .drop-overlay span {
       color: white;
       font-size: 1.5rem;
@@ -260,7 +260,9 @@ export class Application extends LitElement {
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
-    migrateDatabase(db).catch(console.error);
+    waitForDb()
+      .then((dbs) => migrateDatabase(dbs))
+      .catch(console.error);
     this.#connectReplication();
   }
 

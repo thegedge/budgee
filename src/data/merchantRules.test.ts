@@ -1,7 +1,7 @@
 import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
-import { allDocs, clearDb } from "../database/pouchHelpers";
+import { clearDb } from "../database/pouchHelpers";
 import { MerchantRules } from "./merchantRules";
 
 beforeEach(async () => {
@@ -12,7 +12,7 @@ beforeEach(async () => {
 describe("MerchantRules", () => {
   it("should return all rules", async () => {
     await db.merchantRules.put({
-      _id: uuid(),
+      id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "test" }],
       tagIds: [],
@@ -33,7 +33,7 @@ describe("MerchantRules", () => {
 
   it("should remove a rule", async () => {
     const resp = await db.merchantRules.put({
-      _id: uuid(),
+      id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "x" }],
       tagIds: [],
@@ -45,14 +45,14 @@ describe("MerchantRules", () => {
   it("should apply a rule to matching transactions", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-01",
         amount: -5,
         originalDescription: "COFFEE SHOP",
         tagIds: [],
       },
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-02",
         amount: -10,
         originalDescription: "GROCERY STORE",
@@ -64,8 +64,8 @@ describe("MerchantRules", () => {
     const merchantId = "m99";
     const tagId = "t1";
     const rule = {
-      _id: ruleId,
-      _rev: "",
+      id: ruleId,
+
       logic: "and" as const,
       conditions: [
         { field: "description" as const, operator: "contains" as const, value: "coffee" },
@@ -77,7 +77,7 @@ describe("MerchantRules", () => {
     const count = await MerchantRules.applyToTransactions(rule);
     expect(count).toBe(1);
 
-    const txs = await allDocs(db.transactions);
+    const txs = await db.transactions.all();
     const coffee = txs.find((t) => t.originalDescription === "COFFEE SHOP");
     expect(coffee?.merchantId).toBe(merchantId);
     expect(coffee?.tagIds).toContain(tagId);

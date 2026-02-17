@@ -11,8 +11,8 @@ beforeEach(async () => {
 describe("Tags", () => {
   it("should return all tags", async () => {
     await db.tags.bulkDocs([
-      { _id: uuid(), name: "food", color: "lch(50 30 0)" },
-      { _id: uuid(), name: "transport", color: "lch(50 30 120)" },
+      { id: uuid(), name: "food", color: "lch(50 30 0)" },
+      { id: uuid(), name: "transport", color: "lch(50 30 120)" },
     ]);
     const all = await Tags.all();
     expect(all).toHaveLength(2);
@@ -27,7 +27,7 @@ describe("Tags", () => {
 
   it("should update a tag", async () => {
     const resp = await db.tags.put({
-      _id: uuid(),
+      id: uuid(),
       name: "old",
       color: "lch(50 30 0)",
     });
@@ -38,7 +38,7 @@ describe("Tags", () => {
 
   it("should remove a tag", async () => {
     const resp = await db.tags.put({
-      _id: uuid(),
+      id: uuid(),
       name: "temp",
       color: "lch(50 30 0)",
     });
@@ -48,7 +48,7 @@ describe("Tags", () => {
   });
 
   it("should find a tag by name (case-insensitive)", async () => {
-    await db.tags.put({ _id: uuid(), name: "Food", color: "lch(50 30 0)" });
+    await db.tags.put({ id: uuid(), name: "Food", color: "lch(50 30 0)" });
     const tag = await Tags.byName("food");
     expect(tag?.name).toBe("Food");
   });

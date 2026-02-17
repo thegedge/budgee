@@ -1,5 +1,4 @@
 import { db } from "../database/db";
-import { allDocs } from "../database/pouchHelpers";
 import type { Tag } from "../database/types";
 import { uuid } from "../uuid";
 import { randomTagColor } from "./tagColor";
@@ -8,12 +7,12 @@ export class Tags {
   private constructor() {}
 
   static async all(): Promise<Tag[]> {
-    return allDocs(db.tags);
+    return db.tags.all();
   }
 
   static async create(name: string, options?: Partial<Tag>): Promise<string> {
     const id = uuid();
-    await db.tags.put({ _id: id, name, color: randomTagColor(), ...options });
+    await db.tags.put({ id, name, color: randomTagColor(), ...options });
     return id;
   }
 
@@ -23,12 +22,11 @@ export class Tags {
   }
 
   static async remove(id: string): Promise<void> {
-    const doc = await db.tags.get(id);
-    await db.tags.remove(doc);
+    await db.tags.remove(id);
   }
 
   static async byName(name: string): Promise<Tag | undefined> {
-    const all = await allDocs(db.tags);
+    const all = await db.tags.all();
     return all.find((t) => t.name.toLowerCase() === name.toLowerCase());
   }
 }

@@ -1,5 +1,4 @@
-import PouchDB from "pouchdb-browser";
-import memoryAdapter from "pouchdb-adapter-memory";
 import "urlpattern-polyfill";
+import { waitForDb } from "../src/database/db";
 
-PouchDB.plugin(memoryAdapter);
+await waitForDb();

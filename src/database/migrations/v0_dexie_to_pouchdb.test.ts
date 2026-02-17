@@ -20,15 +20,14 @@ describe("migrateV0toV1", () => {
     const result = migrateV0toV1(input);
 
     expect(result.tags).toHaveLength(1);
-    expect(result.tags![0]._id).toMatch(
+    expect(result.tags![0].id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect(result.tags![0].name).toBe("Food");
-    expect((result.tags![0] as unknown as Record<string, unknown>).id).toBeUndefined();
 
-    expect(result.merchants![0]._id).toBeDefined();
+    expect(result.merchants![0].id).toBeDefined();
     expect(result.merchants![0].name).toBe("Costco");
-    expect(result.accounts![0]._id).toBeDefined();
+    expect(result.accounts![0].id).toBeDefined();
     expect(result.accounts![0].name).toBe("Checking");
   });
 
@@ -60,10 +59,10 @@ describe("migrateV0toV1", () => {
     const result = migrateV0toV1(input);
 
     const tx = result.transactions![0];
-    expect(tx._id).toBeDefined();
-    expect(tx.merchantId).toBe(result.merchants![0]._id);
-    expect(tx.accountId).toBe(result.accounts![0]._id);
-    expect(tx.tagIds).toEqual([result.tags![0]._id, result.tags![1]._id]);
+    expect(tx.id).toBeDefined();
+    expect(tx.merchantId).toBe(result.merchants![0].id);
+    expect(tx.accountId).toBe(result.accounts![0].id);
+    expect(tx.tagIds).toEqual([result.tags![0].id, result.tags![1].id]);
   });
 
   it("should rewrite foreign keys in merchant rules", () => {
@@ -89,9 +88,9 @@ describe("migrateV0toV1", () => {
     const result = migrateV0toV1(input);
 
     const rule = result.merchantRules![0];
-    expect(rule._id).toBeDefined();
-    expect(rule.merchantId).toBe(result.merchants![0]._id);
-    expect(rule.tagIds).toEqual([result.tags![0]._id]);
+    expect(rule.id).toBeDefined();
+    expect(rule.merchantId).toBe(result.merchants![0].id);
+    expect(rule.tagIds).toEqual([result.tags![0].id]);
   });
 
   it("should rewrite foreign keys in dashboard charts", () => {
@@ -121,11 +120,11 @@ describe("migrateV0toV1", () => {
     const result = migrateV0toV1(input);
 
     const chart = result.dashboardCharts![0] as unknown as Record<string, unknown>;
-    expect(chart._id).toBeDefined();
-    expect(chart.tagId).toBe(result.tags![0]._id);
-    expect(chart.merchantId).toBe(result.merchants![0]._id);
-    expect(chart.excludedTagIds).toEqual([result.tags![0]._id]);
-    expect(chart.excludedMerchantIds).toEqual([result.merchants![0]._id]);
+    expect(chart.id).toBeDefined();
+    expect(chart.tagId).toBe(result.tags![0].id);
+    expect(chart.merchantId).toBe(result.merchants![0].id);
+    expect(chart.excludedTagIds).toEqual([result.tags![0].id]);
+    expect(chart.excludedMerchantIds).toEqual([result.merchants![0].id]);
   });
 
   it("should handle empty data", () => {

@@ -13,7 +13,7 @@ describe("importTransactions", () => {
     await clearDb(db.transactions);
     await clearDb(db.merchantRules);
     await clearDb(db.accounts);
-    await db.accounts.put({ _id: accountId, name: "Test Account" });
+    await db.accounts.put({ id: accountId, name: "Test Account" });
   });
 
   const rows = [
@@ -116,7 +116,7 @@ describe("importTransactions", () => {
 
   it("should apply merchant rules during import", async () => {
     await db.merchantRules.put({
-      _id: uuid(),
+      id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "groceries" }],
       tagIds: ["tag42"],
@@ -163,13 +163,13 @@ describe("importTransactions", () => {
     expect(checkingAccount).toBeDefined();
 
     const stored = (await allDocs(db.transactions)).sort((a, b) => a.date.localeCompare(b.date));
-    expect(stored[0].accountId).toBe(visaAccount!._id);
-    expect(stored[1].accountId).toBe(checkingAccount!._id);
+    expect(stored[0].accountId).toBe(visaAccount!.id);
+    expect(stored[1].accountId).toBe(checkingAccount!.id);
   });
 
   it("should reuse existing accounts when importing with account column", async () => {
     const existingId = uuid();
-    await db.accounts.put({ _id: existingId, name: "Visa" });
+    await db.accounts.put({ id: existingId, name: "Visa" });
 
     const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
     expect(count).toBe(2);
@@ -183,7 +183,7 @@ describe("importTransactions", () => {
 
   it("should delete all existing transactions in replace mode", async () => {
     const otherAccountId = uuid();
-    await db.accounts.put({ _id: otherAccountId, name: "Other Account" });
+    await db.accounts.put({ id: otherAccountId, name: "Other Account" });
 
     await importTransactions(rows, mapping, defaultOptions);
     await importTransactions(rows, mapping, { accountId: otherAccountId, importMode: "append" });

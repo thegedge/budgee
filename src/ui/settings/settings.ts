@@ -19,21 +19,21 @@ export class Settings extends LitElement {
     :host {
       display: block;
     }
-    
+
     h2 {
       margin-top: 0;
     }
-    
+
     .field {
       margin-bottom: 1rem;
     }
-    
+
     label {
       display: block;
       font-weight: 600;
       margin-bottom: 0.25rem;
     }
-    
+
     input[type="url"] {
       width: 100%;
       max-width: 400px;
@@ -44,13 +44,13 @@ export class Settings extends LitElement {
       color: var(--budgee-text);
       font-size: 0.9rem;
     }
-    
+
     .hint {
       font-size: 0.8rem;
       color: var(--budgee-text-muted);
       margin-top: 0.25rem;
     }
-    
+
     button {
       padding: 0.4rem 0.8rem;
       border: 1px solid var(--budgee-border);
@@ -60,21 +60,21 @@ export class Settings extends LitElement {
       cursor: pointer;
       font-size: 0.9rem;
     }
-    
+
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-    
+
     .test-result {
       font-size: 0.85rem;
       margin-top: 0.25rem;
     }
-    
+
     .test-result.success {
       color: var(--budgee-positive, green);
     }
-    
+
     .test-result.error {
       color: var(--budgee-negative, red);
     }

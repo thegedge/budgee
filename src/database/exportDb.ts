@@ -1,21 +1,16 @@
 import { db } from "./db";
 import { LATEST_VERSION } from "./migrations";
-import { allDocs } from "./pouchHelpers";
-
-function stripRev<T extends { _rev?: string }>(docs: T[]): Omit<T, "_rev">[] {
-  return docs.map(({ _rev, ...rest }) => rest);
-}
 
 export async function exportDatabase() {
   const data = {
     version: LATEST_VERSION,
-    transactions: stripRev(await allDocs(db.transactions)),
-    tags: stripRev(await allDocs(db.tags)),
-    merchants: stripRev(await allDocs(db.merchants)),
-    accounts: stripRev(await allDocs(db.accounts)),
-    merchantRules: stripRev(await allDocs(db.merchantRules)),
-    dashboardCharts: stripRev(await allDocs(db.dashboardCharts)),
-    dashboardTables: stripRev(await allDocs(db.dashboardTables)),
+    transactions: await db.transactions.all(),
+    tags: await db.tags.all(),
+    merchants: await db.merchants.all(),
+    accounts: await db.accounts.all(),
+    merchantRules: await db.merchantRules.all(),
+    dashboardCharts: await db.dashboardCharts.all(),
+    dashboardTables: await db.dashboardTables.all(),
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });

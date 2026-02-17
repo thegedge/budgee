@@ -9,7 +9,7 @@ import {
 
 const transactions: Transaction[] = [
   {
-    _id: "t1",
+    id: "t1",
     date: "2024-01-05",
     amount: -50,
     originalDescription: "Groceries",
@@ -17,7 +17,7 @@ const transactions: Transaction[] = [
     merchantId: "m10",
   },
   {
-    _id: "t2",
+    id: "t2",
     date: "2024-01-15",
     amount: -25,
     originalDescription: "Coffee",
@@ -25,7 +25,7 @@ const transactions: Transaction[] = [
     merchantId: "m20",
   },
   {
-    _id: "t3",
+    id: "t3",
     date: "2024-02-01",
     amount: -30,
     originalDescription: "Groceries",
@@ -33,14 +33,14 @@ const transactions: Transaction[] = [
     merchantId: "m10",
   },
   {
-    _id: "t4",
+    id: "t4",
     date: "2024-02-10",
     amount: 2500,
     originalDescription: "Payroll",
     tagIds: ["tag3"],
   },
   {
-    _id: "t5",
+    id: "t5",
     date: "2025-01-01",
     amount: -60,
     originalDescription: "Groceries",
@@ -74,14 +74,14 @@ describe("aggregateByPeriod", () => {
 });
 
 const tags = [
-  { _id: "tag1", name: "Food" },
-  { _id: "tag2", name: "Coffee" },
-  { _id: "tag3", name: "Income" },
+  { id: "tag1", name: "Food" },
+  { id: "tag2", name: "Coffee" },
+  { id: "tag3", name: "Income" },
 ];
 
 const merchants = [
-  { _id: "m10", name: "Grocery Store" },
-  { _id: "m20", name: "Coffee Shop" },
+  { id: "m10", name: "Grocery Store" },
+  { id: "m20", name: "Coffee Shop" },
 ];
 
 describe("aggregateByTag", () => {

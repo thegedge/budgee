@@ -17,7 +17,7 @@ export async function importTransactions(
     ? await resolveAccountIds(rows, mapping.account)
     : undefined;
 
-  const transactions: Omit<Transaction, "_id" | "_rev">[] = rows
+  const transactions: Omit<Transaction, "id">[] = rows
     .map((row) =>
       rowToTransaction(
         row,
@@ -25,7 +25,7 @@ export async function importTransactions(
         accountIdsByName?.get(row[mapping.account!]) ?? options.accountId,
       ),
     )
-    .filter((t): t is Omit<Transaction, "_id" | "_rev"> => t !== undefined)
+    .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
   if (options.importMode === "replace") {
@@ -45,7 +45,7 @@ async function resolveAccountIds(
 
   const nameToId = new Map<string, string>();
   for (const account of existingAccounts) {
-    nameToId.set(account.name.toLowerCase(), account._id!);
+    nameToId.set(account.name.toLowerCase(), account.id);
   }
 
   const result = new Map<string, string>();
@@ -67,7 +67,7 @@ function rowToTransaction(
   row: Record<string, string>,
   mapping: ColumnMapping,
   accountId?: string,
-): Omit<Transaction, "_id" | "_rev"> | undefined {
+): Omit<Transaction, "id"> | undefined {
   const dateStr = mapping.date ? row[mapping.date] : undefined;
   const amountStr = mapping.amount ? row[mapping.amount] : undefined;
   const creditStr = mapping.credit ? row[mapping.credit] : undefined;

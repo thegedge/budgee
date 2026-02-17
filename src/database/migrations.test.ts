@@ -1,9 +1,7 @@
-import "pouchdb-adapter-memory";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createDatabases, destroyAll, type Databases } from "./db";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "./db";
 import type { DatabaseExport } from "./importDb";
 import { LATEST_VERSION, migrateDatabase, migrateExport } from "./migrations";
-import { allDocs } from "./pouchHelpers";
 
 vi.mock("./migrations/v0_dexie_to_pouchdb", async (importOriginal) => {
   const original = await importOriginal<typeof import("./migrations/v0_dexie_to_pouchdb")>();
@@ -18,7 +16,7 @@ describe("migrateExport", () => {
   it("should return data unchanged when already at latest version", () => {
     const data: DatabaseExport = {
       version: LATEST_VERSION,
-      tags: [{ _id: "t1", name: "Food" }],
+      tags: [{ id: "t1", name: "Food" }],
     };
     const result = migrateExport(data);
     expect(result).toBe(data);
@@ -38,13 +36,13 @@ describe("migrateExport", () => {
 
     const result = migrateExport(data);
     expect(result.version).toBe(1);
-    expect(result.tags![0]._id).toBeDefined();
+    expect(result.tags![0].id).toBeDefined();
     expect(result.tags![0].name).toBe("Food");
   });
 
   it("should treat missing version as version 1 (no migration needed)", () => {
     const data: DatabaseExport = {
-      tags: [{ _id: "t1", name: "Food" }],
+      tags: [{ id: "t1", name: "Food" }],
     };
     const result = migrateExport(data);
     expect(result).toBe(data);
@@ -52,83 +50,80 @@ describe("migrateExport", () => {
 });
 
 describe("migrateDatabase", () => {
-  let dbs: Databases;
-
-  beforeEach(() => {
-    dbs = createDatabases("memory");
-  });
-
-  afterEach(async () => {
-    await destroyAll(dbs);
+  beforeEach(async () => {
+    await db.tags.clear();
+    await db.merchants.clear();
+    await db.transactions.clear();
+    await db.accounts.clear();
+    await db.merchantRules.clear();
+    await db.dashboardCharts.clear();
+    await db.dashboardTables.clear();
+    await db.meta.clear();
+    await db.backups.clear();
   });
 
   it("should set schema version on first run with empty database", async () => {
-    await migrateDatabase(dbs);
+    await migrateDatabase(db);
 
-    const doc = await dbs.meta.get("schema_version");
+    const doc = await db.meta.get("schema_version");
     expect(doc.value).toBe(LATEST_VERSION);
   });
 
   it("should skip migration when already at latest version", async () => {
-    await dbs.meta.put({ _id: "schema_version", value: LATEST_VERSION });
-    await dbs.tags.put({ _id: "t1", name: "Food" });
+    await db.meta.put({ id: "schema_version", value: LATEST_VERSION });
+    await db.tags.put({ id: "t1", name: "Food" });
 
-    await migrateDatabase(dbs);
+    await migrateDatabase(db);
 
-    const tags = await allDocs(dbs.tags);
+    const tags = await db.tags.all();
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("Food");
   });
 
   it("should save a backup before migrating when version is behind", async () => {
-    // Set version to 0 to force migration
-    await dbs.meta.put({ _id: "schema_version", value: 0 });
-    await dbs.tags.put({ _id: "t1", name: "Food" });
+    await db.meta.put({ id: "schema_version", value: 0 });
+    await db.tags.put({ id: "t1", name: "Food" });
 
-    await migrateDatabase(dbs);
+    await migrateDatabase(db);
 
-    const backups = await allDocs(dbs.backups);
+    const backups = await db.backups.all();
     expect(backups.length).toBeGreaterThanOrEqual(1);
 
-    const backup = backups[0] as unknown as Record<string, unknown>;
-    expect(backup._id).toMatch(/^backup_/);
+    const backup = backups[0];
+    expect(backup.id).toMatch(/^backup_/);
   });
 
   it("should prune backups to keep only the 10 most recent", async () => {
-    // Create 11 existing backups with known timestamps
     for (let i = 0; i < 11; i++) {
-      await dbs.backups.put({
-        _id: `backup_2024-01-${String(i + 1).padStart(2, "0")}T00:00:00.000Z`,
-        version: 1,
-      } as Record<string, unknown> & { _id: string });
+      await db.backups.put({
+        id: `backup_2024-01-${String(i + 1).padStart(2, "0")}T00:00:00.000Z`,
+        data: JSON.stringify({ version: 1 }),
+      });
     }
 
-    // Trigger a migration that creates a new backup (12 total, should prune to 10)
-    await dbs.meta.put({ _id: "schema_version", value: 0 });
-    await migrateDatabase(dbs);
+    await db.meta.put({ id: "schema_version", value: 0 });
+    await migrateDatabase(db);
 
-    const backups = await allDocs(dbs.backups);
+    const backups = await db.backups.all();
     expect(backups).toHaveLength(10);
 
-    // The two oldest backups should have been pruned
     for (const backup of backups) {
-      expect(backup._id).not.toBe("backup_2024-01-01T00:00:00.000Z");
-      expect(backup._id).not.toBe("backup_2024-01-02T00:00:00.000Z");
+      expect(backup.id).not.toBe("backup_2024-01-01T00:00:00.000Z");
+      expect(backup.id).not.toBe("backup_2024-01-02T00:00:00.000Z");
     }
   });
 
   it("should preserve data through migration when already at v1", async () => {
-    await dbs.tags.put({ _id: "t1", name: "Food" });
-    await dbs.merchants.put({ _id: "m1", name: "Costco" });
-    // No version set → will export as v1, which is latest, so no transform needed
+    await db.tags.put({ id: "t1", name: "Food" });
+    await db.merchants.put({ id: "m1", name: "Costco" });
 
-    await migrateDatabase(dbs);
+    await migrateDatabase(db);
 
-    const tags = await allDocs(dbs.tags);
+    const tags = await db.tags.all();
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("Food");
 
-    const merchants = await allDocs(dbs.merchants);
+    const merchants = await db.merchants.all();
     expect(merchants).toHaveLength(1);
     expect(merchants[0].name).toBe("Costco");
   });

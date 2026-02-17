@@ -1,5 +1,4 @@
 import { db } from "../database/db";
-import { allDocs } from "../database/pouchHelpers";
 import type { Merchant } from "../database/types";
 import { uuid } from "../uuid";
 
@@ -7,7 +6,7 @@ export class Merchants {
   private constructor() {}
 
   static async all(): Promise<Merchant[]> {
-    return allDocs(db.merchants);
+    return db.merchants.all();
   }
 
   static async get(id: string): Promise<Merchant | undefined> {
@@ -20,7 +19,7 @@ export class Merchants {
 
   static async create(name: string): Promise<string> {
     const id = uuid();
-    await db.merchants.put({ _id: id, name });
+    await db.merchants.put({ id, name });
     return id;
   }
 
@@ -30,12 +29,11 @@ export class Merchants {
   }
 
   static async remove(id: string): Promise<void> {
-    const doc = await db.merchants.get(id);
-    await db.merchants.remove(doc);
+    await db.merchants.remove(id);
   }
 
   static async byName(name: string): Promise<Merchant | undefined> {
-    const all = await allDocs(db.merchants);
+    const all = await db.merchants.all();
     return all.find((m) => m.name.toLowerCase() === name.toLowerCase());
   }
 }

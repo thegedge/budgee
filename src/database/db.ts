@@ -1,5 +1,13 @@
-import PouchDB from "pouchdb-browser";
-import PouchDBFind from "pouchdb-find";
+import {
+  type MangoQuery,
+  type RxCollection,
+  type RxDatabase,
+  type RxJsonSchema,
+  addRxPlugin,
+  createRxDatabase,
+  removeRxDatabase,
+} from "rxdb/plugins/core";
+import { RxDBMigrationSchemaPlugin } from "rxdb/plugins/migration-schema";
 import type {
   Account,
   DashboardChart,
@@ -10,101 +18,221 @@ import type {
   Transaction,
 } from "./types";
 
-PouchDB.plugin(PouchDBFind);
+addRxPlugin(RxDBMigrationSchemaPlugin);
 
-export type DocType =
-  | "transaction"
-  | "tag"
-  | "merchant"
-  | "account"
-  | "merchantRule"
-  | "dashboardChart"
-  | "dashboardTable"
-  | "meta"
-  | "backup";
+const ID_FIELD = { type: "string" as const, maxLength: 100 };
 
-type PouchDoc = Record<string, unknown> & { _id: string; _rev: string };
+const transactionSchema: RxJsonSchema<Transaction> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    date: { type: "string", maxLength: 10 },
+    amount: { type: "number" },
+    originalDescription: { type: "string" },
+    memo: { type: "string" },
+    merchantId: { type: "string", maxLength: 100 },
+    accountId: { type: "string", maxLength: 100 },
+    tagIds: { type: "array", items: { type: "string" } },
+  },
+  required: ["id", "date", "amount", "originalDescription", "tagIds"],
+  indexes: ["date", "merchantId", "accountId"],
+};
 
-export class Collection<T extends object> {
-  #db: PouchDB.Database;
-  #docType: DocType;
+const tagSchema: RxJsonSchema<Tag> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string", maxLength: 200 },
+    icon: { type: "string" },
+    color: { type: "string" },
+  },
+  required: ["id", "name"],
+  indexes: ["name"],
+};
 
-  constructor(db: PouchDB.Database, docType: DocType) {
-    this.#db = db;
-    this.#docType = docType;
-  }
+const merchantSchema: RxJsonSchema<Merchant> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string", maxLength: 200 },
+  },
+  required: ["id", "name"],
+  indexes: ["name"],
+};
 
-  get raw(): PouchDB.Database {
-    return this.#db;
-  }
+const accountSchema: RxJsonSchema<Account> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string" },
+    type: { type: "string" },
+  },
+  required: ["id", "name"],
+};
 
-  get docType(): DocType {
-    return this.#docType;
-  }
+const merchantRuleSchema: RxJsonSchema<MerchantRule> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    logic: { type: "string" },
+    conditions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          field: { type: "string" },
+          operator: { type: "string" },
+          value: { type: "string" },
+        },
+      },
+    },
+    merchantId: { type: "string" },
+    tagIds: { type: "array", items: { type: "string" } },
+  },
+  required: ["id", "logic", "conditions", "tagIds"],
+};
 
-  async get(id: string): Promise<T & { _id: string; _rev: string }> {
-    return this.#db.get(id) as Promise<T & { _id: string; _rev: string }>;
-  }
+const dashboardChartSchema: RxJsonSchema<DashboardChart> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    title: { type: "string" },
+    chartType: { type: "string" },
+    granularity: { type: "string" },
+    startDate: { type: "string" },
+    endDate: { type: "string" },
+    tagId: { type: "string" },
+    merchantId: { type: "string" },
+    position: { type: "number" },
+    colSpan: { type: "number" },
+    rowSpan: { type: "number" },
+    excludedTagIds: { type: "array", items: { type: "string" } },
+    excludedMerchantIds: { type: "array", items: { type: "string" } },
+    direction: { type: "string" },
+    descriptionFilter: { type: "string" },
+    descriptionFilterMode: { type: "string" },
+  },
+  required: ["id", "title", "chartType", "granularity", "position"],
+};
 
-  async put(doc: T & { _id: string; _rev?: string }): Promise<PouchDB.Core.Response> {
-    return this.#db.put({
-      ...doc,
-      docType: this.#docType,
-    } as unknown as PouchDB.Core.PutDocument<PouchDoc>);
-  }
+const dashboardTableSchema: RxJsonSchema<DashboardTable> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    title: { type: "string" },
+    model: { type: "string" },
+    columns: { type: "array", items: { type: "string" } },
+    position: { type: "number" },
+    colSpan: { type: "number" },
+    rowSpan: { type: "number" },
+  },
+  required: ["id", "title", "model", "columns", "position"],
+};
 
-  async bulkDocs(docs: T[]): Promise<(PouchDB.Core.Response | PouchDB.Core.Error)[]> {
-    return this.#db.bulkDocs(
-      docs.map((d) => ({
-        ...d,
-        docType: this.#docType,
-      })) as unknown as PouchDB.Core.PutDocument<PouchDoc>[],
-    );
-  }
-
-  async remove(doc: T & { _id: string; _rev: string }): Promise<PouchDB.Core.Response> {
-    return this.#db.remove(doc as unknown as PouchDB.Core.RemoveDocument);
-  }
-
-  async find(request: PouchDB.Find.FindRequest<T>): Promise<PouchDB.Find.FindResponse<T>> {
-    const result = await this.#db.find({
-      limit: 2_147_483_647,
-      ...request,
-      selector: { ...request.selector, docType: this.#docType },
-    } as PouchDB.Find.FindRequest<Record<string, unknown>>);
-    return result as unknown as PouchDB.Find.FindResponse<T>;
-  }
-
-  async allDocs(_options?: { include_docs: true }): Promise<PouchDB.Core.AllDocsResponse<T>> {
-    const result = await this.#db.find({
-      selector: { docType: this.#docType },
-      limit: 2_147_483_647,
-    });
-    const docs = result.docs as unknown as (T & { _id: string; _rev: string })[];
-    return {
-      offset: 0,
-      total_rows: docs.length,
-      rows: docs.map((doc) => ({
-        id: doc._id,
-        key: doc._id,
-        value: { rev: doc._rev },
-        doc,
-      })),
-    } as PouchDB.Core.AllDocsResponse<T>;
-  }
-
-  async createIndex(options: {
-    index: { fields: string[] };
-  }): Promise<PouchDB.Find.CreateIndexResponse<T>> {
-    return this.#db.createIndex({
-      index: { fields: ["docType", ...options.index.fields] },
-    }) as Promise<PouchDB.Find.CreateIndexResponse<T>>;
-  }
+interface SchemaVersionDoc {
+  id: string;
+  value: number;
 }
 
-export interface SchemaVersionDoc {
-  _id: string;
-  value: number;
+const metaSchema: RxJsonSchema<SchemaVersionDoc> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    value: { type: "number" },
+  },
+  required: ["id", "value"],
+};
+
+const backupSchema: RxJsonSchema<{ id: string; data?: string }> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    data: { type: "string" },
+  },
+  required: ["id"],
+};
+
+type DatabaseCollections = {
+  transactions: RxCollection<Transaction>;
+  tags: RxCollection<Tag>;
+  merchants: RxCollection<Merchant>;
+  accounts: RxCollection<Account>;
+  merchant_rules: RxCollection<MerchantRule>;
+  dashboard_charts: RxCollection<DashboardChart>;
+  dashboard_tables: RxCollection<DashboardTable>;
+  meta: RxCollection<SchemaVersionDoc>;
+  backups: RxCollection<{ id: string; data?: string }>;
+};
+
+export type BudgeeDatabase = RxDatabase<DatabaseCollections>;
+
+export class Collection<T extends { id: string }> {
+  #collection: RxCollection<T>;
+
+  constructor(collection: RxCollection<T>) {
+    this.#collection = collection;
+  }
+
+  get rxCollection(): RxCollection<T> {
+    return this.#collection;
+  }
+
+  async get(id: string): Promise<T> {
+    const doc = await this.#collection.findOne(id).exec();
+    if (!doc) throw new Error(`Document not found: ${id}`);
+    return doc.toJSON(true) as T;
+  }
+
+  async put(doc: T): Promise<{ id: string }> {
+    await this.#collection.upsert(doc);
+    return { id: doc.id };
+  }
+
+  async bulkDocs(docs: T[]): Promise<void> {
+    await this.#collection.bulkUpsert(docs);
+  }
+
+  async remove(id: string): Promise<void> {
+    const doc = await this.#collection.findOne(id).exec();
+    if (doc) await doc.remove();
+  }
+
+  async find(query: MangoQuery<T>): Promise<T[]> {
+    const results = await this.#collection.find(query).exec();
+    return results.map((doc) => doc.toJSON(true) as T);
+  }
+
+  async all(): Promise<T[]> {
+    const results = await this.#collection.find().exec();
+    return results.map((doc) => doc.toJSON(true) as T);
+  }
+
+  async clear(): Promise<void> {
+    const docs = await this.#collection.find().exec();
+    await Promise.all(docs.map((doc) => doc.remove()));
+  }
+
+  async count(): Promise<number> {
+    return this.#collection.count().exec();
+  }
 }
 
 export interface Databases {
@@ -116,43 +244,65 @@ export interface Databases {
   dashboardCharts: Collection<DashboardChart>;
   dashboardTables: Collection<DashboardTable>;
   meta: Collection<SchemaVersionDoc>;
-  backups: Collection<Record<string, unknown>>;
+  backups: Collection<{ id: string; data?: string }>;
 }
 
-let dbCounter = 0;
+export async function createDatabases(storage: unknown): Promise<Databases> {
+  const name = `budgee_${Math.random().toString(36).slice(2)}`;
+  const rxdb = await createRxDatabase<DatabaseCollections>({
+    name,
+    storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
+  });
 
-export function createDatabases(adapter?: string): Databases {
-  const name = adapter ? `budgee_${++dbCounter}` : "budgee";
-  const rawDb = new PouchDB(name, adapter ? { adapter } : {});
+  await rxdb.addCollections({
+    transactions: { schema: transactionSchema },
+    tags: { schema: tagSchema },
+    merchants: { schema: merchantSchema },
+    accounts: { schema: accountSchema },
+    merchant_rules: { schema: merchantRuleSchema },
+    dashboard_charts: { schema: dashboardChartSchema },
+    dashboard_tables: { schema: dashboardTableSchema },
+    meta: { schema: metaSchema },
+    backups: { schema: backupSchema },
+  });
+
   return {
-    transactions: new Collection<Transaction>(rawDb, "transaction"),
-    tags: new Collection<Tag>(rawDb, "tag"),
-    merchants: new Collection<Merchant>(rawDb, "merchant"),
-    accounts: new Collection<Account>(rawDb, "account"),
-    merchantRules: new Collection<MerchantRule>(rawDb, "merchantRule"),
-    dashboardCharts: new Collection<DashboardChart>(rawDb, "dashboardChart"),
-    dashboardTables: new Collection<DashboardTable>(rawDb, "dashboardTable"),
-    meta: new Collection<SchemaVersionDoc>(rawDb, "meta"),
-    backups: new Collection<Record<string, unknown>>(rawDb, "backup"),
+    transactions: new Collection(rxdb.transactions),
+    tags: new Collection(rxdb.tags),
+    merchants: new Collection(rxdb.merchants),
+    accounts: new Collection(rxdb.accounts),
+    merchantRules: new Collection(rxdb.merchant_rules),
+    dashboardCharts: new Collection(rxdb.dashboard_charts),
+    dashboardTables: new Collection(rxdb.dashboard_tables),
+    meta: new Collection(rxdb.meta),
+    backups: new Collection(rxdb.backups),
   };
 }
 
-export function rawDatabase(dbs: Databases): PouchDB.Database {
-  return dbs.transactions.raw;
-}
-
-export async function createIndexes(dbs: Databases) {
-  await rawDatabase(dbs).createIndex({ index: { fields: ["docType"] } });
-  await dbs.transactions.createIndex({ index: { fields: ["merchantId"] } });
-  await dbs.transactions.createIndex({ index: { fields: ["accountId"] } });
-  await dbs.tags.createIndex({ index: { fields: ["name"] } });
-  await dbs.merchants.createIndex({ index: { fields: ["name"] } });
-}
-
 export async function destroyAll(dbs: Databases) {
-  await rawDatabase(dbs).destroy();
+  const rxdb = (dbs.transactions as Collection<Transaction>).rxCollection.database;
+  const storage = rxdb.storage;
+  const name = rxdb.name;
+  await rxdb.destroy();
+  await removeRxDatabase(name, storage);
 }
 
-const defaultAdapter = import.meta.env?.MODE === "test" ? "memory" : undefined;
-export const db = createDatabases(defaultAdapter);
-createIndexes(db);
+async function createDefaultDatabase(): Promise<Databases> {
+  if (import.meta.env?.MODE === "test") {
+    const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
+    return createDatabases(getRxStorageMemory());
+  }
+  const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
+  return createDatabases(getRxStorageDexie());
+}
+
+export let db: Databases;
+
+const dbReady = createDefaultDatabase().then((dbs) => {
+  db = dbs;
+  return dbs;
+});
+
+export function waitForDb(): Promise<Databases> {
+  return dbReady;
+}

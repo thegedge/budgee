@@ -26,7 +26,7 @@ function periodKey(date: string, granularity: PeriodGranularity): string {
 
 export function aggregateByTag(
   transactions: Transaction[],
-  tags: { _id?: string; name: string }[],
+  tags: { id: string; name: string }[],
   excludedIds?: string[],
 ): Map<string, number> {
   const excluded = excludedIds ? new Set(excludedIds) : undefined;
@@ -39,8 +39,8 @@ export function aggregateByTag(
 
   const result = new Map<string, number>();
   for (const tag of tags) {
-    if (excluded?.has(tag._id!)) continue;
-    const total = totals.get(tag._id!);
+    if (excluded?.has(tag.id)) continue;
+    const total = totals.get(tag.id);
     if (total !== undefined) {
       result.set(tag.name, total);
     }
@@ -50,7 +50,7 @@ export function aggregateByTag(
 
 export function aggregateByMerchant(
   transactions: Transaction[],
-  merchants: { _id?: string; name: string }[],
+  merchants: { id: string; name: string }[],
   excludedIds?: string[],
 ): Map<string, number> {
   const excluded = excludedIds ? new Set(excludedIds) : undefined;
@@ -63,8 +63,8 @@ export function aggregateByMerchant(
 
   const result = new Map<string, number>();
   for (const merchant of merchants) {
-    if (excluded?.has(merchant._id!)) continue;
-    const total = totals.get(merchant._id!);
+    if (excluded?.has(merchant.id)) continue;
+    const total = totals.get(merchant.id);
     if (total !== undefined) {
       result.set(merchant.name, total);
     }

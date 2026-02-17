@@ -1,5 +1,4 @@
 import { db } from "../database/db";
-import { allDocs } from "../database/pouchHelpers";
 import type { Account } from "../database/types";
 import { uuid } from "../uuid";
 
@@ -7,7 +6,7 @@ export class Accounts {
   private constructor() {}
 
   static async all(): Promise<Account[]> {
-    return allDocs(db.accounts);
+    return db.accounts.all();
   }
 
   static async get(id: string): Promise<Account | undefined> {
@@ -18,9 +17,9 @@ export class Accounts {
     }
   }
 
-  static async create(account: Omit<Account, "_id" | "_rev">): Promise<string> {
+  static async create(account: Omit<Account, "id">): Promise<string> {
     const id = uuid();
-    await db.accounts.put({ ...account, _id: id });
+    await db.accounts.put({ ...account, id });
     return id;
   }
 
@@ -30,7 +29,6 @@ export class Accounts {
   }
 
   static async remove(id: string): Promise<void> {
-    const doc = await db.accounts.get(id);
-    await db.accounts.remove(doc);
+    await db.accounts.remove(id);
   }
 }

@@ -11,8 +11,8 @@ beforeEach(async () => {
 describe("Accounts", () => {
   it("should return all accounts", async () => {
     await db.accounts.bulkDocs([
-      { _id: uuid(), name: "Checking" },
-      { _id: uuid(), name: "Savings" },
+      { id: uuid(), name: "Checking" },
+      { id: uuid(), name: "Savings" },
     ]);
     const all = await Accounts.all();
     expect(all).toHaveLength(2);

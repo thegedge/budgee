@@ -1,5 +1,4 @@
 import { db } from "./db";
-import { clearDb } from "./pouchHelpers";
 import type {
   Account,
   DashboardChart,
@@ -21,43 +20,33 @@ export interface DatabaseExport {
   dashboardTables?: DashboardTable[];
 }
 
-function stripRev<T extends { _rev?: string }>(docs: T[]): T[] {
-  return docs.map(({ _rev, ...rest }) => rest as T);
-}
-
 export async function importDatabase(file: File) {
   const text = await file.text();
   const data: DatabaseExport = JSON.parse(text);
 
-  const { migrateExport } = await import("./migrations");
+  const { migrateExport, LATEST_VERSION } = await import("./migrations");
   const migrated = migrateExport(data);
 
-  await clearDb(db.transactions);
-  await clearDb(db.tags);
-  await clearDb(db.merchants);
-  await clearDb(db.accounts);
-  await clearDb(db.merchantRules);
-  await clearDb(db.dashboardCharts);
-  await clearDb(db.dashboardTables);
+  await db.transactions.clear();
+  await db.tags.clear();
+  await db.merchants.clear();
+  await db.accounts.clear();
+  await db.merchantRules.clear();
+  await db.dashboardCharts.clear();
+  await db.dashboardTables.clear();
 
-  if (migrated.transactions?.length)
-    await db.transactions.bulkDocs(stripRev(migrated.transactions));
-  if (migrated.tags?.length) await db.tags.bulkDocs(stripRev(migrated.tags));
-  if (migrated.merchants?.length) await db.merchants.bulkDocs(stripRev(migrated.merchants));
-  if (migrated.accounts?.length) await db.accounts.bulkDocs(stripRev(migrated.accounts));
-  if (migrated.merchantRules?.length)
-    await db.merchantRules.bulkDocs(stripRev(migrated.merchantRules));
-  if (migrated.dashboardCharts?.length)
-    await db.dashboardCharts.bulkDocs(stripRev(migrated.dashboardCharts));
-  if (migrated.dashboardTables?.length)
-    await db.dashboardTables.bulkDocs(stripRev(migrated.dashboardTables));
+  if (migrated.transactions?.length) await db.transactions.bulkDocs(migrated.transactions);
+  if (migrated.tags?.length) await db.tags.bulkDocs(migrated.tags);
+  if (migrated.merchants?.length) await db.merchants.bulkDocs(migrated.merchants);
+  if (migrated.accounts?.length) await db.accounts.bulkDocs(migrated.accounts);
+  if (migrated.merchantRules?.length) await db.merchantRules.bulkDocs(migrated.merchantRules);
+  if (migrated.dashboardCharts?.length) await db.dashboardCharts.bulkDocs(migrated.dashboardCharts);
+  if (migrated.dashboardTables?.length) await db.dashboardTables.bulkDocs(migrated.dashboardTables);
 
-  const meta = db.meta;
   try {
-    const doc = await meta.get("schema_version");
-    await meta.put({ ...doc, value: (await import("./migrations")).LATEST_VERSION });
+    const doc = await db.meta.get("schema_version");
+    await db.meta.put({ ...doc, value: LATEST_VERSION });
   } catch {
-    const { LATEST_VERSION } = await import("./migrations");
-    await meta.put({ _id: "schema_version", value: LATEST_VERSION });
+    await db.meta.put({ id: "schema_version", value: LATEST_VERSION });
   }
 }

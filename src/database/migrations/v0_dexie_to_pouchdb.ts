@@ -102,7 +102,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
   const mapEntity = (records: Record<string, unknown>[], idMap: Map<number, string>) =>
     records.map((record) => {
       const { id, ...rest } = record;
-      return { ...rest, _id: idMap.get(id as number) };
+      return { ...rest, id: idMap.get(id as number) };
     });
 
   const tags = mapEntity(raw.tags ?? [], idMaps.tags);
@@ -113,7 +113,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, merchantId, accountId, tagIds, ...rest } = record;
     return {
       ...rest,
-      _id: uuid(),
+      id: uuid(),
       merchantId: mapId(idMaps.merchants, merchantId),
       accountId: mapId(idMaps.accounts, accountId),
       tagIds: mapIds(idMaps.tags, tagIds),
@@ -124,7 +124,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, merchantId, tagIds, ...rest } = record;
     return {
       ...rest,
-      _id: uuid(),
+      id: uuid(),
       merchantId: mapId(idMaps.merchants, merchantId),
       tagIds: mapIds(idMaps.tags, tagIds),
     };
@@ -134,7 +134,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, tagId, merchantId, excludedTagIds, excludedMerchantIds, ...rest } = record;
     return {
       ...rest,
-      _id: uuid(),
+      id: uuid(),
       tagId: mapId(idMaps.tags, tagId),
       merchantId: mapId(idMaps.merchants, merchantId),
       excludedTagIds: mapIds(idMaps.tags, excludedTagIds),
@@ -144,7 +144,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
 
   const dashboardTables = (raw.dashboardTables ?? []).map((record) => {
     const { id: _oldId, ...rest } = record;
-    return { ...rest, _id: uuid() };
+    return { ...rest, id: uuid() };
   });
 
   return {

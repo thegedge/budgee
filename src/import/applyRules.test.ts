@@ -3,7 +3,7 @@ import type { MerchantRule, Transaction } from "../database/types";
 import { applyRules } from "./applyRules";
 
 describe("applyRules", () => {
-  const baseTransaction: Omit<Transaction, "_id" | "_rev"> = {
+  const baseTransaction: Omit<Transaction, "id"> = {
     date: "2024-01-01",
     amount: -5.75,
     originalDescription: "Starbucks Coffee #123",
@@ -12,6 +12,7 @@ describe("applyRules", () => {
 
   function containsRule(value: string, tagIds: string[]): MerchantRule {
     return {
+      id: "rule-1",
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value }],
       tagIds,
@@ -52,6 +53,7 @@ describe("applyRules", () => {
   it("should set merchantId from matching rule", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
         merchantId: "m42",
@@ -65,6 +67,7 @@ describe("applyRules", () => {
   it("should support startsWith operator", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "startsWith", value: "starbucks" }],
         tagIds: ["t1"],
@@ -77,6 +80,7 @@ describe("applyRules", () => {
   it("should support equals operator", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "equals", value: "starbucks coffee #123" }],
         tagIds: ["t1"],
@@ -89,6 +93,7 @@ describe("applyRules", () => {
   it("should support regex operator", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "regex", value: "starbucks.*#\\d+" }],
         tagIds: ["t1"],
@@ -101,6 +106,7 @@ describe("applyRules", () => {
   it("should support OR logic across conditions", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "or",
         conditions: [
           { field: "description", operator: "contains", value: "walmart" },
@@ -116,6 +122,7 @@ describe("applyRules", () => {
   it("should require all conditions for AND logic", () => {
     const rules: MerchantRule[] = [
       {
+        id: "r1",
         logic: "and",
         conditions: [
           { field: "description", operator: "contains", value: "starbucks" },

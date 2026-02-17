@@ -20,9 +20,9 @@ export function matchesRule(description: string, rule: MerchantRule): boolean {
 }
 
 export function applyRules(
-  transaction: Omit<Transaction, "_id" | "_rev">,
+  transaction: Omit<Transaction, "id">,
   rules: MerchantRule[],
-): Omit<Transaction, "_id" | "_rev"> {
+): Omit<Transaction, "id"> {
   const description = transaction.originalDescription.toLowerCase();
   for (const rule of rules) {
     if (!matchesRule(description, rule)) {
