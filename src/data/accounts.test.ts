@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
 import { clearDb } from "../database/pouchHelpers";
@@ -10,8 +11,8 @@ beforeEach(async () => {
 describe("Accounts", () => {
   it("should return all accounts", async () => {
     await db.accounts.bulkDocs([
-      { _id: crypto.randomUUID(), name: "Checking" },
-      { _id: crypto.randomUUID(), name: "Savings" },
+      { _id: uuid(), name: "Checking" },
+      { _id: uuid(), name: "Savings" },
     ]);
     const all = await Accounts.all();
     expect(all).toHaveLength(2);

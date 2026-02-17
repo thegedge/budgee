@@ -1,3 +1,4 @@
+import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
 import { clearDb } from "../../database/pouchHelpers";
@@ -30,14 +31,14 @@ describe("budgee-dashboard", () => {
   it("should render chart grid when transactions exist", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -50,
         originalDescription: "Groceries",
         tagIds: [],
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -25,
         originalDescription: "Restaurant",
@@ -59,7 +60,7 @@ describe("budgee-dashboard", () => {
   it("should render dashboard tables from database", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -50,
         originalDescription: "Groceries",
@@ -67,7 +68,7 @@ describe("budgee-dashboard", () => {
       },
     ]);
     await db.dashboardTables.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       title: "Recent Transactions",
       model: "transactions",
       columns: ["date", "amount", "description"],

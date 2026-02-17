@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
 import { allDocs, clearDb } from "../database/pouchHelpers";
@@ -11,14 +12,14 @@ describe("Transactions", () => {
   it("should return all transactions", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -10,
         originalDescription: "A",
         tagIds: [],
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -20,
         originalDescription: "B",
@@ -31,7 +32,7 @@ describe("Transactions", () => {
 
   it("should get a transaction by id", async () => {
     const resp = await db.transactions.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       date: "2024-01-01",
       amount: -10,
       originalDescription: "Test",
@@ -43,7 +44,7 @@ describe("Transactions", () => {
 
   it("should update a transaction", async () => {
     const resp = await db.transactions.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       date: "2024-01-01",
       amount: -10,
       originalDescription: "Test",
@@ -58,7 +59,7 @@ describe("Transactions", () => {
     const merchantId = "m1";
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -10,
         originalDescription: "A",
@@ -66,7 +67,7 @@ describe("Transactions", () => {
         merchantId,
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-03",
         amount: -30,
         originalDescription: "C",
@@ -74,7 +75,7 @@ describe("Transactions", () => {
         merchantId,
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -20,
         originalDescription: "B",
@@ -82,7 +83,7 @@ describe("Transactions", () => {
         merchantId,
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -5,
         originalDescription: "D",
@@ -99,7 +100,7 @@ describe("Transactions", () => {
     const merchantId = "m1";
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -10,
         originalDescription: "A",
@@ -107,7 +108,7 @@ describe("Transactions", () => {
         merchantId,
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -20,
         originalDescription: "B",
@@ -122,7 +123,7 @@ describe("Transactions", () => {
   it("should delete transactions for a specific account", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -10,
         originalDescription: "A",
@@ -130,7 +131,7 @@ describe("Transactions", () => {
         accountId: "a1",
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -20,
         originalDescription: "B",
@@ -138,7 +139,7 @@ describe("Transactions", () => {
         accountId: "a1",
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-03",
         amount: -30,
         originalDescription: "C",

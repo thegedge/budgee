@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
 import { allDocs, clearDb } from "../database/pouchHelpers";
@@ -5,7 +6,7 @@ import type { ColumnMapping } from "./parseCsv";
 import { importTransactions } from "./importTransactions";
 
 describe("importTransactions", () => {
-  const accountId = crypto.randomUUID();
+  const accountId = uuid();
   const defaultOptions = { accountId, importMode: "append" as const };
 
   beforeEach(async () => {
@@ -115,7 +116,7 @@ describe("importTransactions", () => {
 
   it("should apply merchant rules during import", async () => {
     await db.merchantRules.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "groceries" }],
       tagIds: ["tag42"],
@@ -167,7 +168,7 @@ describe("importTransactions", () => {
   });
 
   it("should reuse existing accounts when importing with account column", async () => {
-    const existingId = crypto.randomUUID();
+    const existingId = uuid();
     await db.accounts.put({ _id: existingId, name: "Visa" });
 
     const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
@@ -181,7 +182,7 @@ describe("importTransactions", () => {
   });
 
   it("should only replace transactions for the specified account", async () => {
-    const otherAccountId = crypto.randomUUID();
+    const otherAccountId = uuid();
     await db.accounts.put({ _id: otherAccountId, name: "Other Account" });
 
     await importTransactions(rows, mapping, defaultOptions);

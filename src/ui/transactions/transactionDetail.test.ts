@@ -1,3 +1,4 @@
+import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
 import { clearDb } from "../../database/pouchHelpers";
@@ -16,7 +17,7 @@ describe("transaction-detail", () => {
   });
 
   it("should display transaction header", async () => {
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await db.transactions.put({
       _id: txId,
       date: "2024-01-15",
@@ -39,10 +40,10 @@ describe("transaction-detail", () => {
   });
 
   it("should display merchant name when available", async () => {
-    const merchantId = crypto.randomUUID();
+    const merchantId = uuid();
     await db.merchants.put({ _id: merchantId, name: "Whole Foods" });
 
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await db.transactions.put({
       _id: txId,
       date: "2024-01-15",
@@ -64,10 +65,10 @@ describe("transaction-detail", () => {
   });
 
   it("should display tag badges", async () => {
-    const tagId = crypto.randomUUID();
+    const tagId = uuid();
     await db.tags.put({ _id: tagId, name: "Groceries" });
 
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await db.transactions.put({
       _id: txId,
       date: "2024-01-15",
@@ -91,7 +92,7 @@ describe("transaction-detail", () => {
   });
 
   it("should save memo on blur", async () => {
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await db.transactions.put({
       _id: txId,
       date: "2024-01-15",
@@ -118,10 +119,10 @@ describe("transaction-detail", () => {
   });
 
   it("should show related transactions for same merchant", async () => {
-    const merchantId = crypto.randomUUID();
+    const merchantId = uuid();
     await db.merchants.put({ _id: merchantId, name: "Starbucks" });
 
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await db.transactions.put({
       _id: txId,
       date: "2024-01-15",
@@ -131,7 +132,7 @@ describe("transaction-detail", () => {
       tagIds: [],
     });
     await db.transactions.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       date: "2024-01-10",
       amount: -4.75,
       originalDescription: "Starbucks #2",

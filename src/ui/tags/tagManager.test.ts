@@ -1,3 +1,4 @@
+import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
 import { allDocs, clearDb } from "../../database/pouchHelpers";
@@ -38,7 +39,7 @@ describe("tag-manager", () => {
   });
 
   it("should show error for duplicate tag names", async () => {
-    await db.tags.put({ _id: crypto.randomUUID(), name: "Food" });
+    await db.tags.put({ _id: uuid(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
@@ -62,7 +63,7 @@ describe("tag-manager", () => {
   });
 
   it("should delete a tag when Remove is clicked", async () => {
-    await db.tags.put({ _id: crypto.randomUUID(), name: "Food" });
+    await db.tags.put({ _id: uuid(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);

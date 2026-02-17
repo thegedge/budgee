@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
 import { allDocs, clearDb } from "../database/pouchHelpers";
@@ -11,7 +12,7 @@ beforeEach(async () => {
 describe("MerchantRules", () => {
   it("should return all rules", async () => {
     await db.merchantRules.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "test" }],
       tagIds: [],
@@ -32,7 +33,7 @@ describe("MerchantRules", () => {
 
   it("should remove a rule", async () => {
     const resp = await db.merchantRules.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "x" }],
       tagIds: [],
@@ -44,14 +45,14 @@ describe("MerchantRules", () => {
   it("should apply a rule to matching transactions", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-01",
         amount: -5,
         originalDescription: "COFFEE SHOP",
         tagIds: [],
       },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         date: "2024-01-02",
         amount: -10,
         originalDescription: "GROCERY STORE",
@@ -59,7 +60,7 @@ describe("MerchantRules", () => {
       },
     ]);
 
-    const ruleId = crypto.randomUUID();
+    const ruleId = uuid();
     const merchantId = "m99";
     const tagId = "t1";
     const rule = {

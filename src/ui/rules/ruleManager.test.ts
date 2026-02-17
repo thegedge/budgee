@@ -1,3 +1,4 @@
+import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
 import { allDocs, clearDb } from "../../database/pouchHelpers";
@@ -17,9 +18,9 @@ describe("rule-manager", () => {
   });
 
   it("should add a rule via clicking an unmerchanted transaction", async () => {
-    await db.tags.put({ _id: crypto.randomUUID(), name: "Coffee" });
+    await db.tags.put({ _id: uuid(), name: "Coffee" });
     await db.transactions.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       date: "2024-01-01",
       originalDescription: "STARBUCKS",
       amount: 5.0,
@@ -57,7 +58,7 @@ describe("rule-manager", () => {
 
   it("should delete a rule", async () => {
     await db.merchantRules.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
       tagIds: [],

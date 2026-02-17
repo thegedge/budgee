@@ -1,6 +1,7 @@
 import { db } from "../database/db";
 import { allDocs } from "../database/pouchHelpers";
 import type { Transaction } from "../database/types";
+import { uuid } from "../uuid";
 
 export class Transactions {
   private constructor() {}
@@ -23,13 +24,11 @@ export class Transactions {
   }
 
   static async bulkPut(transactions: Transaction[]): Promise<void> {
-    await db.transactions.bulkDocs(
-      transactions.map((t) => ({ ...t, _id: t._id ?? crypto.randomUUID() })),
-    );
+    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, _id: t._id ?? uuid() })));
   }
 
   static async bulkAdd(transactions: Omit<Transaction, "_id" | "_rev">[]): Promise<void> {
-    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, _id: crypto.randomUUID() })));
+    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, _id: uuid() })));
   }
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {

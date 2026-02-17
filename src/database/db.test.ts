@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import "pouchdb-adapter-memory";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createDatabases, destroyAll, type Databases } from "./db";
@@ -24,7 +25,7 @@ describe("BudgeeDatabase", () => {
   });
 
   it("should create and retrieve a tag", async () => {
-    const id = crypto.randomUUID();
+    const id = uuid();
     await dbs.tags.put({ _id: id, name: "Groceries" });
     const tag = await dbs.tags.get(id);
     expect(tag.name).toBe("Groceries");
@@ -32,16 +33,16 @@ describe("BudgeeDatabase", () => {
   });
 
   it("should create and retrieve a transaction", async () => {
-    const tagId = crypto.randomUUID();
+    const tagId = uuid();
     await dbs.tags.put({ _id: tagId, name: "Coffee" });
 
-    const merchantId = crypto.randomUUID();
+    const merchantId = uuid();
     await dbs.merchants.put({ _id: merchantId, name: "Starbucks" });
 
-    const accountId = crypto.randomUUID();
+    const accountId = uuid();
     await dbs.accounts.put({ _id: accountId, name: "Checking Account", type: "Checking" });
 
-    const txId = crypto.randomUUID();
+    const txId = uuid();
     await dbs.transactions.put({
       _id: txId,
       date: "2023-10-27",

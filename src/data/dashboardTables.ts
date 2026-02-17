@@ -1,6 +1,7 @@
 import { db } from "../database/db";
 import { allDocs } from "../database/pouchHelpers";
 import type { DashboardTable } from "../database/types";
+import { uuid } from "../uuid";
 
 export class DashboardTables {
   private constructor() {}
@@ -10,7 +11,7 @@ export class DashboardTables {
   }
 
   static async create(table: Omit<DashboardTable, "_id" | "_rev">): Promise<string> {
-    const id = crypto.randomUUID();
+    const id = uuid();
     await db.dashboardTables.put({ ...table, _id: id });
     return id;
   }

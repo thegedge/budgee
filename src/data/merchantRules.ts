@@ -2,6 +2,7 @@ import { db } from "../database/db";
 import { allDocs } from "../database/pouchHelpers";
 import type { MerchantRule, Transaction } from "../database/types";
 import { matchesRule } from "../import/applyRules";
+import { uuid } from "../uuid";
 
 export class MerchantRules {
   private constructor() {}
@@ -11,7 +12,7 @@ export class MerchantRules {
   }
 
   static async create(rule: Omit<MerchantRule, "_id" | "_rev">): Promise<string> {
-    const id = crypto.randomUUID();
+    const id = uuid();
     await db.merchantRules.put({ ...rule, _id: id });
     return id;
   }
@@ -21,7 +22,7 @@ export class MerchantRules {
       const existing = await db.merchantRules.get(rule._id);
       await db.merchantRules.put({ ...rule, _rev: existing._rev });
     } else {
-      await db.merchantRules.put({ ...rule, _id: crypto.randomUUID() });
+      await db.merchantRules.put({ ...rule, _id: uuid() });
     }
   }
 

@@ -1,6 +1,7 @@
 import { db } from "../database/db";
 import { allDocs } from "../database/pouchHelpers";
 import type { Tag } from "../database/types";
+import { uuid } from "../uuid";
 import { randomTagColor } from "./tagColor";
 
 export class Tags {
@@ -11,7 +12,7 @@ export class Tags {
   }
 
   static async create(name: string, options?: Partial<Tag>): Promise<string> {
-    const id = crypto.randomUUID();
+    const id = uuid();
     await db.tags.put({ _id: id, name, color: randomTagColor(), ...options });
     return id;
   }

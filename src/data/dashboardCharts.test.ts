@@ -1,3 +1,4 @@
+import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
 import { clearDb } from "../database/pouchHelpers";
@@ -10,9 +11,9 @@ beforeEach(async () => {
 describe("DashboardCharts", () => {
   it("should return all charts sorted by position", async () => {
     await db.dashboardCharts.bulkDocs([
-      { _id: crypto.randomUUID(), title: "B", chartType: "bar", granularity: "month", position: 1 },
+      { _id: uuid(), title: "B", chartType: "bar", granularity: "month", position: 1 },
       {
-        _id: crypto.randomUUID(),
+        _id: uuid(),
         title: "A",
         chartType: "line",
         granularity: "month",
@@ -38,7 +39,7 @@ describe("DashboardCharts", () => {
 
   it("should remove a chart", async () => {
     const resp = await db.dashboardCharts.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       title: "X",
       chartType: "pie",
       granularity: "byTag",
@@ -50,14 +51,14 @@ describe("DashboardCharts", () => {
 
   it("should reorder charts", async () => {
     const resp1 = await db.dashboardCharts.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       title: "A",
       chartType: "bar",
       granularity: "month",
       position: 0,
     });
     const resp2 = await db.dashboardCharts.put({
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       title: "B",
       chartType: "line",
       granularity: "month",

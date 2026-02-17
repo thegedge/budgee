@@ -1,6 +1,7 @@
 import { db } from "../database/db";
 import { allDocs } from "../database/pouchHelpers";
 import type { Merchant } from "../database/types";
+import { uuid } from "../uuid";
 
 export class Merchants {
   private constructor() {}
@@ -18,7 +19,7 @@ export class Merchants {
   }
 
   static async create(name: string): Promise<string> {
-    const id = crypto.randomUUID();
+    const id = uuid();
     await db.merchants.put({ _id: id, name });
     return id;
   }
