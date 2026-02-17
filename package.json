@@ -1,0 +1,44 @@
+{
+  "name": "budgee",
+  "version": "1.0.0",
+  "description": "A single-page app for transaction management and budgeting.",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host",
+    "format": "oxfmt --check",
+    "format:fix": "oxfmt --write",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "tc": "tsc --noEmit",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "@lit-labs/router": "^0.1.4",
+    "chart.js": "^4.5.1",
+    "events": "^3.3.0",
+    "lit": "^3.3.2",
+    "lucide-static": "^0.564.0",
+    "papaparse": "^5.5.3",
+    "rxdb": "^16.21.1",
+    "rxjs": "^7.8.2",
+    "sortablejs": "^1.15.7",
+    "urlpattern-polyfill": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.5.2",
+    "@types/sortablejs": "^1.15.9",
+    "@vitest/ui": "^4.0.18",
+    "happy-dom": "^20.6.0",
+    "oxfmt": "^0.31.0",
+    "oxlint": "^1.46.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  }
+}

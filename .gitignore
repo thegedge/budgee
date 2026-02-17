@@ -1,0 +1,17 @@
+# Node
+node_modules
+dist
+coverage
+
+# Editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# Claude Code
+.claude/settings.local.json
+
+# Budgee
+.oxlintignore
+.ignore
