@@ -4,6 +4,7 @@ import { Accounts } from "../../data/accounts";
 import type { Account } from "../../database/types";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -21,7 +22,7 @@ const MAPPING_FIELDS: { key: keyof ColumnMapping; label: string }[] = [
 ];
 
 @customElement("transaction-importer")
-export class TransactionImporter extends LitElement {
+export class TransactionImporter extends BusyMixin(LitElement) {
   @state()
   private _step: "upload" | "mapping" = "upload";
 
@@ -41,6 +42,7 @@ export class TransactionImporter extends LitElement {
   private _importMode: ImportMode = "append";
 
   static styles = [
+    busyStyles,
     tableStyles,
     css`
       :host {
@@ -71,10 +73,12 @@ export class TransactionImporter extends LitElement {
   ];
 
   async loadFile(file: File) {
-    this._accounts = await Accounts.all();
-    this._result = await parseCsv(file);
-    this._mapping = { ...this._result.suggestedMapping };
-    this._step = "mapping";
+    await this.withBusy(async () => {
+      this._accounts = await Accounts.all();
+      this._result = await parseCsv(file);
+      this._mapping = { ...this._result.suggestedMapping };
+      this._step = "mapping";
+    });
   }
 
   async #onFileChange(e: Event) {
@@ -114,21 +118,23 @@ export class TransactionImporter extends LitElement {
   async #onImport() {
     if (!this._result) return;
 
-    const needsAccount = !this._mapping.account;
-    const accountId = await this.#resolveAccountId();
-    if (needsAccount && accountId === undefined) return;
+    await this.withBusy(async () => {
+      const needsAccount = !this._mapping.account;
+      const accountId = await this.#resolveAccountId();
+      if (needsAccount && accountId === undefined) return;
 
-    const count = await importTransactions(this._result.data, this._mapping, {
-      accountId,
-      importMode: this._importMode,
+      const count = await importTransactions(this._result!.data, this._mapping, {
+        accountId,
+        importMode: this._importMode,
+      });
+
+      this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
+      this._step = "upload";
+      this._result = undefined;
+      this._mapping = {};
+      this._accountName = "";
+      this._importMode = "append";
     });
-
-    this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
-    this._step = "upload";
-    this._result = undefined;
-    this._mapping = {};
-    this._accountName = "";
-    this._importMode = "append";
   }
 
   render() {

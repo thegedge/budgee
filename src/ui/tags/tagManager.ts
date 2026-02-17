@@ -6,6 +6,7 @@ import { colorToHex } from "../../data/tagColor";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { Tags } from "../../data/tags";
 import type { Tag } from "../../database/types";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import "../shared/iconPicker";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
@@ -20,7 +21,7 @@ declare global {
 type SortDir = "asc" | "desc";
 
 @customElement("tag-manager")
-export class TagManager extends LitElement {
+export class TagManager extends BusyMixin(LitElement) {
   @state()
   private _tags: Tag[] = [];
 
@@ -43,6 +44,7 @@ export class TagManager extends LitElement {
   private _sortDir: SortDir = "asc";
 
   static styles = [
+    busyStyles,
     tableStyles,
     iconButtonStyles,
     css`
@@ -117,19 +119,25 @@ export class TagManager extends LitElement {
       return;
     }
 
-    await Tags.create(name);
-    this._newTagName = "";
-    await this.#refreshTags();
+    await this.withBusy(async () => {
+      await Tags.create(name);
+      this._newTagName = "";
+      await this.#refreshTags();
+    });
   }
 
   async #deleteTag(id: string) {
-    await Tags.remove(id);
-    await this.#refreshTags();
+    await this.withBusy(async () => {
+      await Tags.remove(id);
+      await this.#refreshTags();
+    });
   }
 
   async #saveTagIcon(tag: Tag, icon: string) {
-    await Tags.update(tag._id!, { icon: icon || undefined });
-    await this.#refreshTags();
+    await this.withBusy(async () => {
+      await Tags.update(tag._id!, { icon: icon || undefined });
+      await this.#refreshTags();
+    });
   }
 
   #toHex(color?: string): string {
@@ -137,8 +145,10 @@ export class TagManager extends LitElement {
   }
 
   async #saveTagColor(tag: Tag, color: string) {
-    await Tags.update(tag._id!, { color });
-    await this.#refreshTags();
+    await this.withBusy(async () => {
+      await Tags.update(tag._id!, { color });
+      await this.#refreshTags();
+    });
   }
 
   #onInput(e: Event) {

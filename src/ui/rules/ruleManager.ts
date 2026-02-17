@@ -9,6 +9,7 @@ import { Merchants } from "../../data/merchants";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import "../shared/modal";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
@@ -26,7 +27,7 @@ type RulesSortColumn = "conditions" | "merchant" | "tags";
 type SortDir = "asc" | "desc";
 
 @customElement("rule-manager")
-export class RuleManager extends LitElement {
+export class RuleManager extends BusyMixin(LitElement) {
   @state()
   private _rules: MerchantRule[] = [];
 
@@ -82,6 +83,7 @@ export class RuleManager extends LitElement {
   private _overlapRefresh = 0;
 
   static styles = [
+    busyStyles,
     tableStyles,
     iconButtonStyles,
     css`
@@ -152,73 +154,77 @@ export class RuleManager extends LitElement {
   }
 
   async #onRuleSaved(e: CustomEvent) {
-    const { id, logic, conditions, tagIds, newTagNames, merchantName } = e.detail;
+    await this.withBusy(async () => {
+      const { id, logic, conditions, tagIds, newTagNames, merchantName } = e.detail;
 
-    const allTagIds = [...(tagIds as string[])];
-    if (newTagNames?.length) {
-      for (const name of newTagNames as string[]) {
-        const existing = await Tags.byName(name);
-        const tagId = existing?._id ?? (await Tags.create(name));
-        allTagIds.push(tagId);
+      const allTagIds = [...(tagIds as string[])];
+      if (newTagNames?.length) {
+        for (const name of newTagNames as string[]) {
+          const existing = await Tags.byName(name);
+          const tagId = existing?._id ?? (await Tags.create(name));
+          allTagIds.push(tagId);
+        }
       }
-    }
 
-    let merchantId: string | undefined;
-    if (merchantName) {
-      const existing = await Merchants.byName(merchantName);
-      merchantId = existing?._id ?? (await Merchants.create(merchantName));
-    }
+      let merchantId: string | undefined;
+      if (merchantName) {
+        const existing = await Merchants.byName(merchantName);
+        merchantId = existing?._id ?? (await Merchants.create(merchantName));
+      }
 
-    // Check for existing rule to merge with (only for new rules, not edits)
-    if (!id && merchantId) {
-      const existingRule = this._rules.find((r) => r.merchantId === merchantId);
-      if (existingRule) {
-        const mergedConditions = [...existingRule.conditions, ...conditions];
-        const mergedTagIds = [...new Set([...existingRule.tagIds, ...allTagIds])];
-        const mergedLogic = existingRule.conditions.length <= 1 ? "or" : existingRule.logic;
-        const merged: MerchantRule = {
-          ...existingRule,
-          logic: mergedLogic,
-          conditions: mergedConditions,
-          tagIds: mergedTagIds,
-        };
-        await MerchantRules.put(merged);
+      // Check for existing rule to merge with (only for new rules, not edits)
+      if (!id && merchantId) {
+        const existingRule = this._rules.find((r) => r.merchantId === merchantId);
+        if (existingRule) {
+          const mergedConditions = [...existingRule.conditions, ...conditions];
+          const mergedTagIds = [...new Set([...existingRule.tagIds, ...allTagIds])];
+          const mergedLogic = existingRule.conditions.length <= 1 ? "or" : existingRule.logic;
+          const merged: MerchantRule = {
+            ...existingRule,
+            logic: mergedLogic,
+            conditions: mergedConditions,
+            tagIds: mergedTagIds,
+          };
+          await MerchantRules.put(merged);
+          this._showEditor = false;
+          this._editingRule = null;
+          this._editingMerchantName = "";
+          this._prefillDescription = "";
+          this._pendingRerunRule = merged;
+          await this.#refresh();
+          return;
+        }
+      }
+
+      const rule: MerchantRule = id
+        ? { _id: id, logic, conditions, merchantId, tagIds: allTagIds }
+        : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
+
+      if (id) {
+        await MerchantRules.put(rule);
         this._showEditor = false;
         this._editingRule = null;
         this._editingMerchantName = "";
         this._prefillDescription = "";
-        this._pendingRerunRule = merged;
-        await this.#refresh();
-        return;
+        this._pendingRerunRule = rule;
+      } else {
+        rule._id = await MerchantRules.create(rule);
+        await MerchantRules.applyToTransactions(rule);
+        this._showEditor = false;
+        this._editingRule = null;
+        this._editingMerchantName = "";
+        this._prefillDescription = "";
       }
-    }
 
-    const rule: MerchantRule = id
-      ? { _id: id, logic, conditions, merchantId, tagIds: allTagIds }
-      : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
-
-    if (id) {
-      await MerchantRules.put(rule);
-      this._showEditor = false;
-      this._editingRule = null;
-      this._editingMerchantName = "";
-      this._prefillDescription = "";
-      this._pendingRerunRule = rule;
-    } else {
-      rule._id = await MerchantRules.create(rule);
-      await MerchantRules.applyToTransactions(rule);
-      this._showEditor = false;
-      this._editingRule = null;
-      this._editingMerchantName = "";
-      this._prefillDescription = "";
-    }
-
-    await this.#refresh();
+      await this.#refresh();
+    });
   }
 
   async #deleteRule(id: string) {
-    await MerchantRules.remove(id);
-    await this.#refresh();
+    await this.withBusy(async () => {
+      await MerchantRules.remove(id);
+      await this.#refresh();
+    });
   }
 
   async #editRule(rule: MerchantRule) {

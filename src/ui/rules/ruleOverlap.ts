@@ -5,6 +5,7 @@ import { Merchants } from "../../data/merchants";
 import { Transactions } from "../../data/transactions";
 import type { MerchantRule } from "../../database/types";
 import { matchesRule } from "../../import/applyRules";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -21,7 +22,7 @@ interface OverlapPair {
 }
 
 @customElement("rule-overlap")
-export class RuleOverlap extends LitElement {
+export class RuleOverlap extends BusyMixin(LitElement) {
   @property({ type: Number })
   refreshTrigger = 0;
 
@@ -35,6 +36,7 @@ export class RuleOverlap extends LitElement {
   private _loading = true;
 
   static styles = [
+    busyStyles,
     tableStyles,
     css`
       :host {
@@ -68,41 +70,43 @@ export class RuleOverlap extends LitElement {
   }
 
   async #analyze() {
-    const [rules, transactions, merchants] = await Promise.all([
-      MerchantRules.all(),
-      Transactions.all(),
-      Merchants.all(),
-    ]);
+    await this.withBusy(async () => {
+      const [rules, transactions, merchants] = await Promise.all([
+        MerchantRules.all(),
+        Transactions.all(),
+        Merchants.all(),
+      ]);
 
-    this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
-    const pairCounts = new Map<string, OverlapPair>();
+      this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
+      const pairCounts = new Map<string, OverlapPair>();
 
-    for (const tx of transactions) {
-      const desc = tx.originalDescription.toLowerCase();
-      const matching = rules.filter((r) => matchesRule(desc, r));
-      if (matching.length < 2) continue;
+      for (const tx of transactions) {
+        const desc = tx.originalDescription.toLowerCase();
+        const matching = rules.filter((r) => matchesRule(desc, r));
+        if (matching.length < 2) continue;
 
-      for (let i = 0; i < matching.length; i++) {
-        for (let j = i + 1; j < matching.length; j++) {
-          const key = [matching[i]._id, matching[j]._id].sort().join("-");
-          const existing = pairCounts.get(key);
-          if (existing) {
-            existing.count++;
-            existing.samples.add(tx.originalDescription);
-          } else {
-            pairCounts.set(key, {
-              ruleA: matching[i],
-              ruleB: matching[j],
-              count: 1,
-              samples: new Set([tx.originalDescription]),
-            });
+        for (let i = 0; i < matching.length; i++) {
+          for (let j = i + 1; j < matching.length; j++) {
+            const key = [matching[i]._id, matching[j]._id].sort().join("-");
+            const existing = pairCounts.get(key);
+            if (existing) {
+              existing.count++;
+              existing.samples.add(tx.originalDescription);
+            } else {
+              pairCounts.set(key, {
+                ruleA: matching[i],
+                ruleB: matching[j],
+                count: 1,
+                samples: new Set([tx.originalDescription]),
+              });
+            }
           }
         }
       }
-    }
 
-    this._overlaps = [...pairCounts.values()].sort((a, b) => b.count - a.count);
-    this._loading = false;
+      this._overlaps = [...pairCounts.values()].sort((a, b) => b.count - a.count);
+      this._loading = false;
+    });
   }
 
   #formatRule(rule: MerchantRule): string {

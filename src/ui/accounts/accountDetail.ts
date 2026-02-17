@@ -7,6 +7,7 @@ import { Transactions } from "../../data/transactions";
 import type { Account, Transaction } from "../../database/types";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import "../shared/paginatedTable";
 import type { PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -25,7 +26,7 @@ interface MonthlyTotal {
 }
 
 @customElement("account-detail")
-export class AccountDetail extends LitElement {
+export class AccountDetail extends BusyMixin(LitElement) {
   @property({ type: String })
   accountId = "";
 
@@ -51,6 +52,7 @@ export class AccountDetail extends LitElement {
   private _pageSize = 25;
 
   static styles = [
+    busyStyles,
     tableStyles,
     css`
       :host {
@@ -251,17 +253,21 @@ export class AccountDetail extends LitElement {
   async #saveName(e: KeyboardEvent) {
     if (e.key !== "Enter") return;
     const input = e.target as HTMLInputElement;
-    await Accounts.update(this.accountId, { name: input.value });
-    this._editingName = false;
-    await this.#load();
+    await this.withBusy(async () => {
+      await Accounts.update(this.accountId, { name: input.value });
+      this._editingName = false;
+      await this.#load();
+    });
   }
 
   async #saveType(e: KeyboardEvent) {
     if (e.key !== "Enter") return;
     const input = e.target as HTMLInputElement;
-    await Accounts.update(this.accountId, { type: input.value || undefined });
-    this._editingType = false;
-    await this.#load();
+    await this.withBusy(async () => {
+      await Accounts.update(this.accountId, { type: input.value || undefined });
+      this._editingType = false;
+      await this.#load();
+    });
   }
 
   render() {

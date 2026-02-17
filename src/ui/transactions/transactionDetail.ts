@@ -8,6 +8,7 @@ import type { Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
 import "../tags/tagAutocomplete";
 import "../charts/chartWrapper";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import { tableStyles } from "../tableStyles";
 import { cssVar } from "../cssVar";
 
@@ -23,7 +24,7 @@ interface MonthlySpend {
 }
 
 @customElement("transaction-detail")
-export class TransactionDetail extends LitElement {
+export class TransactionDetail extends BusyMixin(LitElement) {
   @property({ type: String })
   transactionId = "";
 
@@ -43,6 +44,7 @@ export class TransactionDetail extends LitElement {
   private _monthlySpend: MonthlySpend[] = [];
 
   static styles = [
+    busyStyles,
     tableStyles,
     css`
       :host {
@@ -182,33 +184,41 @@ export class TransactionDetail extends LitElement {
     if (!this._transaction) return;
     const tag = e.detail.tag as Tag;
     if (this._transaction.tagIds.includes(tag._id!)) return;
-    const updatedTagIds = [...this._transaction.tagIds, tag._id!];
-    await Transactions.update(this._transaction._id!, { tagIds: updatedTagIds });
-    this._transaction = { ...this._transaction, tagIds: updatedTagIds };
+    await this.withBusy(async () => {
+      const updatedTagIds = [...this._transaction!.tagIds, tag._id!];
+      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
+    });
   }
 
   async #onTagCreated(e: CustomEvent) {
     if (!this._transaction) return;
-    const name = e.detail.name as string;
-    const tagId = await Tags.create(name);
-    const updatedTagIds = [...this._transaction.tagIds, tagId];
-    await Transactions.update(this._transaction._id!, { tagIds: updatedTagIds });
-    this._transaction = { ...this._transaction, tagIds: updatedTagIds };
-    this._tags = await Tags.all();
+    await this.withBusy(async () => {
+      const name = e.detail.name as string;
+      const tagId = await Tags.create(name);
+      const updatedTagIds = [...this._transaction!.tagIds, tagId];
+      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
+      this._tags = await Tags.all();
+    });
   }
 
   async #removeTag(tagId: string) {
     if (!this._transaction) return;
-    const updatedTagIds = this._transaction.tagIds.filter((id) => id !== tagId);
-    await Transactions.update(this._transaction._id!, { tagIds: updatedTagIds });
-    this._transaction = { ...this._transaction, tagIds: updatedTagIds };
+    await this.withBusy(async () => {
+      const updatedTagIds = this._transaction!.tagIds.filter((id) => id !== tagId);
+      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
+    });
   }
 
   async #onMemoBlur(e: Event) {
     if (!this._transaction) return;
-    const memo = (e.target as HTMLTextAreaElement).value;
-    await Transactions.update(this._transaction._id!, { memo });
-    this._transaction = { ...this._transaction, memo };
+    await this.withBusy(async () => {
+      const memo = (e.target as HTMLTextAreaElement).value;
+      await Transactions.update(this._transaction!._id!, { memo });
+      this._transaction = { ...this._transaction!, memo };
+    });
   }
 
   get #merchantChartData(): ChartData {

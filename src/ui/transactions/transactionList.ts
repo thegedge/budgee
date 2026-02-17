@@ -5,6 +5,7 @@ import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import "../merchants/merchantAutocomplete";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import "../shared/modal";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
@@ -23,7 +24,7 @@ type SortColumn = "date" | "merchant" | "description" | "amount" | "tags";
 type SortDir = "asc" | "desc";
 
 @customElement("transaction-list")
-export class TransactionList extends LitElement {
+export class TransactionList extends BusyMixin(LitElement) {
   @state()
   private _transactions: Transaction[] | null = null;
 
@@ -67,6 +68,7 @@ export class TransactionList extends LitElement {
   private _showImporter = false;
 
   static styles = [
+    busyStyles,
     tableStyles,
     css`
       tbody tr {
@@ -200,8 +202,10 @@ export class TransactionList extends LitElement {
   };
 
   async #onImported() {
-    this._showImporter = false;
-    await this.#refresh();
+    await this.withBusy(async () => {
+      this._showImporter = false;
+      await this.#refresh();
+    });
   }
 
   async #refresh() {
@@ -344,30 +348,34 @@ export class TransactionList extends LitElement {
 
   async #applyTagToSelected(tagId: string) {
     if (!this._transactions) return;
-    const selected = this._transactions.filter((t) => this._selectedIds.has(t._id!));
-    for (const t of selected) {
-      if (t.tagIds.includes(tagId)) continue;
-      await Transactions.update(t._id!, { tagIds: [...t.tagIds, tagId] });
-    }
-    this.#clearSelection();
-    await this.#refresh();
+    await this.withBusy(async () => {
+      const selected = this._transactions!.filter((t) => this._selectedIds.has(t._id!));
+      for (const t of selected) {
+        if (t.tagIds.includes(tagId)) continue;
+        await Transactions.update(t._id!, { tagIds: [...t.tagIds, tagId] });
+      }
+      this.#clearSelection();
+      await this.#refresh();
+    });
   }
 
   async #bulkSetMerchant() {
     const name = this._bulkMerchantName.trim();
     if (!name || !this._transactions) return;
 
-    let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
-    if (!merchant) {
-      const _id = await Merchants.create(name);
-      merchant = { _id, name };
-    }
+    await this.withBusy(async () => {
+      let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
+      if (!merchant) {
+        const _id = await Merchants.create(name);
+        merchant = { _id, name };
+      }
 
-    for (const id of this._selectedIds) {
-      await Transactions.update(id, { merchantId: merchant._id });
-    }
-    this.#clearSelection();
-    await this.#refresh();
+      for (const id of this._selectedIds) {
+        await Transactions.update(id, { merchantId: merchant._id });
+      }
+      this.#clearSelection();
+      await this.#refresh();
+    });
   }
 
   #toggleExcludeTag(tagId: string) {

@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { exportDatabase } from "../../database/exportDb";
 import { importDatabase } from "../../database/importDb";
+import { BusyMixin, busyStyles } from "../shared/busyMixin";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -10,28 +11,31 @@ declare global {
 }
 
 @customElement("database-manager")
-export class DatabaseManager extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface);
-    }
-    button {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover);
-    }
-  `;
+export class DatabaseManager extends BusyMixin(LitElement) {
+  static styles = [
+    busyStyles,
+    css`
+      :host {
+        display: block;
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      button {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        background-color: var(--budgee-primary);
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: var(--budgee-primary-hover);
+      }
+    `,
+  ];
 
   async #onDatabaseImport(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -42,9 +46,11 @@ export class DatabaseManager extends LitElement {
       return;
     }
 
-    await importDatabase(input.files[0]);
-    input.value = "";
-    window.location.reload();
+    await this.withBusy(async () => {
+      await importDatabase(input.files![0]);
+      input.value = "";
+      window.location.reload();
+    });
   }
 
   render() {
