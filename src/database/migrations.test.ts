@@ -94,6 +94,29 @@ describe("migrateDatabase", () => {
     expect(backup._id).toMatch(/^backup_/);
   });
 
+  it("should prune backups to keep only the 10 most recent", async () => {
+    // Create 11 existing backups with known timestamps
+    for (let i = 0; i < 11; i++) {
+      await dbs.backups.put({
+        _id: `backup_2024-01-${String(i + 1).padStart(2, "0")}T00:00:00.000Z`,
+        version: 1,
+      } as Record<string, unknown> & { _id: string });
+    }
+
+    // Trigger a migration that creates a new backup (12 total, should prune to 10)
+    await dbs.meta.put({ _id: "schema_version", value: 0 });
+    await migrateDatabase(dbs);
+
+    const backups = await allDocs(dbs.backups);
+    expect(backups).toHaveLength(10);
+
+    // The two oldest backups should have been pruned
+    for (const backup of backups) {
+      expect(backup._id).not.toBe("backup_2024-01-01T00:00:00.000Z");
+      expect(backup._id).not.toBe("backup_2024-01-02T00:00:00.000Z");
+    }
+  });
+
   it("should preserve data through migration when already at v1", async () => {
     await dbs.tags.put({ _id: "t1", name: "Food" });
     await dbs.merchants.put({ _id: "m1", name: "Costco" });

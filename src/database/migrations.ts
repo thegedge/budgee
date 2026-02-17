@@ -42,6 +42,21 @@ async function exportCurrentData(dbs: Databases): Promise<DatabaseExport> {
 async function saveBackup(dbs: Databases, data: DatabaseExport) {
   const id = `backup_${new Date().toISOString()}`;
   await dbs.backups.put({ _id: id, ...data } as Record<string, unknown> & { _id: string });
+  await pruneBackups(dbs, 10);
+}
+
+async function pruneBackups(dbs: Databases, keepCount: number) {
+  const allBackups = await allDocs(dbs.backups);
+  if (allBackups.length <= keepCount) {
+    return;
+  }
+
+  // IDs are lexicographically sortable (ISO timestamps), so sort descending to keep newest
+  const sorted = allBackups.sort((a, b) => b._id.localeCompare(a._id));
+  const toDelete = sorted.slice(keepCount);
+  for (const doc of toDelete) {
+    await dbs.backups.remove(doc);
+  }
 }
 
 async function currentVersion(dbs: Databases): Promise<number | null> {
