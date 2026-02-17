@@ -97,30 +97,6 @@ describe("Transactions", () => {
     expect(results[0].date).toBe("2024-01-03");
   });
 
-  it("should return all transactions for a merchant unsorted", async () => {
-    const merchantId = "m1";
-    await db.transactions.bulkDocs([
-      {
-        id: uuid(),
-        date: "2024-01-01",
-        amount: -10,
-        originalDescription: "A",
-        tagIds: [],
-        merchantId,
-      },
-      {
-        id: uuid(),
-        date: "2024-01-02",
-        amount: -20,
-        originalDescription: "B",
-        tagIds: [],
-        merchantId,
-      },
-    ]);
-    const results = await Transactions.forMerchantAll(merchantId);
-    expect(results).toHaveLength(2);
-  });
-
   it("should delete transactions for a specific account", async () => {
     await db.transactions.bulkDocs([
       {

@@ -168,7 +168,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
       return;
     }
 
-    const all = await Transactions.forMerchantAll(this._transaction.merchantId);
+    const all = await Transactions.forMerchant(this._transaction.merchantId);
 
     const byMonth = new Map<string, number>();
     for (const tx of all) {
