@@ -16,6 +16,11 @@ function createDb<T extends object>(name: string, adapter?: string) {
   return new PouchDB<T>(name, adapter ? { adapter } : {});
 }
 
+export interface SchemaVersionDoc {
+  _id: string;
+  value: number;
+}
+
 export interface Databases {
   transactions: PouchDB.Database<Transaction>;
   tags: PouchDB.Database<Tag>;
@@ -24,6 +29,8 @@ export interface Databases {
   merchantRules: PouchDB.Database<MerchantRule>;
   dashboardCharts: PouchDB.Database<DashboardChart>;
   dashboardTables: PouchDB.Database<DashboardTable>;
+  meta: PouchDB.Database<SchemaVersionDoc>;
+  backups: PouchDB.Database<Record<string, unknown>>;
 }
 
 export function createDatabases(adapter?: string): Databases {
@@ -35,6 +42,8 @@ export function createDatabases(adapter?: string): Databases {
     merchantRules: createDb<MerchantRule>("budgee_merchant_rules", adapter),
     dashboardCharts: createDb<DashboardChart>("budgee_dashboard_charts", adapter),
     dashboardTables: createDb<DashboardTable>("budgee_dashboard_tables", adapter),
+    meta: createDb<SchemaVersionDoc>("budgee_meta", adapter),
+    backups: createDb<Record<string, unknown>>("budgee_backups", adapter),
   };
 }
 
@@ -46,7 +55,8 @@ export async function createIndexes(dbs: Databases) {
 }
 
 export function allDatabases(dbs: Databases): PouchDB.Database[] {
-  return Object.values(dbs);
+  const { meta: _meta, backups: _backups, ...rest } = dbs;
+  return Object.values(rest);
 }
 
 export async function destroyAll(dbs: Databases) {
