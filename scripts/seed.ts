@@ -1,6 +1,7 @@
-import { db } from "../src/database/db";
+import { waitForDb } from "../src/database/db";
 
 export async function seed() {
+  const db = await waitForDb();
   await db.transaction("rw", db.tags, db.merchants, db.accounts, db.transactions, async () => {
     // Clear existing data
     await db.tags.clear();
