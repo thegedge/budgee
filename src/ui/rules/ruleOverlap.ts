@@ -77,7 +77,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
         Merchants.all(),
       ]);
 
-      this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
+      this._merchants = new Map(merchants.map((m) => [m.id, m.name]));
       const pairCounts = new Map<string, OverlapPair>();
 
       for (const tx of transactions) {
@@ -87,7 +87,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
 
         for (let i = 0; i < matching.length; i++) {
           for (let j = i + 1; j < matching.length; j++) {
-            const key = [matching[i]._id, matching[j]._id].sort().join("-");
+            const key = [matching[i].id, matching[j].id].sort().join("-");
             const existing = pairCounts.get(key);
             if (existing) {
               existing.count++;

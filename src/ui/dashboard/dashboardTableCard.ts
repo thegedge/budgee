@@ -137,12 +137,12 @@ export class DashboardTableCard extends LitElement {
   }
 
   #onDelete() {
-    this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config._id } }));
+    this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config.id } }));
   }
 
   #onResize(update: { colSpan?: ColSpan; rowSpan?: RowSpan }) {
     this.dispatchEvent(
-      new CustomEvent("table-resized", { detail: { id: this.config._id, ...update } }),
+      new CustomEvent("table-resized", { detail: { id: this.config.id, ...update } }),
     );
   }
 
@@ -231,16 +231,16 @@ export class DashboardTableCard extends LitElement {
 
   #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
-    return this.merchants.find((m) => m._id === merchantId)?.name ?? "";
+    return this.merchants.find((m) => m.id === merchantId)?.name ?? "";
   }
 
   #accountName(accountId: string | undefined): string {
     if (!accountId) return "";
-    return this.accounts.find((a) => a._id === accountId)?.name ?? "";
+    return this.accounts.find((a) => a.id === accountId)?.name ?? "";
   }
 
   #tagNames(tagIds: string[]): string {
-    return tagIds.map((id) => this.tags.find((t) => t._id === id)?.name ?? `#${id}`).join(", ");
+    return tagIds.map((id) => this.tags.find((t) => t.id === id)?.name ?? `#${id}`).join(", ");
   }
 
   #columnLabel(col: DashboardTableColumn): string {
@@ -272,7 +272,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${sorted.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config._id}"
+        storageKey="dashboard-table-${this.config.id}"
         @page-change=${this.#onPageChange}
       >
         <table>
@@ -330,8 +330,8 @@ export class DashboardTableCard extends LitElement {
     }
     return this.merchants.map((m) => ({
       merchant: m,
-      transactionCount: countMap.get(m._id!) ?? 0,
-      totalAmount: amountMap.get(m._id!) ?? 0,
+      transactionCount: countMap.get(m.id) ?? 0,
+      totalAmount: amountMap.get(m.id) ?? 0,
     }));
   }
 
@@ -345,7 +345,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${rows.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config._id}"
+        storageKey="dashboard-table-${this.config.id}"
         @page-change=${this.#onPageChange}
       >
         <table>
@@ -398,8 +398,8 @@ export class DashboardTableCard extends LitElement {
     }
     return this.tags.map((t) => ({
       tag: t,
-      transactionCount: countMap.get(t._id!) ?? 0,
-      totalAmount: amountMap.get(t._id!) ?? 0,
+      transactionCount: countMap.get(t.id) ?? 0,
+      totalAmount: amountMap.get(t.id) ?? 0,
     }));
   }
 
@@ -413,7 +413,7 @@ export class DashboardTableCard extends LitElement {
       <paginated-table
         .totalItems=${rows.length}
         .defaultPageSize=${10}
-        storageKey="dashboard-table-${this.config._id}"
+        storageKey="dashboard-table-${this.config.id}"
         @page-change=${this.#onPageChange}
       >
         <table>

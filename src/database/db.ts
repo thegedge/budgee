@@ -280,10 +280,12 @@ export async function createDatabases(storage: unknown): Promise<Databases> {
 }
 
 export async function destroyAll(dbs: Databases) {
-  const rxdb = (dbs.transactions as Collection<Transaction>).rxCollection.database;
+  const rxCollection = (dbs.transactions as Collection<Transaction>).rxCollection;
+  const rxdb = rxCollection.database;
   const storage = rxdb.storage;
   const name = rxdb.name;
-  await rxdb.destroy();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (rxdb as any).destroy();
   await removeRxDatabase(name, storage);
 }
 

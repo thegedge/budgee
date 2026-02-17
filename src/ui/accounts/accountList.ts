@@ -78,8 +78,8 @@ export class AccountList extends LitElement {
 
     this._rows = this._rows!.map((row) => ({
       ...row,
-      transactionCount: countMap.get(row.account._id!) ?? 0,
-      balance: balanceMap.get(row.account._id!) ?? 0,
+      transactionCount: countMap.get(row.account.id) ?? 0,
+      balance: balanceMap.get(row.account.id) ?? 0,
     }));
   }
 
@@ -188,7 +188,7 @@ export class AccountList extends LitElement {
           <tbody>
             ${pageRows.map(
               (row) => html`
-              <tr @click=${() => this.#navigateToAccount(row.account._id!)}>
+              <tr @click=${() => this.#navigateToAccount(row.account.id)}>
                 <td>${row.account.name}</td>
                 <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
                 <td>${row.transactionCount ?? "…"}</td>

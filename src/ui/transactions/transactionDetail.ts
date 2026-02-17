@@ -159,7 +159,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
     }
 
     const all = await Transactions.forMerchant(this._transaction.merchantId);
-    this._relatedTransactions = all.filter((t) => t._id !== this._transaction!._id).slice(0, 10);
+    this._relatedTransactions = all.filter((t) => t.id !== this._transaction!.id).slice(0, 10);
   }
 
   async #loadMonthlySpend() {
@@ -184,10 +184,10 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   async #onTagSelected(e: CustomEvent) {
     if (!this._transaction) return;
     const tag = e.detail.tag as Tag;
-    if (this._transaction.tagIds.includes(tag._id!)) return;
+    if (this._transaction.tagIds.includes(tag.id)) return;
     await this.withBusy(async () => {
-      const updatedTagIds = [...this._transaction!.tagIds, tag._id!];
-      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      const updatedTagIds = [...this._transaction!.tagIds, tag.id];
+      await Transactions.update(this._transaction!.id, { tagIds: updatedTagIds });
       this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
     });
   }
@@ -198,7 +198,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
       const name = e.detail.name as string;
       const tagId = await Tags.create(name);
       const updatedTagIds = [...this._transaction!.tagIds, tagId];
-      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      await Transactions.update(this._transaction!.id, { tagIds: updatedTagIds });
       this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
       this._tags = await Tags.all();
     });
@@ -208,7 +208,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
     if (!this._transaction) return;
     await this.withBusy(async () => {
       const updatedTagIds = this._transaction!.tagIds.filter((id) => id !== tagId);
-      await Transactions.update(this._transaction!._id!, { tagIds: updatedTagIds });
+      await Transactions.update(this._transaction!.id, { tagIds: updatedTagIds });
       this._transaction = { ...this._transaction!, tagIds: updatedTagIds };
     });
   }
@@ -217,7 +217,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
     if (!this._transaction) return;
     await this.withBusy(async () => {
       const memo = (e.target as HTMLTextAreaElement).value;
-      await Transactions.update(this._transaction!._id!, { memo });
+      await Transactions.update(this._transaction!.id, { memo });
       this._transaction = { ...this._transaction!, memo };
     });
   }
