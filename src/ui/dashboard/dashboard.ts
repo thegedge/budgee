@@ -253,7 +253,11 @@ export class Dashboard extends LitElement {
   }
 
   async #onChartResized(e: CustomEvent) {
-    await DashboardCharts.update(e.detail.id, { colSpan: e.detail.colSpan });
+    const { id, colSpan, rowSpan } = e.detail;
+    await DashboardCharts.update(id, {
+      ...(colSpan !== undefined && { colSpan }),
+      ...(rowSpan !== undefined && { rowSpan }),
+    });
     await this.#refresh();
   }
 
@@ -289,7 +293,11 @@ export class Dashboard extends LitElement {
   }
 
   async #onTableResized(e: CustomEvent) {
-    await DashboardTables.update(e.detail.id, { colSpan: e.detail.colSpan });
+    const { id, colSpan, rowSpan } = e.detail;
+    await DashboardTables.update(id, {
+      ...(colSpan !== undefined && { colSpan }),
+      ...(rowSpan !== undefined && { rowSpan }),
+    });
     await this.#refresh();
   }
 

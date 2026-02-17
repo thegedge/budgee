@@ -17,6 +17,7 @@ import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
 
 type ColSpan = NonNullable<DashboardChart["colSpan"]>;
+type RowSpan = NonNullable<DashboardChart["rowSpan"]>;
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -79,6 +80,20 @@ export class DashboardChartCard extends LitElement {
       }
       .resize-handle:hover,
       :host([data-resizing]) .resize-handle {
+        background: var(--budgee-primary);
+      }
+      .resize-handle-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        cursor: row-resize;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .resize-handle-bottom:hover,
+      :host([data-resizing-vertical]) .resize-handle-bottom {
         background: var(--budgee-primary);
       }
     `,
@@ -203,9 +218,9 @@ export class DashboardChartCard extends LitElement {
     this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config._id } }));
   }
 
-  #onResize(colSpan: ColSpan) {
+  #onResize(update: { colSpan?: ColSpan; rowSpan?: RowSpan }) {
     this.dispatchEvent(
-      new CustomEvent("chart-resized", { detail: { id: this.config._id, colSpan } }),
+      new CustomEvent("chart-resized", { detail: { id: this.config._id, ...update } }),
     );
   }
 
@@ -240,7 +255,44 @@ export class DashboardChartCard extends LitElement {
 
       const currentSpan = parseInt(getComputedStyle(this).gridColumnEnd.replace("span ", "")) || 1;
       const colSpan = Math.max(1, Math.min(6, currentSpan)) as ColSpan;
-      this.#onResize(colSpan);
+      this.#onResize({ colSpan });
+    };
+
+    handle.addEventListener("pointermove", onPointerMove);
+    handle.addEventListener("pointerup", onPointerUp);
+  }
+
+  #onVerticalResizePointerDown(e: PointerEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const handle = e.currentTarget as HTMLElement;
+    handle.setPointerCapture(e.pointerId);
+    this.setAttribute("data-resizing-vertical", "");
+
+    const grid = this.closest(".chart-grid") ?? this.parentElement;
+    if (!grid) return;
+
+    const gridRect = grid.getBoundingClientRect();
+    const rowHeights = getComputedStyle(grid).gridTemplateRows.split(" ");
+    const rowHeight = parseFloat(rowHeights[0]) || 200;
+    const gap = parseFloat(getComputedStyle(grid).rowGap) || 0;
+
+    const onPointerMove = (ev: PointerEvent) => {
+      const hostTop = this.getBoundingClientRect().top - gridRect.top;
+      const bottomEdge = ev.clientY - gridRect.top;
+      const spannedHeight = bottomEdge - hostTop;
+      const newSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
+      this.style.gridRow = `span ${newSpan}`;
+    };
+
+    const onPointerUp = () => {
+      this.removeAttribute("data-resizing-vertical");
+      handle.removeEventListener("pointermove", onPointerMove);
+      handle.removeEventListener("pointerup", onPointerUp);
+
+      const currentSpan = parseInt(getComputedStyle(this).gridRowEnd.replace("span ", "")) || 1;
+      const rowSpan = Math.max(1, Math.min(4, currentSpan)) as RowSpan;
+      this.#onResize({ rowSpan });
     };
 
     handle.addEventListener("pointermove", onPointerMove);
@@ -250,6 +302,7 @@ export class DashboardChartCard extends LitElement {
   render() {
     return html`
       <div class="resize-handle" @pointerdown=${this.#onResizeHandlePointerDown}></div>
+      <div class="resize-handle-bottom" @pointerdown=${this.#onVerticalResizePointerDown}></div>
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
