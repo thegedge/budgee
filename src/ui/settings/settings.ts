@@ -14,6 +14,7 @@ export class Settings extends LitElement {
   @state() private _url = "";
   @state() private _testResult: "success" | "error" | "testing" | null = null;
   @state() private _testError = "";
+  @state() private _testedUrl = "";
 
   static styles = css`
     :host {
@@ -94,14 +95,13 @@ export class Settings extends LitElement {
 
   #onToggle(e: Event) {
     this._enabled = (e.target as HTMLInputElement).checked;
-    localStorage.setItem("budgee-sync-enabled", String(this._enabled));
-    this.#dispatchChange();
   }
 
   #onUrlChange(e: Event) {
     this._url = (e.target as HTMLInputElement).value;
-    localStorage.setItem("budgee-sync-url", this._url);
-    this.#dispatchChange();
+    this._testResult = null;
+    this._testError = "";
+    this._testedUrl = "";
   }
 
   async #onTestConnection() {
@@ -110,16 +110,30 @@ export class Settings extends LitElement {
     try {
       await testConnection(this._url);
       this._testResult = "success";
+      this._testedUrl = this._url;
     } catch (e) {
       this._testResult = "error";
       this._testError = e instanceof Error ? e.message : String(e);
+      this._testedUrl = "";
     }
   }
 
-  #dispatchChange() {
+  get #canSave() {
+    const savedEnabled = localStorage.getItem("budgee-sync-enabled") === "true";
+    const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
+    const dirty = this._enabled !== savedEnabled || this._url !== savedUrl;
+    if (!dirty) return false;
+    if (!this._enabled) return true;
+    return this._testResult === "success" && this._testedUrl === this._url;
+  }
+
+  #onSave() {
+    localStorage.setItem("budgee-sync-enabled", String(this._enabled));
+    localStorage.setItem("budgee-sync-url", this._url);
     this.dispatchEvent(
       new CustomEvent("budgee-sync-settings-changed", { bubbles: true, composed: true }),
     );
+    this.requestUpdate();
   }
 
   render() {
@@ -158,6 +172,9 @@ export class Settings extends LitElement {
           `
           : nothing
       }
+      <div class="field">
+        <button ?disabled=${!this.#canSave} @click=${this.#onSave}>Save</button>
+      </div>
     `;
   }
 }
