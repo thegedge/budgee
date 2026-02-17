@@ -228,11 +228,10 @@ export class Dashboard extends LitElement {
         chartType: detail.chartType,
         granularity: detail.granularity,
         startDate: detail.startDate,
-        tagId: detail.tagId,
-        merchantId: detail.merchantId,
         excludedTagIds: detail.excludedTagIds,
         excludedMerchantIds: detail.excludedMerchantIds,
         legendPosition: detail.legendPosition,
+        filters: detail.filters,
       });
     } else {
       await DashboardCharts.create({

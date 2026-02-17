@@ -7,7 +7,7 @@ export interface FilterOptions {
   excludedMerchantId?: string;
   startDate?: string;
   endDate?: string;
-  direction?: "debit" | "credit";
+  amountFilter?: { operator: "lt" | "gt" | "lte" | "gte"; value: number };
   descriptionFilter?: string;
   descriptionFilterMode?: "include" | "exclude";
 }
@@ -25,8 +25,13 @@ export function filterTransactions(
       return false;
     if (options.startDate && tx.date < options.startDate) return false;
     if (options.endDate && tx.date > options.endDate) return false;
-    if (options.direction === "debit" && tx.amount >= 0) return false;
-    if (options.direction === "credit" && tx.amount <= 0) return false;
+    if (options.amountFilter) {
+      const { operator, value } = options.amountFilter;
+      if (operator === "lt" && !(tx.amount < value)) return false;
+      if (operator === "gt" && !(tx.amount > value)) return false;
+      if (operator === "lte" && !(tx.amount <= value)) return false;
+      if (operator === "gte" && !(tx.amount >= value)) return false;
+    }
     if (options.descriptionFilter) {
       const matches = tx.originalDescription
         .toLowerCase()

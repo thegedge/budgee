@@ -78,16 +78,30 @@ describe("filterTransactions", () => {
     expect(result).toHaveLength(5);
   });
 
-  it("should filter debits only", () => {
-    const result = filterTransactions(transactions, { direction: "debit" });
+  it("should filter amount < 0", () => {
+    const result = filterTransactions(transactions, { amountFilter: { operator: "lt", value: 0 } });
     expect(result).toHaveLength(4);
     expect(result.every((t) => t.amount < 0)).toBe(true);
   });
 
-  it("should filter credits only", () => {
-    const result = filterTransactions(transactions, { direction: "credit" });
+  it("should filter amount > 0", () => {
+    const result = filterTransactions(transactions, { amountFilter: { operator: "gt", value: 0 } });
     expect(result).toHaveLength(1);
     expect(result[0].originalDescription).toBe("Payroll");
+  });
+
+  it("should filter amount >= -30", () => {
+    const result = filterTransactions(transactions, {
+      amountFilter: { operator: "gte", value: -30 },
+    });
+    expect(result).toHaveLength(3);
+  });
+
+  it("should filter amount <= -50", () => {
+    const result = filterTransactions(transactions, {
+      amountFilter: { operator: "lte", value: -50 },
+    });
+    expect(result).toHaveLength(2);
   });
 
   it("should exclude by description", () => {
@@ -116,9 +130,9 @@ describe("filterTransactions", () => {
     expect(result).toHaveLength(3);
   });
 
-  it("should combine direction and description filters", () => {
+  it("should combine amount and description filters", () => {
     const result = filterTransactions(transactions, {
-      direction: "debit",
+      amountFilter: { operator: "lt", value: 0 },
       descriptionFilter: "Coffee",
       descriptionFilterMode: "exclude",
     });

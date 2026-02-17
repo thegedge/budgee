@@ -37,8 +37,11 @@ function chartFiltersToFilterOptions(filters: ChartFilterCondition[]): FilterOpt
         if (f.operator === "is") options.merchantId = f.value;
         if (f.operator === "isNot") options.excludedMerchantId = f.value;
         break;
-      case "direction":
-        options.direction = f.value as "debit" | "credit";
+      case "amount":
+        options.amountFilter = {
+          operator: f.operator as "lt" | "gt" | "lte" | "gte",
+          value: Number(f.value),
+        };
         break;
       case "description":
         options.descriptionFilter = f.value;
@@ -151,7 +154,12 @@ export class DashboardChartCard extends LitElement {
       : {
           tagId: this.config.tagId,
           merchantId: this.config.merchantId,
-          direction: this.config.direction,
+          amountFilter:
+            this.config.direction === "debit"
+              ? { operator: "lt" as const, value: 0 }
+              : this.config.direction === "credit"
+                ? { operator: "gt" as const, value: 0 }
+                : undefined,
           descriptionFilter: this.config.descriptionFilter,
           descriptionFilterMode: this.config.descriptionFilterMode,
         };
