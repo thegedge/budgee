@@ -1,4 +1,5 @@
 import { waitForDb } from "./db";
+import { uuid } from "../uuid";
 import type {
   Account,
   DashboardChart,
@@ -20,6 +21,11 @@ export interface DatabaseExport {
   dashboardTables?: DashboardTable[];
 }
 
+function ensureIds<T extends { id: string }>(docs: T[] | undefined): T[] {
+  if (!docs) return [];
+  return docs.map((doc) => (doc.id ? doc : { ...doc, id: uuid() }));
+}
+
 export async function importDatabase(file: File) {
   const text = await file.text();
   const data: DatabaseExport = JSON.parse(text);
@@ -37,13 +43,21 @@ export async function importDatabase(file: File) {
   await db.dashboardCharts.clear();
   await db.dashboardTables.clear();
 
-  if (migrated.transactions?.length) await db.transactions.bulkDocs(migrated.transactions);
-  if (migrated.tags?.length) await db.tags.bulkDocs(migrated.tags);
-  if (migrated.merchants?.length) await db.merchants.bulkDocs(migrated.merchants);
-  if (migrated.accounts?.length) await db.accounts.bulkDocs(migrated.accounts);
-  if (migrated.merchantRules?.length) await db.merchantRules.bulkDocs(migrated.merchantRules);
-  if (migrated.dashboardCharts?.length) await db.dashboardCharts.bulkDocs(migrated.dashboardCharts);
-  if (migrated.dashboardTables?.length) await db.dashboardTables.bulkDocs(migrated.dashboardTables);
+  const transactions = ensureIds(migrated.transactions);
+  const tags = ensureIds(migrated.tags);
+  const merchants = ensureIds(migrated.merchants);
+  const accounts = ensureIds(migrated.accounts);
+  const merchantRules = ensureIds(migrated.merchantRules);
+  const dashboardCharts = ensureIds(migrated.dashboardCharts);
+  const dashboardTables = ensureIds(migrated.dashboardTables);
+
+  if (transactions.length) await db.transactions.bulkDocs(transactions);
+  if (tags.length) await db.tags.bulkDocs(tags);
+  if (merchants.length) await db.merchants.bulkDocs(merchants);
+  if (accounts.length) await db.accounts.bulkDocs(accounts);
+  if (merchantRules.length) await db.merchantRules.bulkDocs(merchantRules);
+  if (dashboardCharts.length) await db.dashboardCharts.bulkDocs(dashboardCharts);
+  if (dashboardTables.length) await db.dashboardTables.bulkDocs(dashboardTables);
 
   try {
     const doc = await db.meta.get("schema_version");
