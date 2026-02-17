@@ -4,7 +4,13 @@ import { customElement, property, state } from "lit/decorators.js";
 import { Accounts } from "../../data/accounts";
 import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
 import { Transactions } from "../../data/transactions";
-import type { Account, Transaction } from "../../database/types";
+import {
+  ACCOUNT_TYPES,
+  type Account,
+  type AccountType,
+  type Transaction,
+  accountTypeLabel,
+} from "../../database/types";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
@@ -38,9 +44,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   @state()
   private _editingName = false;
-
-  @state()
-  private _editingType = false;
 
   @state()
   private _timeRange: TimeRange = 12;
@@ -260,12 +263,12 @@ export class AccountDetail extends BusyMixin(LitElement) {
     });
   }
 
-  async #saveType(e: KeyboardEvent) {
-    if (e.key !== "Enter") return;
-    const input = e.target as HTMLInputElement;
+  async #onTypeChange(e: Event) {
+    const value = (e.target as HTMLSelectElement).value;
     await this.withBusy(async () => {
-      await Accounts.update(this.accountId, { type: input.value || undefined });
-      this._editingType = false;
+      await Accounts.update(this.accountId, {
+        type: (value || undefined) as AccountType | undefined,
+      });
       await this.#load();
     });
   }
@@ -304,18 +307,13 @@ export class AccountDetail extends BusyMixin(LitElement) {
         </h2>
         <div class="meta">
           Type:
-          ${
-            this._editingType
-              ? html`<input
-                class="edit-input"
-                .value=${this._account.type ?? ""}
-                @keydown=${this.#saveType}
-                @blur=${() => (this._editingType = false)}
-              />`
-              : html`<span class="editable" @click=${() => (this._editingType = true)}
-                >${this._account.type || "Not set"}</span
-              >`
-          }
+          <select @change=${this.#onTypeChange}>
+            <option value="" ?selected=${!this._account.type}>Not set</option>
+            ${ACCOUNT_TYPES.map(
+              (t) =>
+                html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
+            )}
+          </select>
         </div>
       </div>
 

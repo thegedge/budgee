@@ -24,11 +24,25 @@ export interface Merchant {
   name: string;
 }
 
+export const ACCOUNT_TYPES = ["chequing", "savings", "credit_card", "investment"] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+
+const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+  chequing: "Chequing",
+  savings: "Savings",
+  credit_card: "Credit Card",
+  investment: "Investment",
+};
+
+export function accountTypeLabel(type: AccountType): string {
+  return ACCOUNT_TYPE_LABELS[type];
+}
+
 export interface Account {
   _id?: string;
   _rev?: string;
   name: string;
-  type?: string;
+  type?: AccountType;
 }
 
 export type RuleOperator = "contains" | "startsWith" | "equals" | "regex";

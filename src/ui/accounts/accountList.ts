@@ -2,7 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Accounts } from "../../data/accounts";
 import { Transactions } from "../../data/transactions";
-import type { Account, Transaction } from "../../database/types";
+import { type Account, type Transaction, accountTypeLabel } from "../../database/types";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -181,7 +181,7 @@ export class AccountList extends LitElement {
               (row) => html`
               <tr @click=${() => this.#navigateToAccount(row.account._id!)}>
                 <td>${row.account.name}</td>
-                <td>${row.account.type ?? ""}</td>
+                <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
                 <td>${row.transactionCount}</td>
                 <td class="col-amount ${row.balance < 0 ? "amount-negative" : "amount-positive"}">
                   ${row.balance.toFixed(2)}
