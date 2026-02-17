@@ -232,6 +232,7 @@ export class Dashboard extends LitElement {
         merchantId: detail.merchantId,
         excludedTagIds: detail.excludedTagIds,
         excludedMerchantIds: detail.excludedMerchantIds,
+        legendPosition: detail.legendPosition,
       });
     } else {
       await DashboardCharts.create({

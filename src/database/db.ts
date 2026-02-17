@@ -123,6 +123,7 @@ const dashboardChartSchema: RxJsonSchema<DashboardChart> = {
     direction: { type: "string" },
     descriptionFilter: { type: "string" },
     descriptionFilterMode: { type: "string" },
+    legendPosition: { type: "string" },
   },
   required: ["id", "title", "chartType", "granularity", "position"],
 };
