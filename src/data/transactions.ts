@@ -46,6 +46,15 @@ export class Transactions {
     return result.docs.sort((a, b) => b.date.localeCompare(a.date));
   }
 
+  static async deleteAll(): Promise<number> {
+    const result = await db.transactions.allDocs({ include_docs: true });
+    const docs = result.rows.filter((r) => r.doc && !r.id.startsWith("_")).map((r) => r.doc!);
+    await db.transactions.bulkDocs(
+      docs.map((doc) => ({ ...doc, _deleted: true }) as unknown as Transaction),
+    );
+    return docs.length;
+  }
+
   static async deleteForAccount(accountId: string): Promise<number> {
     const result = await db.transactions.find({ selector: { accountId } });
     await db.transactions.bulkDocs(
