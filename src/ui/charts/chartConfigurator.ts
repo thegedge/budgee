@@ -262,7 +262,8 @@ export class ChartConfigurator extends LitElement {
         </select>
         <label>Start date:</label>
         <input
-          type="date"
+          type="text"
+          placeholder="e.g. 3 months ago"
           .value=${this._startDate}
           @input=${(e: Event) => {
             this._startDate = (e.target as HTMLInputElement).value;
@@ -270,7 +271,8 @@ export class ChartConfigurator extends LitElement {
         />
         <label>End date:</label>
         <input
-          type="date"
+          type="text"
+          placeholder="e.g. 1 week ago"
           .value=${this._endDate}
           @input=${(e: Event) => {
             this._endDate = (e.target as HTMLInputElement).value;

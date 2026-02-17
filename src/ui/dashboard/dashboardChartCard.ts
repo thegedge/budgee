@@ -13,6 +13,7 @@ import {
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
 import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { parseRelativeDate } from "../../data/parseRelativeDate";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
 
@@ -115,11 +116,13 @@ export class DashboardChartCard extends LitElement {
   ];
 
   get #chartData(): ChartData {
+    const startDate = this.config.startDate ? parseRelativeDate(this.config.startDate) : undefined;
+    const endDate = this.config.endDate ? parseRelativeDate(this.config.endDate) : undefined;
     const filtered = filterTransactions(this.transactions, {
       tagId: this.config.tagId,
       merchantId: this.config.merchantId,
-      startDate: this.config.startDate,
-      endDate: this.config.endDate,
+      startDate,
+      endDate,
     });
 
     const { granularity } = this.config;
