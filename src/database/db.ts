@@ -37,7 +37,7 @@ const transactionSchema: RxJsonSchema<Transaction> = {
     tagIds: { type: "array", items: { type: "string" } },
   },
   required: ["id", "date", "amount", "originalDescription", "tagIds"],
-  indexes: ["date", "merchantId", "accountId"],
+  indexes: ["date"],
 };
 
 const tagSchema: RxJsonSchema<Tag> = {
