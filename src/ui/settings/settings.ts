@@ -124,12 +124,12 @@ export class Settings extends LitElement {
   render() {
     return html`
       <h2>Sync Settings</h2>
-      <p class="hint">Sync your data across devices using CouchDB replication. Save a valid URL to enable sync; clear it to disable.</p>
+      <p class="hint">Sync your data across devices using a sync server. Save a valid URL to enable sync; clear it to disable.</p>
       <div class="field">
-        <label for="sync-url">CouchDB URL</label>
+        <label for="sync-url">Server URL</label>
         <input type="url" id="sync-url" .value=${this._url} @change=${this.#onUrlChange}
-          placeholder="http://your-server:5984" />
-        <p class="hint">The URL of your CouchDB server.</p>
+          placeholder="http://your-server:3001" />
+        <p class="hint">The URL of your sync server.</p>
       </div>
       ${
         this._url
