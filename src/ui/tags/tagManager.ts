@@ -135,7 +135,7 @@ export class TagManager extends BusyMixin(LitElement) {
 
   async #saveTagIcon(tag: Tag, icon: string) {
     await this.withBusy(async () => {
-      await Tags.update(tag._id!, { icon: icon || undefined });
+      await Tags.update(tag.id, { icon: icon || undefined });
       await this.#refreshTags();
     });
   }
@@ -146,7 +146,7 @@ export class TagManager extends BusyMixin(LitElement) {
 
   async #saveTagColor(tag: Tag, color: string) {
     await this.withBusy(async () => {
-      await Tags.update(tag._id!, { color });
+      await Tags.update(tag.id, { color });
       await this.#refreshTags();
     });
   }
@@ -244,7 +244,7 @@ export class TagManager extends BusyMixin(LitElement) {
                       ${tag.name}
                     </td>
                     <td class="col-remove">
-                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag._id!)}>
+                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id)}>
                         ${unsafeSVG(trash2Icon)}
                       </button>
                     </td>

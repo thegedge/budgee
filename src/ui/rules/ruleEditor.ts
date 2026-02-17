@@ -147,8 +147,8 @@ export class RuleEditor extends LitElement {
 
   #onTagSelected(e: CustomEvent) {
     const tag = e.detail.tag as Tag;
-    if (!this._selectedTagIds.includes(tag._id!)) {
-      this._selectedTagIds = [...this._selectedTagIds, tag._id!];
+    if (!this._selectedTagIds.includes(tag.id)) {
+      this._selectedTagIds = [...this._selectedTagIds, tag.id];
     }
   }
 
@@ -174,7 +174,7 @@ export class RuleEditor extends LitElement {
     this.dispatchEvent(
       new CustomEvent("rule-saved", {
         detail: {
-          id: this.editingRule?._id,
+          id: this.editingRule?.id,
           logic: this._logic,
           conditions: validConditions,
           tagIds: this._selectedTagIds,

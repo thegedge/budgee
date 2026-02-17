@@ -218,8 +218,8 @@ export class TransactionList extends BusyMixin(LitElement) {
     ]);
     this._transactions = transactions;
     this._tags = tags;
-    this._tagMap = new Map(tags.map((t) => [t._id!, t]));
-    this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
+    this._tagMap = new Map(tags.map((t) => [t.id, t]));
+    this._merchants = new Map(merchants.map((m) => [m.id, m.name]));
     this._merchantList = merchants;
   }
 
@@ -325,7 +325,7 @@ export class TransactionList extends BusyMixin(LitElement) {
   }
 
   #toggleSelectAll(pageTransactions: Transaction[]) {
-    const pageIds = pageTransactions.map((t) => t._id!);
+    const pageIds = pageTransactions.map((t) => t.id);
     const allSelected = pageIds.every((id) => this._selectedIds.has(id));
     if (allSelected) {
       const next = new Set(this._selectedIds);
@@ -343,7 +343,7 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   async #bulkAddTag(e: CustomEvent) {
     const tag = e.detail.tag as Tag;
-    const tagId = tag._id!;
+    const tagId = tag.id;
     await this.#applyTagToSelected(tagId);
   }
 
@@ -357,7 +357,7 @@ export class TransactionList extends BusyMixin(LitElement) {
     if (!this._transactions) return;
     await this.withBusy(async () => {
       const toUpdate = this._transactions!.filter(
-        (t) => this._selectedIds.has(t._id!) && !t.tagIds.includes(tagId),
+        (t) => this._selectedIds.has(t.id) && !t.tagIds.includes(tagId),
       ).map((t) => ({ ...t, tagIds: [...t.tagIds, tagId] }));
       if (toUpdate.length > 0) {
         await Transactions.bulkPut(toUpdate);
@@ -374,13 +374,14 @@ export class TransactionList extends BusyMixin(LitElement) {
     await this.withBusy(async () => {
       let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
       if (!merchant) {
-        const _id = await Merchants.create(name);
-        merchant = { _id, name };
+        const id = await Merchants.create(name);
+        merchant = { id, name };
       }
 
-      const toUpdate = this._transactions!.filter((t) => this._selectedIds.has(t._id!)).map(
-        (t) => ({ ...t, merchantId: merchant!._id }),
-      );
+      const toUpdate = this._transactions!.filter((t) => this._selectedIds.has(t.id)).map((t) => ({
+        ...t,
+        merchantId: merchant!.id,
+      }));
       if (toUpdate.length > 0) {
         await Transactions.bulkPut(toUpdate);
       }
@@ -419,8 +420,8 @@ export class TransactionList extends BusyMixin(LitElement) {
           }}>
             <option value="">Select…</option>
             ${this._tags
-              .filter((t) => !this._excludeTagIds.has(t._id!))
-              .map((t) => html`<option value=${t._id!}>${t.name}</option>`)}
+              .filter((t) => !this._excludeTagIds.has(t.id))
+              .map((t) => html`<option value=${t.id}>${t.name}</option>`)}
           </select>
         </div>
         <div class="filter-group">
@@ -508,7 +509,7 @@ export class TransactionList extends BusyMixin(LitElement) {
     const sorted = this.#sorted(filtered);
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = sorted.slice(start, start + this._pageSize);
-    const pageIds = pageTransactions.map((t) => t._id!);
+    const pageIds = pageTransactions.map((t) => t.id);
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
     return html`
@@ -564,12 +565,12 @@ export class TransactionList extends BusyMixin(LitElement) {
           <tbody>
             ${pageTransactions.map(
               (t) => html`
-              <tr @click=${() => this.#navigateToTransaction(t._id!)}>
+              <tr @click=${() => this.#navigateToTransaction(t.id)}>
                 <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
                   <input
                     type="checkbox"
-                    .checked=${this._selectedIds.has(t._id!)}
-                    @change=${() => this.#toggleSelection(t._id!)}
+                    .checked=${this._selectedIds.has(t.id)}
+                    @change=${() => this.#toggleSelection(t.id)}
                   />
                 </td>
                 <td class="col-date">${this.#humanizeDate(t.date)}</td>

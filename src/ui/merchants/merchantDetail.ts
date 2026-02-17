@@ -302,7 +302,7 @@ export class MerchantDetail extends LitElement {
             <tbody>
               ${pageTransactions.map(
                 (t) => html`
-                <tr @click=${() => this.#navigateToTransaction(t._id!)}>
+                <tr @click=${() => this.#navigateToTransaction(t.id)}>
                   <td>${t.date}</td>
                   <td>${t.originalDescription}</td>
                   <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>

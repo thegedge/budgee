@@ -331,7 +331,7 @@ export class Dashboard extends LitElement {
               ${this._charts.map(
                 (chart) => html`
                 <dashboard-chart-card
-                  data-chart-id=${chart._id!}
+                  data-chart-id=${chart.id}
                   style="grid-column: span ${chart.colSpan ?? 1}; grid-row: span ${chart.rowSpan ?? 1}"
                   .config=${chart}
                   .transactions=${this._transactions}
@@ -355,7 +355,7 @@ export class Dashboard extends LitElement {
               ${this._tables.map(
                 (table) => html`
                 <dashboard-table-card
-                  data-table-id=${table._id!}
+                  data-table-id=${table.id}
                   style="grid-column: span ${table.colSpan ?? 1}; grid-row: span ${table.rowSpan ?? 1}"
                   .config=${table}
                   .transactions=${this._transactions!}

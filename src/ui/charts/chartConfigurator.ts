@@ -161,7 +161,7 @@ export class ChartConfigurator extends LitElement {
     this.dispatchEvent(
       new CustomEvent("chart-saved", {
         detail: {
-          id: this.editingChart?._id,
+          id: this.editingChart?.id,
           title,
           chartType: this._chartType,
           granularity: this._granularity,
@@ -204,8 +204,8 @@ export class ChartConfigurator extends LitElement {
             <label>
               <input
                 type="checkbox"
-                ?checked=${excludedIds.includes(item._id!)}
-                @change=${(e: Event) => this.#toggleExclusion(item._id!, (e.target as HTMLInputElement).checked)}
+                ?checked=${excludedIds.includes(item.id)}
+                @change=${(e: Event) => this.#toggleExclusion(item.id, (e.target as HTMLInputElement).checked)}
               />
               ${item.name}
             </label>
@@ -299,7 +299,7 @@ export class ChartConfigurator extends LitElement {
           this._tagId = v || undefined;
         }}>
           <option value="">All</option>
-          ${this.tags.map((t) => html`<option value=${t._id!} ?selected=${this._tagId === t._id}>${t.name}</option>`)}
+          ${this.tags.map((t) => html`<option value=${t.id} ?selected=${this._tagId === t.id}>${t.name}</option>`)}
         </select>
         <label>Merchant:</label>
         <select @change=${(e: Event) => {
@@ -307,7 +307,7 @@ export class ChartConfigurator extends LitElement {
           this._merchantId = v || undefined;
         }}>
           <option value="">All</option>
-          ${this.merchants.map((m) => html`<option value=${m._id!} ?selected=${this._merchantId === m._id}>${m.name}</option>`)}
+          ${this.merchants.map((m) => html`<option value=${m.id} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
         </select>
         <label>Direction:</label>
         <select @change=${(e: Event) => {

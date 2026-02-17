@@ -235,12 +235,12 @@ export class DashboardChartCard extends LitElement {
   }
 
   #onDelete() {
-    this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config._id } }));
+    this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config.id } }));
   }
 
   #onResize(update: { colSpan?: ColSpan; rowSpan?: RowSpan }) {
     this.dispatchEvent(
-      new CustomEvent("chart-resized", { detail: { id: this.config._id, ...update } }),
+      new CustomEvent("chart-resized", { detail: { id: this.config.id, ...update } }),
     );
   }
 
