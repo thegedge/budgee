@@ -91,7 +91,7 @@ describe("chart-configurator", () => {
     expect(handler).toHaveBeenCalledOnce();
     const detail = handler.mock.calls[0][0].detail;
     expect(detail.filters).toEqual([
-      { field: "direction", operator: "is", value: "debit" },
+      { field: "amount", operator: "lt", value: "0" },
       { field: "description", operator: "excludes", value: "CC PAYMENT" },
     ]);
 

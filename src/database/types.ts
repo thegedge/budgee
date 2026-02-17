@@ -57,8 +57,16 @@ export interface MerchantRule {
   tagIds: string[];
 }
 
-export type ChartFilterField = "tag" | "merchant" | "direction" | "description";
-export type ChartFilterOperator = "is" | "isNot" | "contains" | "excludes";
+export type ChartFilterField = "tag" | "merchant" | "amount" | "description";
+export type ChartFilterOperator =
+  | "is"
+  | "isNot"
+  | "contains"
+  | "excludes"
+  | "lt"
+  | "gt"
+  | "lte"
+  | "gte";
 
 export interface ChartFilterCondition {
   field: ChartFilterField;

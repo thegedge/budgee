@@ -20,7 +20,7 @@ declare global {
 const FIELDS: { value: ChartFilterField; label: string }[] = [
   { value: "tag", label: "Tag" },
   { value: "merchant", label: "Merchant" },
-  { value: "direction", label: "Direction" },
+  { value: "amount", label: "Amount" },
   { value: "description", label: "Description" },
 ];
 
@@ -36,7 +36,12 @@ const OPERATORS_BY_FIELD: Record<
     { value: "is", label: "is" },
     { value: "isNot", label: "is not" },
   ],
-  direction: [{ value: "is", label: "is" }],
+  amount: [
+    { value: "lt", label: "<" },
+    { value: "gt", label: ">" },
+    { value: "lte", label: "<=" },
+    { value: "gte", label: ">=" },
+  ],
   description: [
     { value: "contains", label: "contains" },
     { value: "excludes", label: "excludes" },
@@ -128,13 +133,14 @@ export class ChartFilterRow extends LitElement {
         </select>
       `;
     }
-    if (field === "direction") {
+    if (field === "amount") {
       return html`
-        <select @change=${this.#onValueChange}>
-          <option value="">--</option>
-          <option value="debit" ?selected=${this.condition.value === "debit"}>Debits</option>
-          <option value="credit" ?selected=${this.condition.value === "credit"}>Credits</option>
-        </select>
+        <input
+          type="number"
+          placeholder="e.g. 0"
+          .value=${this.condition.value}
+          @input=${this.#onValueChange}
+        />
       `;
     }
     return html`
