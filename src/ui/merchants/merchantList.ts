@@ -15,8 +15,8 @@ declare global {
 
 interface MerchantRow {
   merchant: Merchant;
-  transactionCount: number;
-  totalSpend: number;
+  transactionCount: number | null;
+  totalSpend: number | null;
 }
 
 type SortColumn = "name" | "count" | "spend";
@@ -57,8 +57,17 @@ export class MerchantList extends LitElement {
   }
 
   async #load() {
-    const [merchants, transactions] = await Promise.all([Merchants.all(), Transactions.all()]);
+    const merchants = await Merchants.all();
+    this._rows = merchants.map((m) => ({
+      merchant: m,
+      transactionCount: null,
+      totalSpend: null,
+    }));
+    this.#loadTransactionStats();
+  }
 
+  async #loadTransactionStats() {
+    const transactions = await Transactions.all();
     const countMap = new Map<string, number>();
     const spendMap = new Map<string, number>();
     for (const tx of transactions as Transaction[]) {
@@ -67,10 +76,10 @@ export class MerchantList extends LitElement {
       spendMap.set(tx.merchantId, (spendMap.get(tx.merchantId) ?? 0) + tx.amount);
     }
 
-    this._rows = merchants.map((m) => ({
-      merchant: m,
-      transactionCount: countMap.get(m._id!) ?? 0,
-      totalSpend: spendMap.get(m._id!) ?? 0,
+    this._rows = this._rows!.map((row) => ({
+      ...row,
+      transactionCount: countMap.get(row.merchant._id!) ?? 0,
+      totalSpend: spendMap.get(row.merchant._id!) ?? 0,
     }));
   }
 
@@ -88,8 +97,8 @@ export class MerchantList extends LitElement {
     if (!this._filter) return true;
     const lower = this._filter.toLowerCase();
     if (row.merchant.name.toLowerCase().includes(lower)) return true;
-    if (String(row.transactionCount).includes(lower)) return true;
-    if (row.totalSpend.toFixed(2).includes(lower)) return true;
+    if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
+    if (row.totalSpend != null && row.totalSpend.toFixed(2).includes(lower)) return true;
     return false;
   }
 
@@ -116,9 +125,9 @@ export class MerchantList extends LitElement {
       if (col === "name") {
         cmp = a.merchant.name.localeCompare(b.merchant.name);
       } else if (col === "count") {
-        cmp = a.transactionCount - b.transactionCount;
+        cmp = (a.transactionCount ?? 0) - (b.transactionCount ?? 0);
       } else if (col === "spend") {
-        cmp = a.totalSpend - b.totalSpend;
+        cmp = (a.totalSpend ?? 0) - (b.totalSpend ?? 0);
       }
       return cmp * dir;
     });
@@ -175,9 +184,9 @@ export class MerchantList extends LitElement {
               (row) => html`
               <tr @click=${() => this.#navigateToMerchant(row.merchant._id!)}>
                 <td>${row.merchant.name}</td>
-                <td>${row.transactionCount}</td>
-                <td class="col-amount ${row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
-                  ${row.totalSpend.toFixed(2)}
+                <td>${row.transactionCount ?? "…"}</td>
+                <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
+                  ${row.totalSpend != null ? row.totalSpend.toFixed(2) : "…"}
                 </td>
               </tr>
             `,
