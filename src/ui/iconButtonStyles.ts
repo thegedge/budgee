@@ -11,10 +11,13 @@ export const iconButtonStyles = css`
     padding: 4px;
     border-radius: 4px;
     color: var(--budgee-text-muted);
-    transition: color 0.15s;
+    transition:
+      color 0.15s,
+      background-color 0.15s;
   }
   .icon-btn:hover {
     color: var(--budgee-text);
+    background-color: color-mix(in lch, var(--budgee-text) 10%, transparent);
   }
   .icon-btn svg {
     width: 20px;
