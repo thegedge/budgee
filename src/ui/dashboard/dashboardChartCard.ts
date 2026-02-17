@@ -175,7 +175,7 @@ export class DashboardChartCard extends LitElement {
 
     const rawValues = entries.map(([, val]) => val);
     const isBar = this.config.chartType === "bar";
-    const values = isBar ? rawValues.map(Math.abs) : rawValues;
+    const values = isBar || isPie ? rawValues.map(Math.abs) : rawValues;
     const bgColors = isPie
       ? this.#pieColors(entries)
       : isBar
