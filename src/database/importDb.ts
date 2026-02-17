@@ -21,9 +21,34 @@ export interface DatabaseExport {
   dashboardTables?: DashboardTable[];
 }
 
-function ensureIds<T extends { id: string }>(docs: T[] | undefined): T[] {
-  if (!docs) return [];
-  return docs.map((doc) => (doc.id ? doc : { ...doc, id: uuid() }));
+/**
+ * Ensures every document has a string `id`. Returns the documents and a mapping
+ * from old id to new id for any documents that needed a generated id.
+ */
+function ensureIds<T extends { id: string }>(
+  docs: T[] | undefined,
+): { docs: T[]; idMap: Map<string, string> } {
+  if (!docs) return { docs: [], idMap: new Map() };
+  const idMap = new Map<string, string>();
+  const result = docs.map((doc) => {
+    if (doc.id) return doc;
+    const raw = doc as Record<string, unknown>;
+    const oldId = String(raw._id ?? "");
+    const newId = uuid();
+    if (oldId) idMap.set(oldId, newId);
+    return { ...doc, id: newId };
+  });
+  return { docs: result, idMap };
+}
+
+function remapId(idMap: Map<string, string>, id: string | undefined): string | undefined {
+  if (!id) return id;
+  return idMap.get(id) ?? id;
+}
+
+function remapIds(idMap: Map<string, string>, ids: string[] | undefined): string[] | undefined {
+  if (!ids) return ids;
+  return ids.map((id) => idMap.get(id) ?? id);
 }
 
 export async function importDatabase(file: File) {
@@ -43,13 +68,34 @@ export async function importDatabase(file: File) {
   await db.dashboardCharts.clear();
   await db.dashboardTables.clear();
 
-  const transactions = ensureIds(migrated.transactions);
-  const tags = ensureIds(migrated.tags);
-  const merchants = ensureIds(migrated.merchants);
-  const accounts = ensureIds(migrated.accounts);
-  const merchantRules = ensureIds(migrated.merchantRules);
-  const dashboardCharts = ensureIds(migrated.dashboardCharts);
-  const dashboardTables = ensureIds(migrated.dashboardTables);
+  const { docs: tags, idMap: tagIdMap } = ensureIds(migrated.tags);
+  const { docs: merchants, idMap: merchantIdMap } = ensureIds(migrated.merchants);
+  const { docs: accounts, idMap: accountIdMap } = ensureIds(migrated.accounts);
+
+  const needsRemap = tagIdMap.size > 0 || merchantIdMap.size > 0 || accountIdMap.size > 0;
+
+  const { docs: transactions } = ensureIds(migrated.transactions);
+  const { docs: merchantRules } = ensureIds(migrated.merchantRules);
+  const { docs: dashboardCharts } = ensureIds(migrated.dashboardCharts);
+  const { docs: dashboardTables } = ensureIds(migrated.dashboardTables);
+
+  if (needsRemap) {
+    for (const tx of transactions) {
+      tx.merchantId = remapId(merchantIdMap, tx.merchantId);
+      tx.accountId = remapId(accountIdMap, tx.accountId);
+      tx.tagIds = remapIds(tagIdMap, tx.tagIds) ?? tx.tagIds;
+    }
+    for (const rule of merchantRules) {
+      rule.merchantId = remapId(merchantIdMap, rule.merchantId);
+      rule.tagIds = remapIds(tagIdMap, rule.tagIds) ?? rule.tagIds;
+    }
+    for (const chart of dashboardCharts) {
+      chart.tagId = remapId(tagIdMap, chart.tagId);
+      chart.merchantId = remapId(merchantIdMap, chart.merchantId);
+      chart.excludedTagIds = remapIds(tagIdMap, chart.excludedTagIds);
+      chart.excludedMerchantIds = remapIds(merchantIdMap, chart.excludedMerchantIds);
+    }
+  }
 
   if (transactions.length) await db.transactions.bulkDocs(transactions);
   if (tags.length) await db.tags.bulkDocs(tags);

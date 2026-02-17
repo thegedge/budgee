@@ -35,17 +35,17 @@ describe("migrateExport", () => {
     } as unknown as DatabaseExport;
 
     const result = migrateExport(data);
-    expect(result.version).toBe(1);
+    expect(result.version).toBe(LATEST_VERSION);
     expect(result.tags![0].id).toBeDefined();
     expect(result.tags![0].name).toBe("Food");
   });
 
-  it("should treat missing version as version 1 (no migration needed)", () => {
+  it("should treat missing version as version 1 and apply remaining migrations", () => {
     const data: DatabaseExport = {
       tags: [{ id: "t1", name: "Food" }],
     };
     const result = migrateExport(data);
-    expect(result).toBe(data);
+    expect(result.version).toBe(LATEST_VERSION);
   });
 });
 
