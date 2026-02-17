@@ -26,10 +26,10 @@ describe("account-detail", () => {
 
   it("should render account name and transactions", async () => {
     const accountId = uuid();
-    await db.accounts.put({ _id: accountId, name: "Checking", type: "chequing" });
+    await db.accounts.put({ id: accountId, name: "Checking", type: "chequing" });
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2025-12-15",
         amount: -50,
         originalDescription: "Groceries",
@@ -37,7 +37,7 @@ describe("account-detail", () => {
         accountId,
       },
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2025-12-16",
         amount: 2500,
         originalDescription: "Payroll",

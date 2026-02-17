@@ -11,7 +11,7 @@ describe("chart-configurator", () => {
   it("should dispatch chart-saved with config", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.transactions = [
-      { _id: "t1", date: "2024-01-01", amount: -50, originalDescription: "Test", tagIds: [] },
+      { id: "t1", date: "2024-01-01", amount: -50, originalDescription: "Test", tagIds: [] },
     ] satisfies Transaction[];
     document.body.appendChild(el);
     await el.updateComplete;
@@ -72,7 +72,7 @@ describe("chart-configurator", () => {
   it("should save direction and description filter", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.editingChart = {
-      _id: "c1",
+      id: "c1",
       title: "Filtered",
       chartType: "bar",
       granularity: "month",

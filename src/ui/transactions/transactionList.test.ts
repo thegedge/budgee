@@ -28,14 +28,14 @@ describe("transaction-list", () => {
   it("should render rows for each transaction", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-01",
         amount: -50,
         originalDescription: "Groceries",
         tagIds: [],
       },
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-02",
         amount: 2500,
         originalDescription: "Payroll",
@@ -69,9 +69,9 @@ describe("transaction-list", () => {
 
   it("should display tag badges for tagged transactions", async () => {
     const tagId = uuid();
-    await db.tags.put({ _id: tagId, name: "Food" });
+    await db.tags.put({ id: tagId, name: "Food" });
     await db.transactions.put({
-      _id: uuid(),
+      id: uuid(),
       date: "2024-01-01",
       amount: -50,
       originalDescription: "Groceries",
@@ -93,9 +93,9 @@ describe("transaction-list", () => {
 
   it("should not allow removing tags from the list view", async () => {
     const tagId = uuid();
-    await db.tags.put({ _id: tagId, name: "Food" });
+    await db.tags.put({ id: tagId, name: "Food" });
     await db.transactions.put({
-      _id: uuid(),
+      id: uuid(),
       date: "2024-01-01",
       amount: -50,
       originalDescription: "Groceries",

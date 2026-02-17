@@ -31,14 +31,14 @@ describe("budgee-dashboard", () => {
   it("should render chart grid when transactions exist", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-01",
         amount: -50,
         originalDescription: "Groceries",
         tagIds: [],
       },
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-02",
         amount: -25,
         originalDescription: "Restaurant",
@@ -60,7 +60,7 @@ describe("budgee-dashboard", () => {
   it("should render dashboard tables from database", async () => {
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2024-01-01",
         amount: -50,
         originalDescription: "Groceries",
@@ -68,7 +68,7 @@ describe("budgee-dashboard", () => {
       },
     ]);
     await db.dashboardTables.put({
-      _id: uuid(),
+      id: uuid(),
       title: "Recent Transactions",
       model: "transactions",
       columns: ["date", "amount", "description"],

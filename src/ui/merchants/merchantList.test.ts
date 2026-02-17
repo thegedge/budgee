@@ -27,8 +27,8 @@ describe("merchant-list", () => {
 
   it("should render rows for each merchant", async () => {
     await db.merchants.bulkDocs([
-      { _id: uuid(), name: "Coffee Shop" },
-      { _id: uuid(), name: "Grocery Store" },
+      { id: uuid(), name: "Coffee Shop" },
+      { id: uuid(), name: "Grocery Store" },
     ]);
 
     const el = document.createElement("merchant-list") as MerchantList;

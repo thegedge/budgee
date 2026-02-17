@@ -26,10 +26,10 @@ describe("merchant-detail", () => {
 
   it("should render merchant name and transactions", async () => {
     const merchantId = uuid();
-    await db.merchants.put({ _id: merchantId, name: "Coffee Shop" });
+    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
     await db.transactions.bulkDocs([
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2025-12-15",
         amount: -5.5,
         originalDescription: "Morning coffee",
@@ -37,7 +37,7 @@ describe("merchant-detail", () => {
         merchantId,
       },
       {
-        _id: uuid(),
+        id: uuid(),
         date: "2025-12-16",
         amount: -4.75,
         originalDescription: "Afternoon coffee",

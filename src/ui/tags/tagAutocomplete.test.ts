@@ -4,9 +4,9 @@ import "./tagAutocomplete";
 import { TagAutocomplete } from "./tagAutocomplete";
 
 const tags: Tag[] = [
-  { _id: "t1", name: "Food" },
-  { _id: "t2", name: "Coffee" },
-  { _id: "t3", name: "Fuel" },
+  { id: "t1", name: "Food" },
+  { id: "t2", name: "Coffee" },
+  { id: "t3", name: "Fuel" },
 ];
 
 function createElement(overrides?: { excludeIds?: string[] }): TagAutocomplete {

@@ -19,7 +19,7 @@ describe("transaction-detail", () => {
   it("should display transaction header", async () => {
     const txId = uuid();
     await db.transactions.put({
-      _id: txId,
+      id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods Market",
@@ -41,11 +41,11 @@ describe("transaction-detail", () => {
 
   it("should display merchant name when available", async () => {
     const merchantId = uuid();
-    await db.merchants.put({ _id: merchantId, name: "Whole Foods" });
+    await db.merchants.put({ id: merchantId, name: "Whole Foods" });
 
     const txId = uuid();
     await db.transactions.put({
-      _id: txId,
+      id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods Market #123",
@@ -66,11 +66,11 @@ describe("transaction-detail", () => {
 
   it("should display tag badges", async () => {
     const tagId = uuid();
-    await db.tags.put({ _id: tagId, name: "Groceries" });
+    await db.tags.put({ id: tagId, name: "Groceries" });
 
     const txId = uuid();
     await db.transactions.put({
-      _id: txId,
+      id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods",
@@ -94,7 +94,7 @@ describe("transaction-detail", () => {
   it("should save memo on blur", async () => {
     const txId = uuid();
     await db.transactions.put({
-      _id: txId,
+      id: txId,
       date: "2024-01-15",
       amount: -42.5,
       originalDescription: "Whole Foods",
@@ -120,11 +120,11 @@ describe("transaction-detail", () => {
 
   it("should show related transactions for same merchant", async () => {
     const merchantId = uuid();
-    await db.merchants.put({ _id: merchantId, name: "Starbucks" });
+    await db.merchants.put({ id: merchantId, name: "Starbucks" });
 
     const txId = uuid();
     await db.transactions.put({
-      _id: txId,
+      id: txId,
       date: "2024-01-15",
       amount: -5.5,
       originalDescription: "Starbucks #1",
@@ -132,7 +132,7 @@ describe("transaction-detail", () => {
       tagIds: [],
     });
     await db.transactions.put({
-      _id: uuid(),
+      id: uuid(),
       date: "2024-01-10",
       amount: -4.75,
       originalDescription: "Starbucks #2",

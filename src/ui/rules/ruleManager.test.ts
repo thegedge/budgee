@@ -18,9 +18,9 @@ describe("rule-manager", () => {
   });
 
   it("should add a rule via clicking an unmerchanted transaction", async () => {
-    await db.tags.put({ _id: uuid(), name: "Coffee" });
+    await db.tags.put({ id: uuid(), name: "Coffee" });
     await db.transactions.put({
-      _id: uuid(),
+      id: uuid(),
       date: "2024-01-01",
       originalDescription: "STARBUCKS",
       amount: 5.0,
@@ -58,7 +58,7 @@ describe("rule-manager", () => {
 
   it("should delete a rule", async () => {
     await db.merchantRules.put({
-      _id: uuid(),
+      id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
       tagIds: [],

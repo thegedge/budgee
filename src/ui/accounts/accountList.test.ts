@@ -27,8 +27,8 @@ describe("account-list", () => {
 
   it("should render rows for each account", async () => {
     await db.accounts.bulkDocs([
-      { _id: uuid(), name: "Checking", type: "chequing" },
-      { _id: uuid(), name: "Savings", type: "savings" },
+      { id: uuid(), name: "Checking", type: "chequing" },
+      { id: uuid(), name: "Savings", type: "savings" },
     ]);
 
     const el = document.createElement("account-list") as AccountList;
