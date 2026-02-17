@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { waitForDb } from "./db";
 import type {
   Account,
   DashboardChart,
@@ -26,6 +26,8 @@ export async function importDatabase(file: File) {
 
   const { migrateExport, LATEST_VERSION } = await import("./migrations");
   const migrated = migrateExport(data);
+
+  const db = await waitForDb();
 
   await db.transactions.clear();
   await db.tags.clear();
