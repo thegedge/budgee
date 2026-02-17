@@ -23,7 +23,7 @@ export class TagPills extends LitElement {
     :host {
       display: inline-flex;
       flex-wrap: wrap;
-      gap: 2px;
+      gap: 0.25rem;
     }
     .tag-pill {
       display: inline-flex;
