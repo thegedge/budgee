@@ -68,7 +68,7 @@ export class DashboardTableCard extends LitElement {
         display: flex;
         flex-direction: column;
         position: relative;
-        overflow: auto;
+        overflow: hidden;
         border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
@@ -145,14 +145,16 @@ export class DashboardTableCard extends LitElement {
     const gridRect = grid.getBoundingClientRect();
     const gridColumns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
 
+    let currentColSpan = this.config.colSpan ?? 1;
+
     const onPointerMove = (ev: PointerEvent) => {
       const relativeX = ev.clientX - gridRect.left;
       const fractionAcrossGrid = relativeX / gridRect.width;
       const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
       const hostLeft = this.getBoundingClientRect().left - gridRect.left;
       const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
-      const newSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol)) as ColSpan;
-      this.style.gridColumn = `span ${newSpan}`;
+      currentColSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol)) as ColSpan;
+      this.style.gridColumn = `span ${currentColSpan}`;
     };
 
     const onPointerUp = () => {
@@ -160,8 +162,7 @@ export class DashboardTableCard extends LitElement {
       handle.removeEventListener("pointermove", onPointerMove);
       handle.removeEventListener("pointerup", onPointerUp);
 
-      const currentSpan = parseInt(getComputedStyle(this).gridColumnEnd.replace("span ", "")) || 1;
-      const colSpan = Math.max(1, Math.min(6, currentSpan)) as ColSpan;
+      const colSpan = Math.max(1, Math.min(6, currentColSpan)) as ColSpan;
       this.#onResize({ colSpan });
     };
 
@@ -184,12 +185,14 @@ export class DashboardTableCard extends LitElement {
     const rowHeight = parseFloat(rowHeights[0]) || 200;
     const gap = parseFloat(getComputedStyle(grid).rowGap) || 0;
 
+    let currentRowSpan: number = this.config.rowSpan ?? 1;
+
     const onPointerMove = (ev: PointerEvent) => {
       const hostTop = this.getBoundingClientRect().top - gridRect.top;
       const bottomEdge = ev.clientY - gridRect.top;
       const spannedHeight = bottomEdge - hostTop;
-      const newSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
-      this.style.gridRow = `span ${newSpan}`;
+      currentRowSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
+      this.style.gridRow = `span ${currentRowSpan}`;
     };
 
     const onPointerUp = () => {
@@ -197,8 +200,7 @@ export class DashboardTableCard extends LitElement {
       handle.removeEventListener("pointermove", onPointerMove);
       handle.removeEventListener("pointerup", onPointerUp);
 
-      const currentSpan = parseInt(getComputedStyle(this).gridRowEnd.replace("span ", "")) || 1;
-      const rowSpan = Math.max(1, Math.min(4, currentSpan)) as RowSpan;
+      const rowSpan = Math.max(1, Math.min(4, currentRowSpan)) as RowSpan;
       this.#onResize({ rowSpan });
     };
 

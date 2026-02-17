@@ -84,7 +84,7 @@ export class Dashboard extends LitElement {
       .chart-grid {
         display: grid;
         grid-template-columns: 1fr;
-        grid-auto-rows: minmax(200px, auto);
+        grid-auto-rows: 200px;
         gap: 1rem;
         margin-bottom: 1rem;
       }
@@ -101,7 +101,7 @@ export class Dashboard extends LitElement {
       .table-grid {
         display: grid;
         grid-template-columns: 1fr;
-        grid-auto-rows: minmax(200px, auto);
+        grid-auto-rows: 200px;
         gap: 1rem;
         margin-bottom: 1rem;
       }
