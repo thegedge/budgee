@@ -78,8 +78,8 @@ export class MerchantList extends LitElement {
 
     this._rows = this._rows!.map((row) => ({
       ...row,
-      transactionCount: countMap.get(row.merchant._id!) ?? 0,
-      totalSpend: spendMap.get(row.merchant._id!) ?? 0,
+      transactionCount: countMap.get(row.merchant.id) ?? 0,
+      totalSpend: spendMap.get(row.merchant.id) ?? 0,
     }));
   }
 
@@ -182,7 +182,7 @@ export class MerchantList extends LitElement {
           <tbody>
             ${pageRows.map(
               (row) => html`
-              <tr @click=${() => this.#navigateToMerchant(row.merchant._id!)}>
+              <tr @click=${() => this.#navigateToMerchant(row.merchant.id)}>
                 <td>${row.merchant.name}</td>
                 <td>${row.transactionCount ?? "…"}</td>
                 <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
