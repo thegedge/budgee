@@ -8,6 +8,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "build": "vite build",
     "dev": "vite --host",
     "format": "oxfmt --check",
     "format:fix": "oxfmt --write",
