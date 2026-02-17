@@ -40,12 +40,12 @@ describe("migrateExport", () => {
     expect(result.tags![0].name).toBe("Food");
   });
 
-  it("should treat missing version as version 1 and apply remaining migrations", () => {
+  it("should treat missing version as version 1 (no migration needed)", () => {
     const data: DatabaseExport = {
       tags: [{ id: "t1", name: "Food" }],
     };
     const result = migrateExport(data);
-    expect(result.version).toBe(LATEST_VERSION);
+    expect(result).toBe(data);
   });
 });
 
