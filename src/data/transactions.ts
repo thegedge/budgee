@@ -35,10 +35,6 @@ export class Transactions {
     return result.sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  static async forMerchantAll(merchantId: string): Promise<Transaction[]> {
-    return db.transactions.find({ selector: { merchantId } });
-  }
-
   static async forAccount(accountId: string): Promise<Transaction[]> {
     const result = await db.transactions.find({ selector: { accountId } });
     return result.sort((a, b) => b.date.localeCompare(a.date));
