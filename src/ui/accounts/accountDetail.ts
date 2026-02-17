@@ -40,7 +40,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
   private _account?: Account;
 
   @state()
-  private _transactions: Transaction[] = [];
+  private _transactions: Transaction[] | null = null;
 
   @state()
   private _editingName = false;
@@ -164,6 +164,10 @@ export class AccountDetail extends BusyMixin(LitElement) {
       tr:hover {
         background-color: var(--budgee-bg);
       }
+      .loading {
+        color: var(--budgee-text-muted);
+        font-style: italic;
+      }
     `,
   ];
 
@@ -174,15 +178,16 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   async #load() {
     if (!this.accountId) return;
-    const [account, transactions] = await Promise.all([
-      Accounts.get(this.accountId),
-      Transactions.forAccount(this.accountId),
-    ]);
-    this._account = account;
-    this._transactions = transactions;
+    this._account = await Accounts.get(this.accountId);
+    this.#loadTransactions();
   }
 
-  get #filteredTransactions(): Transaction[] {
+  async #loadTransactions() {
+    this._transactions = await Transactions.forAccount(this.accountId);
+  }
+
+  get #filteredTransactions(): Transaction[] | null {
+    if (!this._transactions) return null;
     if (this._timeRange === 0) return this._transactions;
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - this._timeRange);
@@ -192,7 +197,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   get #monthlyTotals(): MonthlyTotal[] {
     const byMonth = new Map<string, number>();
-    for (const tx of this.#filteredTransactions) {
+    for (const tx of this.#filteredTransactions ?? []) {
       const month = tx.date.slice(0, 7);
       byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
     }
@@ -273,14 +278,26 @@ export class AccountDetail extends BusyMixin(LitElement) {
     });
   }
 
-  render() {
-    if (!this._account) {
-      return html`
-        <p>Loading…</p>
-      `;
-    }
+  #renderLoadingState() {
+    return html`
+      <div class="summary-grid">
+        ${[0, 1, 2, 3].map(
+          () => html`
+            <div class="summary-card">
+              <div class="label loading">Loading…</div>
+            </div>
+          `,
+        )}
+      </div>
+      <div class="top-row">
+        <div class="section"><p class="loading">Loading chart…</p></div>
+        <div class="section"><p class="loading">Loading summary…</p></div>
+      </div>
+      <div class="section-transactions"><p class="loading">Loading transactions…</p></div>
+    `;
+  }
 
-    const filtered = this.#filteredTransactions;
+  #renderTransactionData(filtered: Transaction[]) {
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = filtered.slice(start, start + this._pageSize);
     const balance = filtered.reduce((sum, t) => sum + t.amount, 0);
@@ -288,35 +305,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
     const expenses = filtered.filter((t) => t.amount < 0).reduce((sum, t) => sum + t.amount, 0);
 
     return html`
-      <span class="back-link" @click=${this.#navigateBack}>&larr; Back to accounts</span>
-
-      <div class="header">
-        <h2>
-          ${
-            this._editingName
-              ? html`<input
-                class="edit-input"
-                .value=${this._account.name}
-                @keydown=${this.#saveName}
-                @blur=${() => (this._editingName = false)}
-              />`
-              : html`<span class="editable" @click=${() => (this._editingName = true)}
-                >${this._account.name}</span
-              >`
-          }
-        </h2>
-        <div class="meta">
-          Type:
-          <select @change=${this.#onTypeChange}>
-            <option value="" ?selected=${!this._account.type}>Not set</option>
-            ${ACCOUNT_TYPES.map(
-              (t) =>
-                html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
-            )}
-          </select>
-        </div>
-      </div>
-
       <div class="summary-grid">
         <div class="summary-card">
           <div class="label">Balance</div>
@@ -424,6 +412,50 @@ export class AccountDetail extends BusyMixin(LitElement) {
           </table>
         </paginated-table>
       </div>
+    `;
+  }
+
+  render() {
+    if (!this._account) {
+      return html`
+        <p>Loading…</p>
+      `;
+    }
+
+    const filtered = this.#filteredTransactions;
+    const loading = filtered === null;
+
+    return html`
+      <span class="back-link" @click=${this.#navigateBack}>&larr; Back to accounts</span>
+
+      <div class="header">
+        <h2>
+          ${
+            this._editingName
+              ? html`<input
+                class="edit-input"
+                .value=${this._account.name}
+                @keydown=${this.#saveName}
+                @blur=${() => (this._editingName = false)}
+              />`
+              : html`<span class="editable" @click=${() => (this._editingName = true)}
+                >${this._account.name}</span
+              >`
+          }
+        </h2>
+        <div class="meta">
+          Type:
+          <select @change=${this.#onTypeChange}>
+            <option value="" ?selected=${!this._account.type}>Not set</option>
+            ${ACCOUNT_TYPES.map(
+              (t) =>
+                html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
+            )}
+          </select>
+        </div>
+      </div>
+
+      ${loading ? this.#renderLoadingState() : this.#renderTransactionData(filtered)}
     `;
   }
 }

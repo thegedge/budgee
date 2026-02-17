@@ -15,8 +15,8 @@ declare global {
 
 interface AccountRow {
   account: Account;
-  transactionCount: number;
-  balance: number;
+  transactionCount: number | null;
+  balance: number | null;
 }
 
 type SortColumn = "name" | "type" | "count" | "balance";
@@ -57,8 +57,17 @@ export class AccountList extends LitElement {
   }
 
   async #load() {
-    const [accounts, transactions] = await Promise.all([Accounts.all(), Transactions.all()]);
+    const accounts = await Accounts.all();
+    this._rows = accounts.map((a) => ({
+      account: a,
+      transactionCount: null,
+      balance: null,
+    }));
+    this.#loadTransactionStats();
+  }
 
+  async #loadTransactionStats() {
+    const transactions = await Transactions.all();
     const countMap = new Map<string, number>();
     const balanceMap = new Map<string, number>();
     for (const tx of transactions as Transaction[]) {
@@ -67,10 +76,10 @@ export class AccountList extends LitElement {
       balanceMap.set(tx.accountId, (balanceMap.get(tx.accountId) ?? 0) + tx.amount);
     }
 
-    this._rows = accounts.map((a) => ({
-      account: a,
-      transactionCount: countMap.get(a._id!) ?? 0,
-      balance: balanceMap.get(a._id!) ?? 0,
+    this._rows = this._rows!.map((row) => ({
+      ...row,
+      transactionCount: countMap.get(row.account._id!) ?? 0,
+      balance: balanceMap.get(row.account._id!) ?? 0,
     }));
   }
 
@@ -89,8 +98,8 @@ export class AccountList extends LitElement {
     const lower = this._filter.toLowerCase();
     if (row.account.name.toLowerCase().includes(lower)) return true;
     if (row.account.type?.toLowerCase().includes(lower)) return true;
-    if (String(row.transactionCount).includes(lower)) return true;
-    if (row.balance.toFixed(2).includes(lower)) return true;
+    if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
+    if (row.balance != null && row.balance.toFixed(2).includes(lower)) return true;
     return false;
   }
 
@@ -119,9 +128,9 @@ export class AccountList extends LitElement {
       } else if (col === "type") {
         cmp = (a.account.type ?? "").localeCompare(b.account.type ?? "");
       } else if (col === "count") {
-        cmp = a.transactionCount - b.transactionCount;
+        cmp = (a.transactionCount ?? 0) - (b.transactionCount ?? 0);
       } else if (col === "balance") {
-        cmp = a.balance - b.balance;
+        cmp = (a.balance ?? 0) - (b.balance ?? 0);
       }
       return cmp * dir;
     });
@@ -182,9 +191,9 @@ export class AccountList extends LitElement {
               <tr @click=${() => this.#navigateToAccount(row.account._id!)}>
                 <td>${row.account.name}</td>
                 <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
-                <td>${row.transactionCount}</td>
-                <td class="col-amount ${row.balance < 0 ? "amount-negative" : "amount-positive"}">
-                  ${row.balance.toFixed(2)}
+                <td>${row.transactionCount ?? "…"}</td>
+                <td class="col-amount ${row.balance != null && row.balance < 0 ? "amount-negative" : row.balance != null ? "amount-positive" : ""}">
+                  ${row.balance != null ? row.balance.toFixed(2) : "…"}
                 </td>
               </tr>
             `,
