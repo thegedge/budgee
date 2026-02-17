@@ -126,6 +126,9 @@ export class RuleManager extends BusyMixin(LitElement) {
         font-size: 0.85rem;
         color: var(--budgee-text-muted);
       }
+      .actions {
+        white-space: nowrap;
+      }
       .sections-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -382,7 +385,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                                 <td>
                                   ${rule.tagIds.map((id) => this.#tagLabel(id)).join(", ") || "None"}
                                 </td>
-                                <td>
+                                <td class="actions">
                                   <button class="icon-btn" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
                                   <button class="icon-btn icon-btn--danger" aria-label="Delete rule" @click=${() => this.#deleteRule(rule._id!)}>${unsafeSVG(trash2Icon)}</button>
                                 </td>
