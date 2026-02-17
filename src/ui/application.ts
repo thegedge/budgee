@@ -277,6 +277,7 @@ export class Application extends LitElement {
 
   #connectReplication() {
     this.#cancelReplication?.();
+    this.#cancelReplication = undefined;
     let url: string | null;
     try {
       url = localStorage.getItem("budgee-sync-url");
@@ -284,7 +285,14 @@ export class Application extends LitElement {
       return;
     }
     if (url) {
-      this.#cancelReplication = startReplication(url);
+      startReplication(url).then(
+        (cancel) => {
+          this.#cancelReplication = cancel;
+        },
+        (e) => {
+          console.error("Failed to start replication:", e);
+        },
+      );
     }
   }
 
