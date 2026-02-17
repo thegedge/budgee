@@ -7,8 +7,14 @@ import { iconButtonStyles } from "../iconButtonStyles";
 import { aggregateByMerchant } from "../../database/aggregateByMerchant";
 import { aggregateByPeriod } from "../../database/aggregateByPeriod";
 import { aggregateByTag } from "../../database/aggregateByTag";
-import { filterTransactions } from "../../database/filterTransactions";
-import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
+import { type FilterOptions, filterTransactions } from "../../database/filterTransactions";
+import type {
+  ChartFilterCondition,
+  DashboardChart,
+  Merchant,
+  Tag,
+  Transaction,
+} from "../../database/types";
 import type { ChartData, ChartOptions } from "chart.js";
 import { movingAverage } from "../../data/movingAverage";
 import { movingAverageWindow } from "../../data/movingAverageWindow";
@@ -18,6 +24,30 @@ import { cssVar } from "../cssVar";
 
 type ColSpan = NonNullable<DashboardChart["colSpan"]>;
 type RowSpan = NonNullable<DashboardChart["rowSpan"]>;
+
+function chartFiltersToFilterOptions(filters: ChartFilterCondition[]): FilterOptions {
+  const options: FilterOptions = {};
+  for (const f of filters) {
+    switch (f.field) {
+      case "tag":
+        if (f.operator === "is") options.tagId = f.value;
+        if (f.operator === "isNot") options.excludedTagId = f.value;
+        break;
+      case "merchant":
+        if (f.operator === "is") options.merchantId = f.value;
+        if (f.operator === "isNot") options.excludedMerchantId = f.value;
+        break;
+      case "direction":
+        options.direction = f.value as "debit" | "credit";
+        break;
+      case "description":
+        options.descriptionFilter = f.value;
+        options.descriptionFilterMode = f.operator === "contains" ? "include" : "exclude";
+        break;
+    }
+  }
+  return options;
+}
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -116,14 +146,16 @@ export class DashboardChartCard extends LitElement {
 
   get #chartData(): ChartData {
     const startDate = this.config.startDate ? parseRelativeDate(this.config.startDate) : undefined;
-    const filtered = filterTransactions(this.transactions, {
-      tagId: this.config.tagId,
-      merchantId: this.config.merchantId,
-      startDate,
-      direction: this.config.direction,
-      descriptionFilter: this.config.descriptionFilter,
-      descriptionFilterMode: this.config.descriptionFilterMode,
-    });
+    const filterOptions = this.config.filters
+      ? chartFiltersToFilterOptions(this.config.filters)
+      : {
+          tagId: this.config.tagId,
+          merchantId: this.config.merchantId,
+          direction: this.config.direction,
+          descriptionFilter: this.config.descriptionFilter,
+          descriptionFilterMode: this.config.descriptionFilterMode,
+        };
+    const filtered = filterTransactions(this.transactions, { ...filterOptions, startDate });
 
     const { granularity } = this.config;
     const aggregated =

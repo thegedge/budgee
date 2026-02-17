@@ -124,6 +124,17 @@ const dashboardChartSchema: RxJsonSchema<DashboardChart> = {
     descriptionFilter: { type: "string" },
     descriptionFilterMode: { type: "string" },
     legendPosition: { type: "string" },
+    filters: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          field: { type: "string" },
+          operator: { type: "string" },
+          value: { type: "string" },
+        },
+      },
+    },
   },
   required: ["id", "title", "chartType", "granularity", "position"],
 };

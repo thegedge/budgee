@@ -1,7 +1,14 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Granularity } from "../../database/aggregations";
-import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
+import type {
+  ChartFilterCondition,
+  DashboardChart,
+  Merchant,
+  Tag,
+  Transaction,
+} from "../../database/types";
+import "./chartFilterRow";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -40,25 +47,13 @@ export class ChartConfigurator extends LitElement {
   private _startDate = "";
 
   @state()
-  private _tagId?: string;
-
-  @state()
-  private _merchantId?: string;
+  private _filters: ChartFilterCondition[] = [];
 
   @state()
   private _excludedTagIds: string[] = [];
 
   @state()
   private _excludedMerchantIds: string[] = [];
-
-  @state()
-  private _direction?: DashboardChart["direction"];
-
-  @state()
-  private _descriptionFilter = "";
-
-  @state()
-  private _descriptionFilterMode: NonNullable<DashboardChart["descriptionFilterMode"]> = "exclude";
 
   @state()
   private _legendPosition: NonNullable<DashboardChart["legendPosition"]> = "top";
@@ -125,6 +120,12 @@ export class ChartConfigurator extends LitElement {
       gap: 0.25rem;
       font-size: 0.9rem;
     }
+    .filters {
+      margin-bottom: 1rem;
+    }
+    .add-filter {
+      font-size: 0.85rem;
+    }
   `;
 
   updated(changed: Map<string, unknown>) {
@@ -133,21 +134,50 @@ export class ChartConfigurator extends LitElement {
       this._chartType = this.editingChart.chartType;
       this._granularity = this.editingChart.granularity;
       this._startDate = this.editingChart.startDate ?? "";
-      this._tagId = this.editingChart.tagId;
-      this._merchantId = this.editingChart.merchantId;
+      this._filters = this.editingChart.filters ?? this.#migrateToFilters(this.editingChart);
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
       this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
-      this._direction = this.editingChart.direction;
-      this._descriptionFilter = this.editingChart.descriptionFilter ?? "";
-      this._descriptionFilterMode = this.editingChart.descriptionFilterMode ?? "exclude";
       this._legendPosition = this.editingChart.legendPosition ?? "top";
       this._initialized = true;
     }
   }
 
+  #migrateToFilters(chart: DashboardChart): ChartFilterCondition[] {
+    const filters: ChartFilterCondition[] = [];
+    if (chart.tagId) filters.push({ field: "tag", operator: "is", value: chart.tagId });
+    if (chart.merchantId)
+      filters.push({ field: "merchant", operator: "is", value: chart.merchantId });
+    if (chart.direction)
+      filters.push({ field: "direction", operator: "is", value: chart.direction });
+    if (chart.descriptionFilter) {
+      filters.push({
+        field: "description",
+        operator: chart.descriptionFilterMode === "include" ? "contains" : "excludes",
+        value: chart.descriptionFilter,
+      });
+    }
+    return filters;
+  }
+
+  #onFilterChanged(e: CustomEvent) {
+    const { index, condition } = e.detail as { index: number; condition: ChartFilterCondition };
+    this._filters = this._filters.map((f, i) => (i === index ? condition : f));
+  }
+
+  #onFilterRemoved(e: CustomEvent) {
+    const { index } = e.detail as { index: number };
+    this._filters = this._filters.filter((_, i) => i !== index);
+  }
+
+  #addFilter() {
+    this._filters = [...this._filters, { field: "tag", operator: "is", value: "" }];
+  }
+
   #onSave() {
     const title = this._title.trim();
     if (!title) return;
+
+    const validFilters = this._filters.filter((f) => f.value.trim());
 
     this.dispatchEvent(
       new CustomEvent("chart-saved", {
@@ -157,15 +187,11 @@ export class ChartConfigurator extends LitElement {
           chartType: this._chartType,
           granularity: this._granularity,
           startDate: this._startDate || undefined,
-          tagId: this._tagId,
-          merchantId: this._merchantId,
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
           excludedMerchantIds:
             this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
-          direction: this._direction,
-          descriptionFilter: this._descriptionFilter || undefined,
-          descriptionFilterMode: this._descriptionFilter ? this._descriptionFilterMode : undefined,
           legendPosition: this._legendPosition,
+          filters: validFilters.length > 0 ? validFilters : undefined,
         },
       }),
     );
@@ -273,51 +299,23 @@ export class ChartConfigurator extends LitElement {
             this._startDate = (e.target as HTMLInputElement).value;
           }}
         />
-        <label>Tag:</label>
-        <select @change=${(e: Event) => {
-          const v = (e.target as HTMLSelectElement).value;
-          this._tagId = v || undefined;
-        }}>
-          <option value="">All</option>
-          ${this.tags.map((t) => html`<option value=${t.id} ?selected=${this._tagId === t.id}>${t.name}</option>`)}
-        </select>
-        <label>Merchant:</label>
-        <select @change=${(e: Event) => {
-          const v = (e.target as HTMLSelectElement).value;
-          this._merchantId = v || undefined;
-        }}>
-          <option value="">All</option>
-          ${this.merchants.map((m) => html`<option value=${m.id} ?selected=${this._merchantId === m.id}>${m.name}</option>`)}
-        </select>
-        <label>Direction:</label>
-        <select @change=${(e: Event) => {
-          const v = (e.target as HTMLSelectElement).value;
-          this._direction = (v || undefined) as DashboardChart["direction"];
-        }}>
-          <option value="" ?selected=${!this._direction}>All</option>
-          <option value="debit" ?selected=${this._direction === "debit"}>Debits only</option>
-          <option value="credit" ?selected=${this._direction === "credit"}>Credits only</option>
-        </select>
-        <label>Description:</label>
-        <div style="display:flex;gap:0.25rem">
-          <select style="width:auto" @change=${(e: Event) => {
-            this._descriptionFilterMode = (e.target as HTMLSelectElement).value as NonNullable<
-              DashboardChart["descriptionFilterMode"]
-            >;
-          }}>
-            <option value="exclude" ?selected=${this._descriptionFilterMode === "exclude"}>Excludes</option>
-            <option value="include" ?selected=${this._descriptionFilterMode === "include"}>Contains</option>
-          </select>
-          <input
-            type="text"
-            placeholder="e.g. CC PAYMENT"
-            style="flex:1"
-            .value=${this._descriptionFilter}
-            @input=${(e: Event) => {
-              this._descriptionFilter = (e.target as HTMLInputElement).value;
-            }}
-          />
-        </div>
+      </div>
+      <div class="filters">
+        ${this._filters.map(
+          (condition, i) => html`
+          <chart-filter-row
+            .condition=${condition}
+            .index=${i}
+            .tags=${this.tags}
+            .merchants=${this.merchants}
+            @filter-changed=${this.#onFilterChanged}
+            @filter-removed=${this.#onFilterRemoved}
+          ></chart-filter-row>
+        `,
+        )}
+        <button class="add-filter" @click=${this.#addFilter}>+ Add filter</button>
+      </div>
+      <div class="form-grid">
         <label>Legend:</label>
         <select @change=${(e: Event) => {
           this._legendPosition = (e.target as HTMLSelectElement).value as NonNullable<

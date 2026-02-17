@@ -65,7 +65,7 @@ describe("chart-configurator", () => {
     el.remove();
   });
 
-  it("should save direction and description filter", async () => {
+  it("should migrate legacy fields to filters on save", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.editingChart = {
       id: "c1",
@@ -90,9 +90,10 @@ describe("chart-configurator", () => {
 
     expect(handler).toHaveBeenCalledOnce();
     const detail = handler.mock.calls[0][0].detail;
-    expect(detail.direction).toBe("debit");
-    expect(detail.descriptionFilter).toBe("CC PAYMENT");
-    expect(detail.descriptionFilterMode).toBe("exclude");
+    expect(detail.filters).toEqual([
+      { field: "direction", operator: "is", value: "debit" },
+      { field: "description", operator: "excludes", value: "CC PAYMENT" },
+    ]);
 
     el.remove();
   });

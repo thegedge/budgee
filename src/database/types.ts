@@ -57,6 +57,15 @@ export interface MerchantRule {
   tagIds: string[];
 }
 
+export type ChartFilterField = "tag" | "merchant" | "direction" | "description";
+export type ChartFilterOperator = "is" | "isNot" | "contains" | "excludes";
+
+export interface ChartFilterCondition {
+  field: ChartFilterField;
+  operator: ChartFilterOperator;
+  value: string;
+}
+
 export interface DashboardChart {
   id: string;
   title: string;
@@ -75,6 +84,7 @@ export interface DashboardChart {
   descriptionFilter?: string;
   descriptionFilterMode?: "include" | "exclude";
   legendPosition?: "top" | "bottom" | "left" | "right" | "hidden";
+  filters?: ChartFilterCondition[];
 }
 
 export type DashboardTableModel = "transactions" | "merchants" | "tags";
