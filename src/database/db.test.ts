@@ -40,7 +40,7 @@ describe("BudgeeDatabase", () => {
     await dbs.merchants.put({ _id: merchantId, name: "Starbucks" });
 
     const accountId = uuid();
-    await dbs.accounts.put({ _id: accountId, name: "Checking Account", type: "Checking" });
+    await dbs.accounts.put({ _id: accountId, name: "Checking Account", type: "chequing" });
 
     const txId = uuid();
     await dbs.transactions.put({
@@ -59,5 +59,18 @@ describe("BudgeeDatabase", () => {
     expect(tx.tagIds).toContain(tagId);
     expect(tx.merchantId).toBe(merchantId);
     expect(tx.accountId).toBe(accountId);
+  });
+
+  it("should isolate collections within the single database", async () => {
+    await dbs.tags.put({ _id: "shared-id", name: "A Tag" });
+    await dbs.merchants.put({ _id: "merchant-id", name: "A Merchant" });
+
+    const tagResult = await dbs.tags.allDocs({ include_docs: true });
+    expect(tagResult.rows).toHaveLength(1);
+    expect(tagResult.rows[0].doc!.name).toBe("A Tag");
+
+    const merchantResult = await dbs.merchants.allDocs({ include_docs: true });
+    expect(merchantResult.rows).toHaveLength(1);
+    expect(merchantResult.rows[0].doc!.name).toBe("A Merchant");
   });
 });

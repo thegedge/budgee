@@ -60,8 +60,6 @@ describe("migrateDatabase", () => {
 
   afterEach(async () => {
     await destroyAll(dbs);
-    await dbs.meta.destroy();
-    await dbs.backups.destroy();
   });
 
   it("should set schema version on first run with empty database", async () => {

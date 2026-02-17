@@ -20,7 +20,7 @@ export class MerchantRules {
   static async put(rule: MerchantRule): Promise<void> {
     if (rule._id) {
       const existing = await db.merchantRules.get(rule._id);
-      await db.merchantRules.put({ ...rule, _rev: existing._rev });
+      await db.merchantRules.put({ ...rule, _id: rule._id, _rev: existing._rev });
     } else {
       await db.merchantRules.put({ ...rule, _id: uuid() });
     }
