@@ -77,6 +77,9 @@ export interface DashboardChart {
   rowSpan?: 1 | 2 | 3 | 4;
   excludedTagIds?: string[];
   excludedMerchantIds?: string[];
+  direction?: "debit" | "credit";
+  descriptionFilter?: string;
+  descriptionFilterMode?: "include" | "exclude";
 }
 
 export type DashboardTableModel = "transactions" | "merchants" | "tags";

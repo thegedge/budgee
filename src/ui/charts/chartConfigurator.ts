@@ -61,6 +61,15 @@ export class ChartConfigurator extends LitElement {
   private _excludedMerchantIds: string[] = [];
 
   @state()
+  private _direction?: DashboardChart["direction"];
+
+  @state()
+  private _descriptionFilter = "";
+
+  @state()
+  private _descriptionFilterMode: NonNullable<DashboardChart["descriptionFilterMode"]> = "exclude";
+
+  @state()
   private _showExclusions = false;
 
   @state()
@@ -138,6 +147,9 @@ export class ChartConfigurator extends LitElement {
       this._rowSpan = this.editingChart.rowSpan ?? 1;
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
       this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
+      this._direction = this.editingChart.direction;
+      this._descriptionFilter = this.editingChart.descriptionFilter ?? "";
+      this._descriptionFilterMode = this.editingChart.descriptionFilterMode ?? "exclude";
       this._initialized = true;
     }
   }
@@ -162,6 +174,9 @@ export class ChartConfigurator extends LitElement {
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
           excludedMerchantIds:
             this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
+          direction: this._direction,
+          descriptionFilter: this._descriptionFilter || undefined,
+          descriptionFilterMode: this._descriptionFilter ? this._descriptionFilterMode : undefined,
         },
       }),
     );
@@ -294,6 +309,35 @@ export class ChartConfigurator extends LitElement {
           <option value="">All</option>
           ${this.merchants.map((m) => html`<option value=${m._id!} ?selected=${this._merchantId === m._id}>${m.name}</option>`)}
         </select>
+        <label>Direction:</label>
+        <select @change=${(e: Event) => {
+          const v = (e.target as HTMLSelectElement).value;
+          this._direction = (v || undefined) as DashboardChart["direction"];
+        }}>
+          <option value="" ?selected=${!this._direction}>All</option>
+          <option value="debit" ?selected=${this._direction === "debit"}>Debits only</option>
+          <option value="credit" ?selected=${this._direction === "credit"}>Credits only</option>
+        </select>
+        <label>Description:</label>
+        <div style="display:flex;gap:0.25rem">
+          <select style="width:auto" @change=${(e: Event) => {
+            this._descriptionFilterMode = (e.target as HTMLSelectElement).value as NonNullable<
+              DashboardChart["descriptionFilterMode"]
+            >;
+          }}>
+            <option value="exclude" ?selected=${this._descriptionFilterMode === "exclude"}>Excludes</option>
+            <option value="include" ?selected=${this._descriptionFilterMode === "include"}>Contains</option>
+          </select>
+          <input
+            type="text"
+            placeholder="e.g. CC PAYMENT"
+            style="flex:1"
+            .value=${this._descriptionFilter}
+            @input=${(e: Event) => {
+              this._descriptionFilter = (e.target as HTMLInputElement).value;
+            }}
+          />
+        </div>
         <label>Width:</label>
         <select @change=${(e: Event) => {
           this._colSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<

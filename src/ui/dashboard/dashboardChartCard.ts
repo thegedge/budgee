@@ -123,6 +123,9 @@ export class DashboardChartCard extends LitElement {
       merchantId: this.config.merchantId,
       startDate,
       endDate,
+      direction: this.config.direction,
+      descriptionFilter: this.config.descriptionFilter,
+      descriptionFilterMode: this.config.descriptionFilterMode,
     });
 
     const { granularity } = this.config;

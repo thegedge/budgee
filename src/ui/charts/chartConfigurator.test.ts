@@ -69,6 +69,38 @@ describe("chart-configurator", () => {
     el.remove();
   });
 
+  it("should save direction and description filter", async () => {
+    const el = document.createElement("chart-configurator") as ChartConfigurator;
+    el.editingChart = {
+      _id: "c1",
+      title: "Filtered",
+      chartType: "bar",
+      granularity: "month",
+      position: 0,
+      direction: "debit",
+      descriptionFilter: "CC PAYMENT",
+      descriptionFilterMode: "exclude",
+    };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const handler = vi.fn();
+    el.addEventListener("chart-saved", handler);
+
+    const saveBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Update Chart",
+    )!;
+    saveBtn.click();
+
+    expect(handler).toHaveBeenCalledOnce();
+    const detail = handler.mock.calls[0][0].detail;
+    expect(detail.direction).toBe("debit");
+    expect(detail.descriptionFilter).toBe("CC PAYMENT");
+    expect(detail.descriptionFilterMode).toBe("exclude");
+
+    el.remove();
+  });
+
   it("should not save without title", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     document.body.appendChild(el);
