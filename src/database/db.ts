@@ -262,11 +262,31 @@ export interface Databases {
   backups: Collection<{ id: string; data?: string }>;
 }
 
+async function hashFunction(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+
+  if (typeof crypto !== "undefined" && crypto.subtle?.digest) {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = new Uint8Array(hashBuffer);
+    return Array.from(hashArray, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // Fallback for non-secure contexts (HTTP)
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < data.length; i++) {
+    hash ^= data[i];
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
 export async function createDatabases(storage: unknown): Promise<Databases> {
   const name = `budgee_${Math.random().toString(36).slice(2)}`;
   const rxdb = await createRxDatabase<DatabaseCollections>({
     name,
     storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
+    hashFunction,
   });
 
   await rxdb.addCollections({
