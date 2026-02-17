@@ -31,6 +31,8 @@ export class TransactionList extends BusyMixin(LitElement) {
   @state()
   private _tags: Tag[] = [];
 
+  private _tagMap = new Map<string, Tag>();
+
   @state()
   private _merchants = new Map<string, string>();
 
@@ -209,15 +211,20 @@ export class TransactionList extends BusyMixin(LitElement) {
   }
 
   async #refresh() {
-    this._transactions = await Transactions.all();
-    this._tags = await Tags.all();
-    const merchants = await Merchants.all();
+    const [transactions, tags, merchants] = await Promise.all([
+      Transactions.all(),
+      Tags.all(),
+      Merchants.all(),
+    ]);
+    this._transactions = transactions;
+    this._tags = tags;
+    this._tagMap = new Map(tags.map((t) => [t._id!, t]));
     this._merchants = new Map(merchants.map((m) => [m._id!, m.name]));
     this._merchantList = merchants;
   }
 
   #tag(tagId: string): Tag | undefined {
-    return this._tags.find((t) => t._id === tagId);
+    return this._tagMap.get(tagId);
   }
 
   #tagName(tagId: string): string {
@@ -349,10 +356,11 @@ export class TransactionList extends BusyMixin(LitElement) {
   async #applyTagToSelected(tagId: string) {
     if (!this._transactions) return;
     await this.withBusy(async () => {
-      const selected = this._transactions!.filter((t) => this._selectedIds.has(t._id!));
-      for (const t of selected) {
-        if (t.tagIds.includes(tagId)) continue;
-        await Transactions.update(t._id!, { tagIds: [...t.tagIds, tagId] });
+      const toUpdate = this._transactions!.filter(
+        (t) => this._selectedIds.has(t._id!) && !t.tagIds.includes(tagId),
+      ).map((t) => ({ ...t, tagIds: [...t.tagIds, tagId] }));
+      if (toUpdate.length > 0) {
+        await Transactions.bulkPut(toUpdate);
       }
       this.#clearSelection();
       await this.#refresh();
@@ -370,8 +378,11 @@ export class TransactionList extends BusyMixin(LitElement) {
         merchant = { _id, name };
       }
 
-      for (const id of this._selectedIds) {
-        await Transactions.update(id, { merchantId: merchant._id });
+      const toUpdate = this._transactions!.filter((t) => this._selectedIds.has(t._id!)).map(
+        (t) => ({ ...t, merchantId: merchant!._id }),
+      );
+      if (toUpdate.length > 0) {
+        await Transactions.bulkPut(toUpdate);
       }
       this.#clearSelection();
       await this.#refresh();
