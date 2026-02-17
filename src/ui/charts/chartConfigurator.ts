@@ -40,9 +40,6 @@ export class ChartConfigurator extends LitElement {
   private _startDate = "";
 
   @state()
-  private _endDate = "";
-
-  @state()
   private _tagId?: string;
 
   @state()
@@ -134,7 +131,6 @@ export class ChartConfigurator extends LitElement {
       this._chartType = this.editingChart.chartType;
       this._granularity = this.editingChart.granularity;
       this._startDate = this.editingChart.startDate ?? "";
-      this._endDate = this.editingChart.endDate ?? "";
       this._tagId = this.editingChart.tagId;
       this._merchantId = this.editingChart.merchantId;
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
@@ -158,7 +154,6 @@ export class ChartConfigurator extends LitElement {
           chartType: this._chartType,
           granularity: this._granularity,
           startDate: this._startDate || undefined,
-          endDate: this._endDate || undefined,
           tagId: this._tagId,
           merchantId: this._merchantId,
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
@@ -272,15 +267,6 @@ export class ChartConfigurator extends LitElement {
           .value=${this._startDate}
           @input=${(e: Event) => {
             this._startDate = (e.target as HTMLInputElement).value;
-          }}
-        />
-        <label>End date:</label>
-        <input
-          type="text"
-          placeholder="e.g. 1 week ago"
-          .value=${this._endDate}
-          @input=${(e: Event) => {
-            this._endDate = (e.target as HTMLInputElement).value;
           }}
         />
         <label>Tag:</label>
