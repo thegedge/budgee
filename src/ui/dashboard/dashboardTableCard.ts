@@ -115,6 +115,20 @@ export class DashboardTableCard extends LitElement {
       :host([data-resizing-vertical]) .resize-handle-bottom {
         background: var(--budgee-primary);
       }
+      .resize-handle-corner {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 12px;
+        height: 12px;
+        cursor: nwse-resize;
+        background: transparent;
+        z-index: 1;
+      }
+      .resize-handle-corner:hover,
+      :host([data-resizing-corner]) .resize-handle-corner {
+        background: var(--budgee-primary);
+      }
     `,
   ];
 
@@ -133,75 +147,77 @@ export class DashboardTableCard extends LitElement {
   }
 
   #onResizeHandlePointerDown(e: PointerEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    const handle = e.currentTarget as HTMLElement;
-    handle.setPointerCapture(e.pointerId);
-    this.setAttribute("data-resizing", "");
-
-    const grid = this.closest(".chart-grid") ?? this.parentElement;
-    if (!grid) return;
-
-    const gridRect = grid.getBoundingClientRect();
-    const gridColumns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
-
-    let currentColSpan = this.config.colSpan ?? 1;
-
-    const onPointerMove = (ev: PointerEvent) => {
-      const relativeX = ev.clientX - gridRect.left;
-      const fractionAcrossGrid = relativeX / gridRect.width;
-      const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
-      const hostLeft = this.getBoundingClientRect().left - gridRect.left;
-      const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
-      currentColSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol)) as ColSpan;
-      this.style.gridColumn = `span ${currentColSpan}`;
-    };
-
-    const onPointerUp = () => {
-      this.removeAttribute("data-resizing");
-      handle.removeEventListener("pointermove", onPointerMove);
-      handle.removeEventListener("pointerup", onPointerUp);
-
-      const colSpan = Math.max(1, Math.min(6, currentColSpan)) as ColSpan;
-      this.#onResize({ colSpan });
-    };
-
-    handle.addEventListener("pointermove", onPointerMove);
-    handle.addEventListener("pointerup", onPointerUp);
+    this.#startResize(e, { horizontal: true });
   }
 
   #onVerticalResizePointerDown(e: PointerEvent) {
+    this.#startResize(e, { vertical: true });
+  }
+
+  #onCornerResizePointerDown(e: PointerEvent) {
+    this.#startResize(e, { horizontal: true, vertical: true });
+  }
+
+  #startResize(
+    e: PointerEvent,
+    { horizontal, vertical }: { horizontal?: boolean; vertical?: boolean },
+  ) {
     e.preventDefault();
     e.stopPropagation();
     const handle = e.currentTarget as HTMLElement;
     handle.setPointerCapture(e.pointerId);
-    this.setAttribute("data-resizing-vertical", "");
 
     const grid = this.closest(".table-grid") ?? this.parentElement;
     if (!grid) return;
 
     const gridRect = grid.getBoundingClientRect();
-    const rowHeights = getComputedStyle(grid).gridTemplateRows.split(" ");
-    const rowHeight = parseFloat(rowHeights[0]) || 200;
-    const gap = parseFloat(getComputedStyle(grid).rowGap) || 0;
+    const gridStyle = getComputedStyle(grid);
+    const gridColumns = horizontal ? gridStyle.gridTemplateColumns.split(" ").length : 0;
+    const rowHeight = vertical ? parseFloat(gridStyle.gridTemplateRows.split(" ")[0]) || 200 : 0;
+    const gap = vertical ? parseFloat(gridStyle.rowGap) || 0 : 0;
 
+    let currentColSpan = this.config.colSpan ?? 1;
     let currentRowSpan: number = this.config.rowSpan ?? 1;
 
+    const attr =
+      horizontal && vertical
+        ? "data-resizing-corner"
+        : horizontal
+          ? "data-resizing"
+          : "data-resizing-vertical";
+    this.setAttribute(attr, "");
+
     const onPointerMove = (ev: PointerEvent) => {
-      const hostTop = this.getBoundingClientRect().top - gridRect.top;
-      const bottomEdge = ev.clientY - gridRect.top;
-      const spannedHeight = bottomEdge - hostTop;
-      currentRowSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
-      this.style.gridRow = `span ${currentRowSpan}`;
+      if (horizontal) {
+        const relativeX = ev.clientX - gridRect.left;
+        const fractionAcrossGrid = relativeX / gridRect.width;
+        const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
+        const hostLeft = this.getBoundingClientRect().left - gridRect.left;
+        const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
+        currentColSpan = Math.max(
+          1,
+          Math.min(gridColumns - startCol, rawSpan - startCol),
+        ) as ColSpan;
+        this.style.gridColumn = `span ${currentColSpan}`;
+      }
+      if (vertical) {
+        const hostTop = this.getBoundingClientRect().top - gridRect.top;
+        const bottomEdge = ev.clientY - gridRect.top;
+        const spannedHeight = bottomEdge - hostTop;
+        currentRowSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
+        this.style.gridRow = `span ${currentRowSpan}`;
+      }
     };
 
     const onPointerUp = () => {
-      this.removeAttribute("data-resizing-vertical");
+      this.removeAttribute(attr);
       handle.removeEventListener("pointermove", onPointerMove);
       handle.removeEventListener("pointerup", onPointerUp);
 
-      const rowSpan = Math.max(1, Math.min(4, currentRowSpan)) as RowSpan;
-      this.#onResize({ rowSpan });
+      this.#onResize({
+        ...(horizontal && { colSpan: Math.max(1, Math.min(6, currentColSpan)) as ColSpan }),
+        ...(vertical && { rowSpan: Math.max(1, Math.min(4, currentRowSpan)) as RowSpan }),
+      });
     };
 
     handle.addEventListener("pointermove", onPointerMove);
@@ -456,6 +472,7 @@ export class DashboardTableCard extends LitElement {
     return html`
       <div class="resize-handle" @pointerdown=${this.#onResizeHandlePointerDown}></div>
       <div class="resize-handle-bottom" @pointerdown=${this.#onVerticalResizePointerDown}></div>
+      <div class="resize-handle-corner" @pointerdown=${this.#onCornerResizePointerDown}></div>
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
