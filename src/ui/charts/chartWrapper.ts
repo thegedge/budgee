@@ -27,7 +27,6 @@ export class ChartWrapper extends LitElement {
     :host {
       display: block;
       position: relative;
-      height: 100%;
     }
   `;
 
