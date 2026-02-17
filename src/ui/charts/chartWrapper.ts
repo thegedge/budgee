@@ -36,24 +36,21 @@ export class ChartWrapper extends LitElement {
     `;
   }
 
-  firstUpdated() {
-    this.#createChart();
-  }
-
   updated(changed: Map<string, unknown>) {
-    if (changed.has("data") || changed.has("chartType") || changed.has("options")) {
-      if (this._chart) {
-        if (changed.has("chartType")) {
-          this._chart.destroy();
-          this.#createChart();
-        } else {
-          this._chart.data = this.data;
-          if (changed.has("options")) {
-            this._chart.options = this.options;
-          }
-          this._chart.update();
-        }
+    if (!this._chart) {
+      this.#createChart();
+      return;
+    }
+
+    if (changed.has("chartType")) {
+      this._chart.destroy();
+      this.#createChart();
+    } else if (changed.has("data") || changed.has("options")) {
+      this._chart.data = this.data;
+      if (changed.has("options")) {
+        this._chart.options = this.options;
       }
+      this._chart.update();
     }
   }
 
