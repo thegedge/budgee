@@ -190,9 +190,12 @@ export class Application extends LitElement {
         border-color 0.15s;
     }
 
-    nav a.active,
     nav a:hover,
     nav button:hover {
+      color: var(--budgee-primary);
+    }
+
+    nav a.active {
       color: var(--budgee-primary);
       border-left-color: var(--budgee-primary);
     }
@@ -224,10 +227,7 @@ export class Application extends LitElement {
         padding: 0.5rem 0.75rem;
       }
 
-      nav a.active,
-      nav a:hover,
-      nav button:hover {
-        border-left-color: transparent;
+      nav a.active {
         border-bottom-color: var(--budgee-primary);
       }
 
@@ -334,7 +334,7 @@ export class Application extends LitElement {
   render() {
     return html`
       <nav>
-        <a href="/" class="app-name">${unsafeSVG(birdIcon)} Budgee</a>
+        <div class="app-name">${unsafeSVG(birdIcon)} Budgee</div>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
         ${this.navLink("/transactions", "Transactions", banknotesIcon)}
         ${this.navLink("/accounts", "Accounts", landmarkIcon)}
