@@ -44,14 +44,11 @@ describe("chart-configurator", () => {
     const inputs = el.shadowRoot!.querySelectorAll('input[type="text"]');
     const titleInput = inputs[0] as HTMLInputElement;
     const startInput = inputs[1] as HTMLInputElement;
-    const endInput = inputs[2] as HTMLInputElement;
 
     titleInput.value = "Relative Chart";
     titleInput.dispatchEvent(new Event("input"));
     startInput.value = "3 months ago";
     startInput.dispatchEvent(new Event("input"));
-    endInput.value = "1 week ago";
-    endInput.dispatchEvent(new Event("input"));
     await el.updateComplete;
 
     const handler = vi.fn();
@@ -64,7 +61,6 @@ describe("chart-configurator", () => {
 
     expect(handler).toHaveBeenCalledOnce();
     expect(handler.mock.calls[0][0].detail.startDate).toBe("3 months ago");
-    expect(handler.mock.calls[0][0].detail.endDate).toBe("1 week ago");
 
     el.remove();
   });

@@ -228,7 +228,6 @@ export class Dashboard extends LitElement {
         chartType: detail.chartType,
         granularity: detail.granularity,
         startDate: detail.startDate,
-        endDate: detail.endDate,
         tagId: detail.tagId,
         merchantId: detail.merchantId,
         excludedTagIds: detail.excludedTagIds,

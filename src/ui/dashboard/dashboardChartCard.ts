@@ -116,12 +116,10 @@ export class DashboardChartCard extends LitElement {
 
   get #chartData(): ChartData {
     const startDate = this.config.startDate ? parseRelativeDate(this.config.startDate) : undefined;
-    const endDate = this.config.endDate ? parseRelativeDate(this.config.endDate) : undefined;
     const filtered = filterTransactions(this.transactions, {
       tagId: this.config.tagId,
       merchantId: this.config.merchantId,
       startDate,
-      endDate,
       direction: this.config.direction,
       descriptionFilter: this.config.descriptionFilter,
       descriptionFilterMode: this.config.descriptionFilterMode,
