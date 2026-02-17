@@ -1,6 +1,6 @@
 import { db } from "../database/db";
 import type { MerchantRule, Transaction } from "../database/types";
-import { matchesRule } from "../import/applyRules";
+import { matchesRule } from "../import/matchesRule";
 import { uuid } from "../uuid";
 
 export class MerchantRules {

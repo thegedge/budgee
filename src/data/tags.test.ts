@@ -1,7 +1,7 @@
 import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/db";
-import { clearDb } from "../database/pouchHelpers";
+import { clearDb } from "../database/clearDb";
 import { Tags } from "./tags";
 
 beforeEach(async () => {

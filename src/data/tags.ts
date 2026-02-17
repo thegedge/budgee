@@ -1,7 +1,7 @@
 import { db } from "../database/db";
 import type { Tag } from "../database/types";
 import { uuid } from "../uuid";
-import { randomTagColor } from "./tagColor";
+import { randomTagColor } from "./randomTagColor";
 
 export class Tags {
   private constructor() {}

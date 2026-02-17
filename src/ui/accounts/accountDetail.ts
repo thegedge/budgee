@@ -2,7 +2,8 @@ import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Accounts } from "../../data/accounts";
-import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { movingAverage } from "../../data/movingAverage";
+import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { Transactions } from "../../data/transactions";
 import {
   ACCOUNT_TYPES,

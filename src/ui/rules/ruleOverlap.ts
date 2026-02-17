@@ -4,7 +4,7 @@ import { MerchantRules } from "../../data/merchantRules";
 import { Merchants } from "../../data/merchants";
 import { Transactions } from "../../data/transactions";
 import type { MerchantRule } from "../../database/types";
-import { matchesRule } from "../../import/applyRules";
+import { matchesRule } from "../../import/matchesRule";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import { tableStyles } from "../tableStyles";
 

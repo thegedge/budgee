@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-import { contrastTextColor } from "../../data/tagColor";
+import { contrastTextColor } from "../../data/contrastTextColor";
 import type { Tag } from "../../database/types";
 import { ICON_MAP } from "../shared/iconPicker";
 

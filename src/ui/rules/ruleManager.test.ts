@@ -1,7 +1,8 @@
 import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/db";
-import { allDocs, clearDb } from "../../database/pouchHelpers";
+import { allDocs } from "../../database/allDocs";
+import { clearDb } from "../../database/clearDb";
 import "./ruleManager";
 import { RuleManager } from "./ruleManager";
 
