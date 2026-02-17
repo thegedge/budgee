@@ -22,17 +22,25 @@ export class ChartWrapper extends LitElement {
   options: ChartOptions = {};
 
   private _chart?: Chart;
+  private _resizeObserver?: ResizeObserver;
 
   static styles = css`
     :host {
       display: block;
       position: relative;
     }
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
   `;
 
   render() {
     return html`
-      <canvas></canvas>
+      <div class="chart-container">
+        <canvas></canvas>
+      </div>
     `;
   }
 
@@ -56,14 +64,17 @@ export class ChartWrapper extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this._resizeObserver?.disconnect();
     this._chart?.destroy();
     this._chart = undefined;
   }
 
   #createChart() {
-    const canvas = this.shadowRoot!.querySelector("canvas")!;
+    const container = this.shadowRoot!.querySelector<HTMLDivElement>(".chart-container")!;
+    const canvas = container.querySelector("canvas")!;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
     this._chart = new Chart(ctx, {
       type: this.chartType,
       data: this.data,
@@ -73,5 +84,11 @@ export class ChartWrapper extends LitElement {
         ...this.options,
       },
     });
+
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = new ResizeObserver(() => {
+      this._chart?.resize();
+    });
+    this._resizeObserver.observe(container);
   }
 }
