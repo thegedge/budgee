@@ -147,8 +147,9 @@ export class ChartConfigurator extends LitElement {
     if (chart.tagId) filters.push({ field: "tag", operator: "is", value: chart.tagId });
     if (chart.merchantId)
       filters.push({ field: "merchant", operator: "is", value: chart.merchantId });
-    if (chart.direction)
-      filters.push({ field: "direction", operator: "is", value: chart.direction });
+    if (chart.direction === "debit") filters.push({ field: "amount", operator: "lt", value: "0" });
+    else if (chart.direction === "credit")
+      filters.push({ field: "amount", operator: "gt", value: "0" });
     if (chart.descriptionFilter) {
       filters.push({
         field: "description",
