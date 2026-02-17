@@ -12,9 +12,10 @@ describe("BudgeeApp", () => {
     await el.updateComplete;
 
     const links = el.shadowRoot?.querySelectorAll("nav a");
-    expect(links?.length).toBeGreaterThanOrEqual(5);
-    expect(links?.[0].textContent).toContain("Dashboard");
-    expect(links?.[1].textContent).toContain("Transactions");
+    expect(links?.length).toBeGreaterThanOrEqual(6);
+    expect(links?.[0].textContent).toContain("Budgee");
+    expect(links?.[1].textContent).toContain("Dashboard");
+    expect(links?.[2].textContent).toContain("Transactions");
 
     el.remove();
   });

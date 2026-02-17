@@ -15,6 +15,7 @@ import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
 import landmarkIcon from "lucide-static/icons/landmark.svg?raw";
 import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
 import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
+import birdIcon from "lucide-static/icons/bird.svg?raw";
 import refreshIcon from "lucide-static/icons/refresh-cw.svg?raw";
 import tagIcon from "lucide-static/icons/tag.svg?raw";
 
@@ -136,6 +137,24 @@ export class Application extends LitElement {
       display: inline-block;
       width: 1rem;
       height: 1rem;
+    }
+
+    .app-name {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem 1rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--budgee-text);
+      text-decoration: none;
+      border-bottom: 1px solid var(--budgee-border);
+      margin-bottom: 0.5rem;
+    }
+
+    .app-name svg.lucide {
+      width: 1.5rem;
+      height: 1.5rem;
     }
 
     nav {
@@ -315,6 +334,7 @@ export class Application extends LitElement {
   render() {
     return html`
       <nav>
+        <a href="/" class="app-name">${unsafeSVG(birdIcon)} Budgee</a>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
         ${this.navLink("/transactions", "Transactions", banknotesIcon)}
         ${this.navLink("/accounts", "Accounts", landmarkIcon)}
