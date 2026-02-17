@@ -3,6 +3,7 @@ import { customElement } from "lit/decorators.js";
 import { exportDatabase } from "../../database/exportDb";
 import { importDatabase } from "../../database/importDb";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
+import { hideLoadingOverlay, showLoadingOverlay } from "../shared/loadingOverlay";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -47,9 +48,14 @@ export class DatabaseManager extends BusyMixin(LitElement) {
     }
 
     await this.withBusy(async () => {
-      await importDatabase(input.files![0]);
-      input.value = "";
-      window.location.reload();
+      showLoadingOverlay("Importing database...");
+      try {
+        await importDatabase(input.files![0]);
+        input.value = "";
+        window.location.reload();
+      } finally {
+        hideLoadingOverlay();
+      }
     });
   }
 

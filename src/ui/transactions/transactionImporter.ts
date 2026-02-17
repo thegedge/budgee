@@ -5,6 +5,7 @@ import type { Account } from "../../database/types";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
+import { hideLoadingOverlay, showLoadingOverlay } from "../shared/loadingOverlay";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -123,17 +124,22 @@ export class TransactionImporter extends BusyMixin(LitElement) {
       const accountId = await this.#resolveAccountId();
       if (needsAccount && accountId === undefined) return;
 
-      const count = await importTransactions(this._result!.data, this._mapping, {
-        accountId,
-        importMode: this._importMode,
-      });
+      showLoadingOverlay("Importing transactions...");
+      try {
+        const count = await importTransactions(this._result!.data, this._mapping, {
+          accountId,
+          importMode: this._importMode,
+        });
 
-      this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
-      this._step = "upload";
-      this._result = undefined;
-      this._mapping = {};
-      this._accountName = "";
-      this._importMode = "append";
+        this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
+        this._step = "upload";
+        this._result = undefined;
+        this._mapping = {};
+        this._accountName = "";
+        this._importMode = "append";
+      } finally {
+        hideLoadingOverlay();
+      }
     });
   }
 

@@ -6,6 +6,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { waitForDb } from "../database/db";
 import { importDatabase } from "../database/importDb";
+import { hideLoadingOverlay, showLoadingOverlay } from "./shared/loadingOverlay";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
 
@@ -328,8 +329,13 @@ export class Application extends LitElement {
       document.dispatchEvent(new CustomEvent("budgee-import-csv", { detail: { file } }));
     } else if (file.name.endsWith(".json")) {
       if (!confirm("This will replace all existing data. Are you sure?")) return;
-      await importDatabase(file);
-      window.location.reload();
+      showLoadingOverlay("Importing database...");
+      try {
+        await importDatabase(file);
+        window.location.reload();
+      } finally {
+        hideLoadingOverlay();
+      }
     }
   };
 
