@@ -281,8 +281,7 @@ async function hashFunction(input: string): Promise<string> {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-export async function createDatabases(storage: unknown): Promise<Databases> {
-  const name = `budgee_${Math.random().toString(36).slice(2)}`;
+export async function createDatabases(storage: unknown, name = "budgee"): Promise<Databases> {
   const rxdb = await createRxDatabase<DatabaseCollections>({
     name,
     storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
@@ -328,7 +327,8 @@ export async function destroyAll(dbs: Databases) {
 async function createDefaultDatabase(): Promise<Databases> {
   if (import.meta.env?.MODE === "test") {
     const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
-    return createDatabases(getRxStorageMemory());
+    const testName = `budgee_test_${Math.random().toString(36).slice(2)}`;
+    return createDatabases(getRxStorageMemory(), testName);
   }
   const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
   return createDatabases(getRxStorageDexie());
