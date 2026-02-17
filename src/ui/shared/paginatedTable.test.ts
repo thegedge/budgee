@@ -206,6 +206,36 @@ describe("PaginatedTable", () => {
     el.remove();
   });
 
+  it("fires page-change on first render with stored page size", async () => {
+    localStorage.setItem("budgee:pageSize:test-initial", "25");
+
+    const handler = vi.fn();
+    const el = new PaginatedTable();
+    el.totalItems = 100;
+    el.defaultPageSize = 10;
+    el.storageKey = "test-initial";
+    el.addEventListener("page-change", handler);
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 25 });
+
+    el.remove();
+  });
+
+  it("fires page-change on first render with default page size", async () => {
+    const handler = vi.fn();
+    const el = createTable(50, 10);
+    el.addEventListener("page-change", handler);
+    await el.updateComplete;
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 10 });
+
+    el.remove();
+  });
+
   it("does not use localStorage when storageKey is empty", async () => {
     const el = createTable(100, 10);
     await el.updateComplete;

@@ -104,12 +104,13 @@ export class PaginatedTable extends LitElement {
     return Math.max(1, Math.ceil(this.totalItems / this._effectivePageSize));
   }
 
+  firstUpdated() {
+    this.#firePageChange();
+  }
+
   willUpdate(changed: Map<string, unknown>) {
     if (changed.has("totalItems")) {
       this._currentPage = 1;
-    }
-    if (changed.has("defaultPageSize") && this._pageSize === 0) {
-      this.#firePageChange();
     }
   }
 
