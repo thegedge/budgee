@@ -1,4 +1,4 @@
-import { db } from "../database/db";
+import { waitForDb } from "../database/db";
 import type { Transaction } from "../database/types";
 import { uuid } from "../uuid";
 
@@ -6,10 +6,12 @@ export class Transactions {
   private constructor() {}
 
   static async all(): Promise<Transaction[]> {
+    const db = await waitForDb();
     return db.transactions.all();
   }
 
   static async get(id: string): Promise<Transaction | undefined> {
+    const db = await waitForDb();
     try {
       return await db.transactions.get(id);
     } catch {
@@ -18,35 +20,42 @@ export class Transactions {
   }
 
   static async update(id: string, changes: Partial<Transaction>): Promise<void> {
+    const db = await waitForDb();
     const doc = await db.transactions.get(id);
     await db.transactions.put({ ...doc, ...changes });
   }
 
   static async bulkPut(transactions: Transaction[]): Promise<void> {
+    const db = await waitForDb();
     await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, id: t.id ?? uuid() })));
   }
 
   static async bulkAdd(transactions: Omit<Transaction, "id">[]): Promise<void> {
+    const db = await waitForDb();
     await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, id: uuid() })));
   }
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {
+    const db = await waitForDb();
     const result = await db.transactions.find({ selector: { merchantId } });
     return result.sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async forAccount(accountId: string): Promise<Transaction[]> {
+    const db = await waitForDb();
     const result = await db.transactions.find({ selector: { accountId } });
     return result.sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async deleteAll(): Promise<number> {
+    const db = await waitForDb();
     const docs = await db.transactions.all();
     await Promise.all(docs.map((doc) => db.transactions.remove(doc.id)));
     return docs.length;
   }
 
   static async deleteForAccount(accountId: string): Promise<number> {
+    const db = await waitForDb();
     const docs = await db.transactions.find({ selector: { accountId } });
     await Promise.all(docs.map((doc) => db.transactions.remove(doc.id)));
     return docs.length;

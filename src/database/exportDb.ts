@@ -1,7 +1,9 @@
-import { db } from "./db";
+import { waitForDb } from "./db";
 import { LATEST_VERSION } from "./migrations";
 
 export async function exportDatabase() {
+  const db = await waitForDb();
+
   const data = {
     version: LATEST_VERSION,
     transactions: await db.transactions.all(),
