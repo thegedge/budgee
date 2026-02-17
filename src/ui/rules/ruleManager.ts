@@ -134,7 +134,7 @@ export class RuleManager extends BusyMixin(LitElement) {
         grid-template-columns: 1fr;
         gap: 1rem;
       }
-      @media (min-width: 1200px) {
+      @media (min-width: 1600px) {
         .sections-grid {
           grid-template-columns: 1fr 1fr;
         }
