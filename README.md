@@ -16,33 +16,42 @@ code too.
 ## Features
 
 - Built with Vite + Lit to focus on modern web standards.
-- Uses IndexedDB (via [dexie](https://www.npmjs.com/package/dexie)) to cache state
-- Can import from and export to a local CSV file (using the []
-- Tag management, so you can categorize your transactions
+- Uses PouchDB (IndexedDB in browser) for local storage, with optional CouchDB replication for sync.
+- Customizable dashboard with bar, line, pie, and doughnut charts at various granularities (day,
+  month, year, by tag, by merchant). Dashboard cards are draggable and resizable.
+- CSV import with column mapping, preview, and drag-and-drop file support. Supports append and
+  replace modes.
+- Full database JSON export/import for backup and restore.
+- Account management, with support for chequing, savings, credit card, and investment accounts.
+- Tag management, so you can categorize your transactions. Tags support icons and colors.
 - Merchant management, with the ability to map a default set of tags to a merchant on import, or
   mapping some import field to the merchant. For example, credit card transactions may often have a
   truncated descriptor of a merchant, so you may want to match on this descriptor.
+- Merchant rules engine with multiple conditions (and/or logic) and operators (contains, startsWith,
+  equals, regex). Rules auto-apply on import and can be retroactively applied.
 - Transaction management, so you can view individual transactions, manually manage tags, easily set
   up rules for the descriptor of this transaction to map to merchants, tags, etc; or adding
   additional notes for historical value.
-- Simple aggregations to understand your transactions by tags, over time
+- Simple aggregations to understand your transactions by tags, over time.
 
 ## Concepts
 
-### Source
+### Account
 
-A source is where transactions are happening. This could be your debit account, a credit card, or
-even an investment account.
+An account is where transactions are happening. This could be a chequing account, savings account,
+credit card, or investment account.
 
 ### Transaction
 
-A transaction is either a debit from or credit to a source. They include:
+A transaction is either a debit from or credit to an account. They include:
 
-- Source
+- Account
 - Date
 - Merchant
 - Amount; positive is a credit, negative is a debit
 - Tags
+- Original description (from import)
+- Memo (optional)
 
 ### Tags
 
@@ -52,4 +61,16 @@ to understand where your money is going.
 Tags are composed of:
 
 - Name
-- Description (optional)
+- Icon (optional)
+- Color (optional)
+
+### Merchant
+
+A merchant is the counterparty in a transaction. Merchants can be automatically assigned to
+transactions via merchant rules.
+
+### Merchant Rules
+
+A merchant rule matches transactions by their description using configurable conditions (contains,
+startsWith, equals, regex) combined with and/or logic. Matching transactions can be assigned a
+merchant and/or tags automatically.
