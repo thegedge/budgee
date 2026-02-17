@@ -2,7 +2,9 @@ import type { Transaction } from "./types";
 
 export interface FilterOptions {
   tagId?: string;
+  excludedTagId?: string;
   merchantId?: string;
+  excludedMerchantId?: string;
   startDate?: string;
   endDate?: string;
   direction?: "debit" | "credit";
@@ -16,7 +18,11 @@ export function filterTransactions(
 ): Transaction[] {
   return transactions.filter((tx) => {
     if (options.tagId !== undefined && !tx.tagIds.includes(options.tagId)) return false;
+    if (options.excludedTagId !== undefined && tx.tagIds.includes(options.excludedTagId))
+      return false;
     if (options.merchantId !== undefined && tx.merchantId !== options.merchantId) return false;
+    if (options.excludedMerchantId !== undefined && tx.merchantId === options.excludedMerchantId)
+      return false;
     if (options.startDate && tx.date < options.startDate) return false;
     if (options.endDate && tx.date > options.endDate) return false;
     if (options.direction === "debit" && tx.amount >= 0) return false;
