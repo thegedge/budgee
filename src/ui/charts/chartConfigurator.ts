@@ -49,12 +49,6 @@ export class ChartConfigurator extends LitElement {
   private _merchantId?: string;
 
   @state()
-  private _colSpan: NonNullable<DashboardChart["colSpan"]> = 1;
-
-  @state()
-  private _rowSpan: NonNullable<DashboardChart["rowSpan"]> = 1;
-
-  @state()
   private _excludedTagIds: string[] = [];
 
   @state()
@@ -143,8 +137,6 @@ export class ChartConfigurator extends LitElement {
       this._endDate = this.editingChart.endDate ?? "";
       this._tagId = this.editingChart.tagId;
       this._merchantId = this.editingChart.merchantId;
-      this._colSpan = this.editingChart.colSpan ?? 1;
-      this._rowSpan = this.editingChart.rowSpan ?? 1;
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
       this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
       this._direction = this.editingChart.direction;
@@ -169,8 +161,6 @@ export class ChartConfigurator extends LitElement {
           endDate: this._endDate || undefined,
           tagId: this._tagId,
           merchantId: this._merchantId,
-          colSpan: this._colSpan,
-          rowSpan: this._rowSpan,
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
           excludedMerchantIds:
             this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
@@ -338,30 +328,6 @@ export class ChartConfigurator extends LitElement {
             }}
           />
         </div>
-        <label>Width:</label>
-        <select @change=${(e: Event) => {
-          this._colSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
-            DashboardChart["colSpan"]
-          >;
-        }}>
-          <option value="1" ?selected=${this._colSpan === 1}>1 col</option>
-          <option value="2" ?selected=${this._colSpan === 2}>2 col</option>
-          <option value="3" ?selected=${this._colSpan === 3}>3 col</option>
-          <option value="4" ?selected=${this._colSpan === 4}>4 col</option>
-          <option value="5" ?selected=${this._colSpan === 5}>5 col</option>
-          <option value="6" ?selected=${this._colSpan === 6}>6 col</option>
-        </select>
-        <label>Height:</label>
-        <select @change=${(e: Event) => {
-          this._rowSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
-            DashboardChart["rowSpan"]
-          >;
-        }}>
-          <option value="1" ?selected=${this._rowSpan === 1}>1 row</option>
-          <option value="2" ?selected=${this._rowSpan === 2}>2 rows</option>
-          <option value="3" ?selected=${this._rowSpan === 3}>3 rows</option>
-          <option value="4" ?selected=${this._rowSpan === 4}>4 rows</option>
-        </select>
       </div>
       ${this.#renderExclusions()}
       <button @click=${this.#onSave}>${this.editingChart ? "Update Chart" : "Save to Dashboard"}</button>

@@ -231,14 +231,13 @@ export class Dashboard extends LitElement {
         endDate: detail.endDate,
         tagId: detail.tagId,
         merchantId: detail.merchantId,
-        colSpan: detail.colSpan,
-        rowSpan: detail.rowSpan,
         excludedTagIds: detail.excludedTagIds,
         excludedMerchantIds: detail.excludedMerchantIds,
       });
     } else {
       await DashboardCharts.create({
         ...detail,
+        colSpan: 6,
         position: this._charts.length,
       });
     }
