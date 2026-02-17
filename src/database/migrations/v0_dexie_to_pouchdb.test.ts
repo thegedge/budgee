@@ -24,7 +24,7 @@ describe("migrateV0toV1", () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect(result.tags![0].name).toBe("Food");
-    expect((result.tags![0] as Record<string, unknown>).id).toBeUndefined();
+    expect((result.tags![0] as unknown as Record<string, unknown>).id).toBeUndefined();
 
     expect(result.merchants![0]._id).toBeDefined();
     expect(result.merchants![0].name).toBe("Costco");
@@ -120,7 +120,7 @@ describe("migrateV0toV1", () => {
 
     const result = migrateV0toV1(input);
 
-    const chart = result.dashboardCharts![0] as Record<string, unknown>;
+    const chart = result.dashboardCharts![0] as unknown as Record<string, unknown>;
     expect(chart._id).toBeDefined();
     expect(chart.tagId).toBe(result.tags![0]._id);
     expect(chart.merchantId).toBe(result.merchants![0]._id);

@@ -1,5 +1,18 @@
 import type { DatabaseExport } from "../importDb";
 
+function uuid(): string {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for non-secure contexts (e.g. HTTP)
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 const OLD_DB_NAME = "BudgeeDatabase";
 
 const ENTITY_STORES = ["tags", "merchants", "accounts"] as const;
@@ -93,7 +106,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
   for (const store of ENTITY_STORES) {
     const map = new Map<number, string>();
     for (const record of raw[store] ?? []) {
-      map.set(record.id as number, crypto.randomUUID());
+      map.set(record.id as number, uuid());
     }
     idMaps[store] = map;
   }
@@ -112,7 +125,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, merchantId, accountId, tagIds, ...rest } = record;
     return {
       ...rest,
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       merchantId: mapId(idMaps.merchants, merchantId),
       accountId: mapId(idMaps.accounts, accountId),
       tagIds: mapIds(idMaps.tags, tagIds),
@@ -123,7 +136,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, merchantId, tagIds, ...rest } = record;
     return {
       ...rest,
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       merchantId: mapId(idMaps.merchants, merchantId),
       tagIds: mapIds(idMaps.tags, tagIds),
     };
@@ -133,7 +146,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
     const { id: _oldId, tagId, merchantId, excludedTagIds, excludedMerchantIds, ...rest } = record;
     return {
       ...rest,
-      _id: crypto.randomUUID(),
+      _id: uuid(),
       tagId: mapId(idMaps.tags, tagId),
       merchantId: mapId(idMaps.merchants, merchantId),
       excludedTagIds: mapIds(idMaps.tags, excludedTagIds),
@@ -143,7 +156,7 @@ export function migrateV0toV1(data: DatabaseExport): DatabaseExport {
 
   const dashboardTables = (raw.dashboardTables ?? []).map((record) => {
     const { id: _oldId, ...rest } = record;
-    return { ...rest, _id: crypto.randomUUID() };
+    return { ...rest, _id: uuid() };
   });
 
   return {
