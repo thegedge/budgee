@@ -5,6 +5,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { importDatabase } from "../database/importDb";
+import { migrateDexie } from "../database/migrateDexie";
 import { startReplication } from "../database/replication";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
@@ -239,6 +240,7 @@ export class Application extends LitElement {
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
+    migrateDexie().catch(console.error);
     this.#connectReplication();
   }
 
