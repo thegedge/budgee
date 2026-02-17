@@ -275,15 +275,13 @@ export class Application extends LitElement {
 
   #connectReplication() {
     this.#cancelReplication?.();
-    let enabled: boolean;
     let url: string | null;
     try {
-      enabled = localStorage.getItem("budgee-sync-enabled") === "true";
       url = localStorage.getItem("budgee-sync-url");
     } catch {
       return;
     }
-    if (enabled && url) {
+    if (url) {
       this.#cancelReplication = startReplication(url);
     }
   }

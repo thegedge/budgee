@@ -10,7 +10,6 @@ declare global {
 
 @customElement("budgee-settings")
 export class Settings extends LitElement {
-  @state() private _enabled = false;
   @state() private _url = "";
   @state() private _testResult: "success" | "error" | "testing" | null = null;
   @state() private _testError = "";
@@ -44,12 +43,6 @@ export class Settings extends LitElement {
       background: var(--budgee-surface);
       color: var(--budgee-text);
       font-size: 0.9rem;
-    }
-
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
     .hint {
@@ -89,12 +82,7 @@ export class Settings extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._enabled = localStorage.getItem("budgee-sync-enabled") === "true";
     this._url = localStorage.getItem("budgee-sync-url") ?? "";
-  }
-
-  #onToggle(e: Event) {
-    this._enabled = (e.target as HTMLInputElement).checked;
   }
 
   #onUrlChange(e: Event) {
@@ -119,16 +107,13 @@ export class Settings extends LitElement {
   }
 
   get #canSave() {
-    const savedEnabled = localStorage.getItem("budgee-sync-enabled") === "true";
     const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
-    const dirty = this._enabled !== savedEnabled || this._url !== savedUrl;
-    if (!dirty) return false;
-    if (!this._enabled) return true;
+    if (this._url === savedUrl) return false;
+    if (!this._url) return true;
     return this._testResult === "success" && this._testedUrl === this._url;
   }
 
   #onSave() {
-    localStorage.setItem("budgee-sync-enabled", String(this._enabled));
     localStorage.setItem("budgee-sync-url", this._url);
     this.dispatchEvent(
       new CustomEvent("budgee-sync-settings-changed", { bubbles: true, composed: true }),
@@ -139,13 +124,7 @@ export class Settings extends LitElement {
   render() {
     return html`
       <h2>Sync Settings</h2>
-      <div class="field">
-        <div class="toggle">
-          <input type="checkbox" id="sync-enabled" .checked=${this._enabled} @change=${this.#onToggle} />
-          <label for="sync-enabled">Enable sync</label>
-        </div>
-        <p class="hint">Sync your data across devices using CouchDB replication.</p>
-      </div>
+      <p class="hint">Sync your data across devices using CouchDB replication. Save a valid URL to enable sync; clear it to disable.</p>
       <div class="field">
         <label for="sync-url">CouchDB URL</label>
         <input type="url" id="sync-url" .value=${this._url} @change=${this.#onUrlChange}
