@@ -9,6 +9,9 @@ was one of those little things that I never found the time to work on and though
 great option for a mostly "vibe-coded" app.
 
 If you're curious: I didn't particularly _enjoy_ the experience, but am happy with the end result.
+I've written about this on [Bluesky](https://bsky.app/profile/gedge.ca/post/3meyghorz7c22), where
+there's joy in writing code. Not only that, there's a massive amount of value and utility in writing
+code too.
 
 ## Features
 
