@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Merchants } from "../../data/merchants";
-import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { movingAverage } from "../../data/movingAverage";
+import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";

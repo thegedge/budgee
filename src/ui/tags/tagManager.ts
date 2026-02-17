@@ -2,7 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
-import { colorToHex } from "../../data/tagColor";
+import { colorToHex } from "../../data/colorToHex";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { Tags } from "../../data/tags";
 import type { Tag } from "../../database/types";

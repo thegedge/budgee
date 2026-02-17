@@ -12,8 +12,3 @@ export function movingAverage(data: number[], window: number): (number | null)[]
     return slice.reduce((sum, v) => sum + v, 0) / window;
   });
 }
-
-/** Returns an appropriate moving-average window size for `count` data points. */
-export function movingAverageWindow(count: number): number {
-  return Math.max(2, Math.min(12, Math.round(count * 0.1)));
-}

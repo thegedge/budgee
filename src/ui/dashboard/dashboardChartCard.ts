@@ -4,15 +4,14 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { iconButtonStyles } from "../iconButtonStyles";
-import {
-  aggregateByMerchant,
-  aggregateByPeriod,
-  aggregateByTag,
-  filterTransactions,
-} from "../../database/aggregations";
+import { aggregateByMerchant } from "../../database/aggregateByMerchant";
+import { aggregateByPeriod } from "../../database/aggregateByPeriod";
+import { aggregateByTag } from "../../database/aggregateByTag";
+import { filterTransactions } from "../../database/filterTransactions";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
 import type { ChartData } from "chart.js";
-import { movingAverage, movingAverageWindow } from "../../data/movingAverage";
+import { movingAverage } from "../../data/movingAverage";
+import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";

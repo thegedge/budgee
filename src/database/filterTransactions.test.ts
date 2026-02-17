@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Transaction } from "./types";
-import {
-  aggregateByMerchant,
-  aggregateByPeriod,
-  aggregateByTag,
-  filterTransactions,
-} from "./aggregations";
+import { filterTransactions } from "./filterTransactions";
 
 const transactions: Transaction[] = [
   {
@@ -48,84 +43,6 @@ const transactions: Transaction[] = [
     merchantId: "m10",
   },
 ];
-
-describe("aggregateByPeriod", () => {
-  it("should aggregate by day", () => {
-    const result = aggregateByPeriod(transactions, "day");
-    expect(result.get("2024-01-05")).toBe(-50);
-    expect(result.get("2024-01-15")).toBe(-25);
-    expect(result.size).toBe(5);
-  });
-
-  it("should aggregate by month", () => {
-    const result = aggregateByPeriod(transactions, "month");
-    expect(result.get("2024-01")).toBe(-75);
-    expect(result.get("2024-02")).toBe(2470);
-    expect(result.get("2025-01")).toBe(-60);
-    expect(result.size).toBe(3);
-  });
-
-  it("should aggregate by year", () => {
-    const result = aggregateByPeriod(transactions, "year");
-    expect(result.get("2024")).toBe(2395);
-    expect(result.get("2025")).toBe(-60);
-    expect(result.size).toBe(2);
-  });
-});
-
-const tags = [
-  { id: "tag1", name: "Food" },
-  { id: "tag2", name: "Coffee" },
-  { id: "tag3", name: "Income" },
-];
-
-const merchants = [
-  { id: "m10", name: "Grocery Store" },
-  { id: "m20", name: "Coffee Shop" },
-];
-
-describe("aggregateByTag", () => {
-  it("should aggregate all tags by default", () => {
-    const result = aggregateByTag(transactions, tags);
-    expect(result.size).toBe(3);
-    expect(result.get("Food")).toBe(-140);
-    expect(result.get("Coffee")).toBe(-25);
-    expect(result.get("Income")).toBe(2500);
-  });
-
-  it("should exclude specified tags from grouping", () => {
-    const result = aggregateByTag(transactions, tags, ["tag3"]);
-    expect(result.size).toBe(2);
-    expect(result.has("Income")).toBe(false);
-    expect(result.get("Food")).toBe(-140);
-  });
-
-  it("should handle empty exclusion list", () => {
-    const result = aggregateByTag(transactions, tags, []);
-    expect(result.size).toBe(3);
-  });
-});
-
-describe("aggregateByMerchant", () => {
-  it("should aggregate all merchants by default", () => {
-    const result = aggregateByMerchant(transactions, merchants);
-    expect(result.size).toBe(2);
-    expect(result.get("Grocery Store")).toBe(-140);
-    expect(result.get("Coffee Shop")).toBe(-25);
-  });
-
-  it("should exclude specified merchants from grouping", () => {
-    const result = aggregateByMerchant(transactions, merchants, ["m20"]);
-    expect(result.size).toBe(1);
-    expect(result.has("Coffee Shop")).toBe(false);
-    expect(result.get("Grocery Store")).toBe(-140);
-  });
-
-  it("should handle empty exclusion list", () => {
-    const result = aggregateByMerchant(transactions, merchants, []);
-    expect(result.size).toBe(2);
-  });
-});
 
 describe("filterTransactions", () => {
   it("should filter by tagId", () => {

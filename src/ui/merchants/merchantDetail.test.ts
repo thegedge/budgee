@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { uuid } from "../../uuid";
 import { db } from "../../database/db";
-import { clearDb } from "../../database/pouchHelpers";
+import { clearDb } from "../../database/clearDb";
 import "./merchantDetail";
 import { MerchantDetail } from "./merchantDetail";
 
