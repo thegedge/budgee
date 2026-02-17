@@ -1,11 +1,10 @@
 import type { Databases } from "./db";
 import type { DatabaseExport } from "./importDb";
 import { migrateV0toV1 } from "./migrations/v0_dexie_to_pouchdb";
-import { migrateV1toV2 } from "./migrations/v1_fix_orphaned_references";
 
 type Migration = (data: DatabaseExport) => DatabaseExport;
 
-const MIGRATIONS: Migration[] = [migrateV0toV1, migrateV1toV2];
+const MIGRATIONS: Migration[] = [migrateV0toV1];
 
 export const LATEST_VERSION = MIGRATIONS.length;
 
