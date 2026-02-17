@@ -9,7 +9,7 @@ import { aggregateByPeriod } from "../../database/aggregateByPeriod";
 import { aggregateByTag } from "../../database/aggregateByTag";
 import { filterTransactions } from "../../database/filterTransactions";
 import type { DashboardChart, Merchant, Tag, Transaction } from "../../database/types";
-import type { ChartData } from "chart.js";
+import type { ChartData, ChartOptions } from "chart.js";
 import { movingAverage } from "../../data/movingAverage";
 import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
@@ -187,6 +187,14 @@ export class DashboardChartCard extends LitElement {
     };
   }
 
+  get #chartOptions(): ChartOptions {
+    const pos = this.config.legendPosition ?? "top";
+    if (pos === "hidden") {
+      return { plugins: { legend: { display: false } } };
+    }
+    return { plugins: { legend: { position: pos } } };
+  }
+
   #groupSmallSlices(entries: [string, number][]): [string, number][] {
     const total = entries.reduce((sum, [, val]) => sum + Math.abs(val), 0);
     if (total === 0) return entries;
@@ -335,6 +343,7 @@ export class DashboardChartCard extends LitElement {
       <chart-wrapper
         .chartType=${this.config.chartType}
         .data=${this.#chartData}
+        .options=${this.#chartOptions}
       ></chart-wrapper>
     `;
   }
