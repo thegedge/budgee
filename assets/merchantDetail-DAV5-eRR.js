@@ -1,7 +1,7 @@
-import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c as u,d as A,g as I}from"./index-CMV05wXu.js";var E=Object.defineProperty,O=Object.getOwnPropertyDescriptor,b=t=>{throw TypeError(t)},h=(t,e,a,i)=>{for(var r=i>1?void 0:i?O(e,a):e,s=t.length-1,m;s>=0;s--)(m=t[s])&&(r=(i?m(e,a,r):m(r))||r);return i&&r&&E(e,a,r),r},_=(t,e,a)=>e.has(t)||b("Cannot "+a),d=(t,e,a)=>(_(t,e,"read from private field"),a?a.call(t):e.get(t)),W=(t,e,a)=>e.has(t)?b("Cannot add the same private member more than once"):e instanceof WeakSet?e.add(t):e.set(t,a),p=(t,e,a)=>(_(t,e,"access private method"),a),n,f,v,l,y,$,w,S,x;let o=class extends k{constructor(){super(...arguments),W(this,n),this.merchantId="",this._transactions=[],this._timeRange=12,this._currentPage=1,this._pageSize=25}connectedCallback(){super.connectedCallback(),p(this,n,f).call(this)}render(){if(!this._merchant)return c`
+import{i as T,M as w,T as S,b as d,A as z,d as D,m as A,c as b,e as I,t as E,g as W,n as O,r as m,h as F}from"./index-B1dGPar4.js";var N=Object.defineProperty,B=Object.getOwnPropertyDescriptor,x=t=>{throw TypeError(t)},h=(t,e,a,i)=>{for(var r=i>1?void 0:i?B(e,a):e,o=t.length-1,u;o>=0;o--)(u=t[o])&&(r=(i?u(e,a,r):u(r))||r);return i&&r&&N(e,a,r),r},_=(t,e,a)=>e.has(t)||x("Cannot "+a),c=(t,e,a)=>(_(t,e,"read from private field"),a?a.call(t):e.get(t)),y=(t,e,a)=>e.has(t)?x("Cannot add the same private member more than once"):e instanceof WeakSet?e.add(t):e.set(t,a),$=(t,e,a,i)=>(_(t,e,"write to private field"),e.set(t,a),a),p=(t,e,a)=>(_(t,e,"access private method"),a),l,n,v,f,g,k,M,P,C,R;let s=class extends T{constructor(){super(...arguments),y(this,n),this.merchantId="",this._transactions=[],this._timeRange=12,this._currentPage=1,this._pageSize=25,y(this,l,[])}connectedCallback(){super.connectedCallback(),p(this,n,v).call(this);const t=D(()=>p(this,n,v).call(this),300);Promise.all([w.subscribe(t),S.subscribe(t)]).then(e=>{$(this,l,e)})}disconnectedCallback(){super.disconnectedCallback();for(const t of c(this,l))t.unsubscribe();$(this,l,[])}render(){if(!this._merchant)return d`
         <p>Loading…</p>
-      `;const t=d(this,n,v),e=(this._currentPage-1)*this._pageSize,a=t.slice(e,e+this._pageSize),i=t.reduce((r,s)=>r+s.amount,0);return c`
-      <span class="back-link" @click=${p(this,n,S)}>&larr; Back to merchants</span>
+      `;const t=c(this,n,f),e=(this._currentPage-1)*this._pageSize,a=t.slice(e,e+this._pageSize),i=t.reduce((r,o)=>r+o.amount,0);return d`
+      <span class="back-link" @click=${p(this,n,C)}>&larr; Back to merchants</span>
 
       <div class="header">
         <h2>${this._merchant.name}</h2>
@@ -17,14 +17,14 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
         <div class="section">
           <h3>
             Monthly Spend
-            <select @change=${p(this,n,$)}>
+            <select @change=${p(this,n,M)}>
               <option value="6" ?selected=${this._timeRange===6}>6 months</option>
               <option value="12" ?selected=${this._timeRange===12}>12 months</option>
               <option value="24" ?selected=${this._timeRange===24}>24 months</option>
               <option value="0" ?selected=${this._timeRange===0}>All time</option>
             </select>
           </h3>
-          ${d(this,n,l).length>0?c`<chart-wrapper chartType="bar" .data=${d(this,n,y)}></chart-wrapper>`:c`
+          ${c(this,n,g).length>0?d`<chart-wrapper chartType="bar" .data=${c(this,n,k)}></chart-wrapper>`:d`
                   <p>No transactions in this period.</p>
                 `}
         </div>
@@ -39,19 +39,19 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
               </tr>
             </thead>
             <tbody>
-              ${d(this,n,l).map(({month:r,total:s})=>c`
+              ${c(this,n,g).map(({month:r,total:o})=>d`
                 <tr>
                   <td>${r}</td>
-                  <td class=${s<0?"amount-negative":"amount-positive"}>
-                    ${s.toFixed(2)}
+                  <td class=${o<0?"amount-negative":"amount-positive"}>
+                    ${o.toFixed(2)}
                   </td>
                 </tr>
               `)}
-              ${d(this,n,l).length===0?c`
+              ${c(this,n,g).length===0?d`
                       <tr>
                         <td colspan="2">No data</td>
                       </tr>
-                    `:M}
+                    `:z}
             </tbody>
           </table>
         </div>
@@ -63,7 +63,7 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
           .totalItems=${t.length}
           .defaultPageSize=${25}
           storageKey="merchant-transactions"
-          @page-change=${p(this,n,w)}
+          @page-change=${p(this,n,P)}
         >
           <table>
             <thead>
@@ -74,8 +74,8 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
               </tr>
             </thead>
             <tbody>
-              ${a.map(r=>c`
-                <tr @click=${()=>p(this,n,x).call(this,r.id)}>
+              ${a.map(r=>d`
+                <tr @click=${()=>p(this,n,R).call(this,r.id)}>
                   <td>${r.date}</td>
                   <td>${r.originalDescription}</td>
                   <td class=${r.amount<0?"amount-negative":"amount-positive"}>
@@ -87,7 +87,7 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
           </table>
         </paginated-table>
       </div>
-    `}};n=new WeakSet;f=async function(){if(!this.merchantId)return;const[t,e]=await Promise.all([P.get(this.merchantId),C.forMerchant(this.merchantId)]);this._merchant=t,this._transactions=e};v=function(){if(this._timeRange===0)return this._transactions;const t=new Date;t.setMonth(t.getMonth()-this._timeRange);const e=t.toISOString().slice(0,10);return this._transactions.filter(a=>a.date>=e)};l=function(){const t=new Map;for(const e of d(this,n,v)){const a=e.date.slice(0,7);t.set(a,(t.get(a)??0)+e.amount)}return[...t.entries()].sort(([e],[a])=>e.localeCompare(a)).map(([e,a])=>({month:e,total:a}))};y=function(){const t=d(this,n,l),e=t.map(i=>i.total),a=D(e.length);return{labels:t.map(i=>i.month),datasets:[{label:this._merchant?.name??"Merchant",data:e,backgroundColor:u("--budgee-primary",.5),borderColor:u("--budgee-primary"),borderWidth:1},...e.length>=2?[{type:"line",label:`Moving Avg (${a}-mo)`,data:A(e,a),borderColor:u("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};$=function(t){this._timeRange=Number(t.target.value),this._currentPage=1};w=function(t){this._currentPage=t.detail.page,this._pageSize=t.detail.pageSize};S=function(){window.history.pushState({},"","/merchants"),window.dispatchEvent(new PopStateEvent("popstate"))};x=function(t){window.history.pushState({},"",`/transactions/${t}`),window.dispatchEvent(new PopStateEvent("popstate"))};o.styles=[R,T`
+    `}};l=new WeakMap;n=new WeakSet;v=async function(){if(!this.merchantId)return;const[t,e]=await Promise.all([w.get(this.merchantId),S.forMerchant(this.merchantId)]);this._merchant=t,this._transactions=e};f=function(){if(this._timeRange===0)return this._transactions;const t=new Date;t.setMonth(t.getMonth()-this._timeRange);const e=t.toISOString().slice(0,10);return this._transactions.filter(a=>a.date>=e)};g=function(){const t=new Map;for(const e of c(this,n,f)){const a=e.date.slice(0,7);t.set(a,(t.get(a)??0)+e.amount)}return[...t.entries()].sort(([e],[a])=>e.localeCompare(a)).map(([e,a])=>({month:e,total:a}))};k=function(){const t=c(this,n,g),e=t.map(i=>i.total),a=A(e.length);return{labels:t.map(i=>i.month),datasets:[{label:this._merchant?.name??"Merchant",data:e,backgroundColor:b("--budgee-primary",.5),borderColor:b("--budgee-primary"),borderWidth:1},...e.length>=2?[{type:"line",label:`Moving Avg (${a}-mo)`,data:I(e,a),borderColor:b("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};M=function(t){this._timeRange=Number(t.target.value),this._currentPage=1};P=function(t){this._currentPage=t.detail.page,this._pageSize=t.detail.pageSize};C=function(){window.history.pushState({},"","/merchants"),window.dispatchEvent(new PopStateEvent("popstate"))};R=function(t){window.history.pushState({},"",`/transactions/${t}`),window.dispatchEvent(new PopStateEvent("popstate"))};s.styles=[E,W`
       :host {
         display: block;
       }
@@ -155,4 +155,4 @@ import{i as k,b as c,A as M,M as P,T as C,t as R,f as T,n as z,r as g,m as D,c a
       tr:hover {
         background-color: var(--budgee-bg);
       }
-    `];h([z({type:String})],o.prototype,"merchantId",2);h([g()],o.prototype,"_merchant",2);h([g()],o.prototype,"_transactions",2);h([g()],o.prototype,"_timeRange",2);h([g()],o.prototype,"_currentPage",2);h([g()],o.prototype,"_pageSize",2);o=h([I("merchant-detail")],o);export{o as MerchantDetail};
+    `];h([O({type:String})],s.prototype,"merchantId",2);h([m()],s.prototype,"_merchant",2);h([m()],s.prototype,"_transactions",2);h([m()],s.prototype,"_timeRange",2);h([m()],s.prototype,"_currentPage",2);h([m()],s.prototype,"_pageSize",2);s=h([F("merchant-detail")],s);export{s as MerchantDetail};
