@@ -12,6 +12,7 @@ declare global {
 export class Settings extends LitElement {
   @state() private _url = "";
   @state() private _iceServer = "";
+  @state() private _turnServer = "";
   @state() private _testResult: "success" | "error" | "testing" | null = null;
   @state() private _testError = "";
   @state() private _testedUrl = "";
@@ -86,6 +87,7 @@ export class Settings extends LitElement {
     super.connectedCallback();
     this._url = localStorage.getItem("budgee-sync-url") ?? "";
     this._iceServer = localStorage.getItem("budgee-ice-server") ?? "";
+    this._turnServer = localStorage.getItem("budgee-turn-server") ?? "";
   }
 
   #onUrlChange(e: Event) {
@@ -97,6 +99,10 @@ export class Settings extends LitElement {
 
   #onIceServerChange(e: Event) {
     this._iceServer = (e.target as HTMLInputElement).value;
+  }
+
+  #onTurnServerChange(e: Event) {
+    this._turnServer = (e.target as HTMLInputElement).value;
   }
 
   async #onTestConnection() {
@@ -116,8 +122,9 @@ export class Settings extends LitElement {
   get #canSave() {
     const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
     const savedIceServer = localStorage.getItem("budgee-ice-server") ?? "";
+    const savedTurnServer = localStorage.getItem("budgee-turn-server") ?? "";
     const urlChanged = this._url !== savedUrl;
-    const iceChanged = this._iceServer !== savedIceServer;
+    const iceChanged = this._iceServer !== savedIceServer || this._turnServer !== savedTurnServer;
     if (!urlChanged && !iceChanged) return false;
     if (!this._url) return true;
     if (urlChanged) return this._testResult === "success" && this._testedUrl === this._url;
@@ -127,6 +134,7 @@ export class Settings extends LitElement {
   #onSave() {
     localStorage.setItem("budgee-sync-url", this._url);
     localStorage.setItem("budgee-ice-server", this._iceServer);
+    localStorage.setItem("budgee-turn-server", this._turnServer);
     this.dispatchEvent(
       new CustomEvent("budgee-sync-settings-changed", { bubbles: true, composed: true }),
     );
@@ -147,7 +155,13 @@ export class Settings extends LitElement {
         <label for="ice-server">ICE Server</label>
         <input type="text" id="ice-server" .value=${this._iceServer} @change=${this.#onIceServerChange}
           placeholder="stun:stun.example.com:3478" />
-        <p class="hint">Optional STUN/TURN server URL for WebRTC connectivity.</p>
+        <p class="hint">Optional STUN server URL for WebRTC connectivity.</p>
+      </div>
+      <div class="field">
+        <label for="turn-server">TURN Server</label>
+        <input type="text" id="turn-server" .value=${this._turnServer} @change=${this.#onTurnServerChange}
+          placeholder="turn:username:credential@host:3478" />
+        <p class="hint">Optional TURN relay server. Format: turn:username:credential@host:port</p>
       </div>
       ${
         this._url

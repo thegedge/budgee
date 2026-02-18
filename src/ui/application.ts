@@ -6,6 +6,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { waitForDb } from "../database/db";
 import { importDatabase } from "../database/importDb";
+import { parseTurnUri } from "../database/replication";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/loadingOverlay";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
@@ -289,7 +290,14 @@ export class Application extends LitElement {
     }
     if (url) {
       const iceServer = localStorage.getItem("budgee-ice-server");
-      const iceServers: RTCIceServer[] = iceServer ? [{ urls: iceServer }] : [];
+      const turnServer = localStorage.getItem("budgee-turn-server");
+      const iceServers: RTCIceServer[] = [];
+      if (iceServer) {
+        iceServers.push({ urls: iceServer });
+      }
+      if (turnServer) {
+        iceServers.push(parseTurnUri(turnServer));
+      }
       try {
         this.#cancelReplication = await startReplication({ serverUrl: url, iceServers });
       } catch (e) {

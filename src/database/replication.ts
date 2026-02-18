@@ -3,6 +3,23 @@ import { getConnectionHandlerSimplePeer, replicateWebRTC } from "rxdb/plugins/re
 import type { DatabaseCollections } from "./db";
 import { waitForDb } from "./db";
 
+/**
+ * Parse a TURN URI of the form `turn:username:credential@host:port` into an RTCIceServer.
+ */
+export function parseTurnUri(uri: string): RTCIceServer {
+  const match = uri.match(/^(turns?):([^:]+):([^@]+)@(.+)$/);
+  if (!match) {
+    return { urls: uri };
+  }
+
+  const [, scheme, username, credential, hostPort] = match;
+  return {
+    urls: `${scheme}:${hostPort}`,
+    username,
+    credential,
+  };
+}
+
 export async function testConnection(serverUrl: string): Promise<void> {
   const response = await fetch(`${serverUrl}/health`);
   if (!response.ok) {
