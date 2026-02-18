@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
 import { movingAverage } from "../../data/movingAverage";
 import { movingAverageWindow } from "../../data/movingAverageWindow";
@@ -131,9 +132,25 @@ export class TransactionDetail extends BusyMixin(LitElement) {
     `,
   ];
 
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
   connectedCallback() {
     super.connectedCallback();
     this.#load();
+    const debouncedLoad = debounce(() => this.#load(), 300);
+    Promise.all([
+      Transactions.subscribe(debouncedLoad),
+      Tags.subscribe(debouncedLoad),
+      Merchants.subscribe(debouncedLoad),
+    ]).then((subs) => {
+      this.#subscriptions = subs;
+    });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
   }
 
   async #load() {

@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
+import { debounce } from "../../debounce";
 import { MerchantRules } from "../../data/merchantRules";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { Merchants } from "../../data/merchants";
@@ -142,9 +143,26 @@ export class RuleManager extends BusyMixin(LitElement) {
     `,
   ];
 
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
   connectedCallback() {
     super.connectedCallback();
     this.#refresh();
+    const debouncedRefresh = debounce(() => this.#refresh(), 300);
+    Promise.all([
+      MerchantRules.subscribe(debouncedRefresh),
+      Tags.subscribe(debouncedRefresh),
+      Merchants.subscribe(debouncedRefresh),
+      Transactions.subscribe(debouncedRefresh),
+    ]).then((subs) => {
+      this.#subscriptions = subs;
+    });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
   }
 
   async #refresh() {

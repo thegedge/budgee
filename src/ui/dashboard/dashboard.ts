@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
+import { debounce } from "../../debounce";
 import { Accounts } from "../../data/accounts";
 import { DashboardCharts } from "../../data/dashboardCharts";
 import { DashboardTables } from "../../data/dashboardTables";
@@ -135,15 +136,30 @@ export class Dashboard extends LitElement {
     `,
   ];
 
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
   connectedCallback() {
     super.connectedCallback();
     this.#refresh();
+    const debouncedRefresh = debounce(() => this.#refresh(), 300);
+    Promise.all([
+      Transactions.subscribe(debouncedRefresh),
+      Tags.subscribe(debouncedRefresh),
+      Merchants.subscribe(debouncedRefresh),
+      Accounts.subscribe(debouncedRefresh),
+      DashboardCharts.subscribe(debouncedRefresh),
+      DashboardTables.subscribe(debouncedRefresh),
+    ]).then((subs) => {
+      this.#subscriptions = subs;
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._chartSortable?.destroy();
     this._tableSortable?.destroy();
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
   }
 
   updated() {

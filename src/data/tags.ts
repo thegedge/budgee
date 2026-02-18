@@ -6,6 +6,11 @@ import { randomTagColor } from "./randomTagColor";
 export class Tags {
   private constructor() {}
 
+  static async subscribe(callback: () => void) {
+    const db = await waitForDb();
+    return db.tags.subscribe(callback);
+  }
+
   static async all(): Promise<Tag[]> {
     const db = await waitForDb();
     return db.tags.all();
