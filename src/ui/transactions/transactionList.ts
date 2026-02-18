@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
@@ -181,15 +182,27 @@ export class TransactionList extends BusyMixin(LitElement) {
     `,
   ];
 
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
   connectedCallback() {
     super.connectedCallback();
     this.#refresh();
     document.addEventListener("budgee-import-csv", this.#onCsvDrop);
+    const debouncedRefresh = debounce(() => this.#refresh(), 300);
+    Promise.all([
+      Transactions.subscribe(debouncedRefresh),
+      Tags.subscribe(debouncedRefresh),
+      Merchants.subscribe(debouncedRefresh),
+    ]).then((subs) => {
+      this.#subscriptions = subs;
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener("budgee-import-csv", this.#onCsvDrop);
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
   }
 
   #onCsvDrop = (e: Event) => {
