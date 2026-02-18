@@ -1,8 +1,7 @@
-import { replicateWebRTC } from "rxdb/plugins/replication-webrtc";
-import { getConnectionHandlerSimplePeer } from "rxdb/plugins/replication-webrtc";
 import type { RxCollection } from "rxdb/plugins/core";
-import { waitForDb } from "./db";
+import { getConnectionHandlerSimplePeer, replicateWebRTC } from "rxdb/plugins/replication-webrtc";
 import type { DatabaseCollections } from "./db";
+import { waitForDb } from "./db";
 
 export async function testConnection(serverUrl: string): Promise<void> {
   const response = await fetch(`${serverUrl}/health`);
@@ -21,7 +20,13 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
   "dashboard_tables",
 ];
 
-export async function startReplication(serverUrl: string): Promise<() => void> {
+export interface ReplicationOptions {
+  serverUrl: string;
+  iceServers?: RTCIceServer[];
+}
+
+export async function startReplication(options: ReplicationOptions): Promise<() => void> {
+  const { serverUrl, iceServers = [] } = options;
   const dbs = await waitForDb();
   const rxdb = dbs.rxdb;
 
@@ -45,7 +50,12 @@ export async function startReplication(serverUrl: string): Promise<() => void> {
       return replicateWebRTC({
         collection,
         topic,
-        connectionHandlerCreator: getConnectionHandlerSimplePeer({ signalingServerUrl: wsUrl }),
+        connectionHandlerCreator: getConnectionHandlerSimplePeer({
+          signalingServerUrl: wsUrl,
+          config: {
+            iceServers,
+          },
+        }),
         pull: {},
         push: {},
       });
