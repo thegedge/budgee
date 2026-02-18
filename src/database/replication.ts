@@ -1,5 +1,9 @@
 import type { RxCollection } from "rxdb/plugins/core";
-import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
+import type { RxReplicationState } from "rxdb/plugins/replication";
+import { replicateRxCollection } from "rxdb/plugins/replication";
+import { randomToken } from "rxdb/plugins/utils";
+import ReconnectingWebSocket from "reconnecting-websocket";
+import { BehaviorSubject, Subject, filter, firstValueFrom, map } from "rxjs";
 import type { DatabaseCollections } from "./db";
 import { waitForDb } from "./db";
 
@@ -19,6 +23,124 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
   "dashboard_charts",
   "dashboard_tables",
 ];
+
+interface WebsocketMessage {
+  id: string;
+  collection: string;
+  result: unknown;
+}
+
+function createWebSocketClient(url: string) {
+  const wsClient = new ReconnectingWebSocket(url, [], { WebSocket });
+  const connected$ = new BehaviorSubject(false);
+  const message$ = new Subject<WebsocketMessage>();
+
+  wsClient.onerror = (err) => {
+    console.warn("WebSocket error:", err);
+  };
+
+  const ready = new Promise<void>((res) => {
+    wsClient.onopen = () => {
+      connected$.next(true);
+      res();
+    };
+  });
+
+  wsClient.onclose = () => {
+    connected$.next(false);
+  };
+
+  wsClient.onmessage = (messageObj) => {
+    message$.next(JSON.parse(messageObj.data as string) as WebsocketMessage);
+  };
+
+  return { wsClient, connected$, message$, ready };
+}
+
+function replicateCollection(
+  collection: RxCollection,
+  topic: string,
+  wsUrl: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<RxReplicationState<any, any>> {
+  const { wsClient, connected$, message$, ready } = createWebSocketClient(wsUrl);
+
+  let requestCounter = 0;
+  const requestFlag = randomToken(10);
+
+  function requestId() {
+    return `${collection.database.token}|${requestFlag}|${requestCounter++}`;
+  }
+
+  const replicationState = replicateRxCollection({
+    collection,
+    replicationIdentifier: topic,
+    live: true,
+    pull: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      stream$: message$.pipe(
+        filter((msg) => msg.id === "stream" && msg.collection === collection.name),
+        map((msg) => msg.result),
+      ) as any,
+      async handler(lastPulledCheckpoint, batchSize) {
+        const id = requestId();
+        wsClient.send(
+          JSON.stringify({
+            id,
+            collection: collection.name,
+            method: "masterChangesSince",
+            params: [lastPulledCheckpoint, batchSize],
+          }),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return firstValueFrom(
+          message$.pipe(
+            filter((msg) => msg.id === id),
+            map((msg) => msg.result),
+          ),
+        ) as any;
+      },
+    },
+    push: {
+      handler(docs) {
+        const id = requestId();
+        wsClient.send(
+          JSON.stringify({
+            id,
+            collection: collection.name,
+            method: "masterWrite",
+            params: [docs],
+          }),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return firstValueFrom(
+          message$.pipe(
+            filter((msg) => msg.id === id),
+            map((msg) => msg.result),
+          ),
+        ) as any;
+      },
+    },
+  });
+
+  connected$.subscribe((isConnected) => {
+    if (isConnected) {
+      replicationState.reSync();
+      wsClient.send(
+        JSON.stringify({
+          id: "stream",
+          collection: collection.name,
+          method: "masterChangeStream$",
+          params: [],
+        }),
+      );
+    }
+  });
+
+  collection.onClose.push(() => wsClient.close());
+
+  return ready.then(() => replicationState);
+}
 
 export async function startReplication(serverUrl: string): Promise<() => void> {
   const dbs = await waitForDb();
@@ -41,12 +163,7 @@ export async function startReplication(serverUrl: string): Promise<() => void> {
         console.warn(`Failed to register schema for ${collectionName}:`, e);
       }
 
-      return replicateWithWebsocketServer({
-        collection,
-        replicationIdentifier: topic,
-        url: wsUrl,
-        live: true,
-      });
+      return replicateCollection(collection, topic, wsUrl);
     }),
   );
 
