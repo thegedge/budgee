@@ -11,6 +11,7 @@ declare global {
 @customElement("budgee-settings")
 export class Settings extends LitElement {
   @state() private _url = "";
+  @state() private _iceServer = "";
   @state() private _testResult: "success" | "error" | "testing" | null = null;
   @state() private _testError = "";
   @state() private _testedUrl = "";
@@ -34,7 +35,8 @@ export class Settings extends LitElement {
       margin-bottom: 0.25rem;
     }
 
-    input[type="url"] {
+    input[type="url"],
+    input[type="text"] {
       width: 100%;
       max-width: 400px;
       padding: 0.4rem 0.6rem;
@@ -83,6 +85,7 @@ export class Settings extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._url = localStorage.getItem("budgee-sync-url") ?? "";
+    this._iceServer = localStorage.getItem("budgee-ice-server") ?? "";
   }
 
   #onUrlChange(e: Event) {
@@ -90,6 +93,10 @@ export class Settings extends LitElement {
     this._testResult = null;
     this._testError = "";
     this._testedUrl = "";
+  }
+
+  #onIceServerChange(e: Event) {
+    this._iceServer = (e.target as HTMLInputElement).value;
   }
 
   async #onTestConnection() {
@@ -108,13 +115,18 @@ export class Settings extends LitElement {
 
   get #canSave() {
     const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
-    if (this._url === savedUrl) return false;
+    const savedIceServer = localStorage.getItem("budgee-ice-server") ?? "";
+    const urlChanged = this._url !== savedUrl;
+    const iceChanged = this._iceServer !== savedIceServer;
+    if (!urlChanged && !iceChanged) return false;
     if (!this._url) return true;
-    return this._testResult === "success" && this._testedUrl === this._url;
+    if (urlChanged) return this._testResult === "success" && this._testedUrl === this._url;
+    return true;
   }
 
   #onSave() {
     localStorage.setItem("budgee-sync-url", this._url);
+    localStorage.setItem("budgee-ice-server", this._iceServer);
     this.dispatchEvent(
       new CustomEvent("budgee-sync-settings-changed", { bubbles: true, composed: true }),
     );
@@ -130,6 +142,12 @@ export class Settings extends LitElement {
         <input type="url" id="sync-url" .value=${this._url} @change=${this.#onUrlChange}
           placeholder="http://your-server:3001" />
         <p class="hint">The URL of your sync server.</p>
+      </div>
+      <div class="field">
+        <label for="ice-server">ICE Server</label>
+        <input type="text" id="ice-server" .value=${this._iceServer} @change=${this.#onIceServerChange}
+          placeholder="stun:stun.example.com:3478" />
+        <p class="hint">Optional STUN/TURN server URL for WebRTC connectivity.</p>
       </div>
       ${
         this._url
