@@ -1,10 +1,9 @@
 import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { debounce } from "../../debounce";
 import { Accounts } from "../../data/accounts";
 import { movingMedian } from "../../data/movingAverage";
-import { movingAverageWindow } from "../../data/movingAverageWindow";
+import { movingWindowSize } from "../../data/movingWindowSize";
 import { Transactions } from "../../data/transactions";
 import {
   ACCOUNT_TYPES,
@@ -13,6 +12,7 @@ import {
   type Transaction,
   accountTypeLabel,
 } from "../../database/types";
+import { debounce } from "../../debounce";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
@@ -225,7 +225,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
   get #chartData(): ChartData {
     const entries = this.#monthlyTotals;
     const values = entries.map((e) => e.total);
-    const window = movingAverageWindow(values.length);
+    const window = movingWindowSize(values.length);
     return {
       labels: entries.map((e) => e.month),
       datasets: [
