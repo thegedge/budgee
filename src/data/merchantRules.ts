@@ -6,6 +6,11 @@ import { uuid } from "../uuid";
 export class MerchantRules {
   private constructor() {}
 
+  static async subscribe(callback: () => void) {
+    const db = await waitForDb();
+    return db.merchantRules.subscribe(callback);
+  }
+
   static async all(): Promise<MerchantRule[]> {
     const db = await waitForDb();
     return db.merchantRules.all();

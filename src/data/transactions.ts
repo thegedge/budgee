@@ -5,6 +5,11 @@ import { uuid } from "../uuid";
 export class Transactions {
   private constructor() {}
 
+  static async subscribe(callback: () => void) {
+    const db = await waitForDb();
+    return db.transactions.subscribe(callback);
+  }
+
   static async all(): Promise<Transaction[]> {
     const db = await waitForDb();
     return db.transactions.all();

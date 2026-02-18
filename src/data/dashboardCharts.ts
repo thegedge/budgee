@@ -5,6 +5,11 @@ import { uuid } from "../uuid";
 export class DashboardCharts {
   private constructor() {}
 
+  static async subscribe(callback: () => void) {
+    const db = await waitForDb();
+    return db.dashboardCharts.subscribe(callback);
+  }
+
   static async all(): Promise<DashboardChart[]> {
     const db = await waitForDb();
     const docs = await db.dashboardCharts.all();

@@ -245,6 +245,11 @@ export class Collection<T extends { id: string }> {
   async count(): Promise<number> {
     return this.#collection.count().exec();
   }
+
+  subscribe(callback: () => void): { unsubscribe: () => void } {
+    const sub = this.#collection.$.subscribe(callback);
+    return { unsubscribe: () => sub.unsubscribe() };
+  }
 }
 
 export type { DatabaseCollections };

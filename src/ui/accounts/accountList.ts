@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { debounce } from "../../debounce";
 import { Accounts } from "../../data/accounts";
 import { Transactions } from "../../data/transactions";
 import { type Account, type Transaction, accountTypeLabel } from "../../database/types";
@@ -51,9 +52,23 @@ export class AccountList extends LitElement {
     `,
   ];
 
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
   connectedCallback() {
     super.connectedCallback();
     this.#load();
+    const debouncedLoad = debounce(() => this.#load(), 300);
+    Promise.all([Accounts.subscribe(debouncedLoad), Transactions.subscribe(debouncedLoad)]).then(
+      (subs) => {
+        this.#subscriptions = subs;
+      },
+    );
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
   }
 
   async #load() {
