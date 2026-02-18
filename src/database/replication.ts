@@ -1,25 +1,7 @@
 import type { RxCollection } from "rxdb/plugins/core";
-import { replicateWebRTC } from "rxdb/plugins/replication-webrtc";
-import { getConnectionHandler } from "./connection-handler";
+import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
 import type { DatabaseCollections } from "./db";
 import { waitForDb } from "./db";
-
-/**
- * Parse a TURN URI of the form `turn:username:credential@host:port` into an RTCIceServer.
- */
-export function parseTurnUri(uri: string): RTCIceServer {
-  const match = uri.match(/^(turns?):([^:]+):([^@]+)@(.+)$/);
-  if (!match) {
-    return { urls: uri };
-  }
-
-  const [, scheme, username, credential, hostPort] = match;
-  return {
-    urls: `${scheme}:${hostPort}`,
-    username,
-    credential,
-  };
-}
 
 export async function testConnection(serverUrl: string): Promise<void> {
   const response = await fetch(`${serverUrl}/health`);
@@ -38,19 +20,13 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
   "dashboard_tables",
 ];
 
-export interface ReplicationOptions {
-  serverUrl: string;
-  iceServers?: RTCIceServer[];
-}
-
-export async function startReplication(options: ReplicationOptions): Promise<() => void> {
-  const { serverUrl, iceServers = [] } = options;
+export async function startReplication(serverUrl: string): Promise<() => void> {
   const dbs = await waitForDb();
   const rxdb = dbs.rxdb;
 
   const wsUrl = serverUrl.replace(/^http/, "ws") + "/ws";
 
-  const pools = await Promise.all(
+  const replications = await Promise.all(
     SYNCABLE_COLLECTIONS.map(async (collectionName) => {
       const collection: RxCollection = rxdb[collectionName];
       const topic = `budgee--${collectionName}`;
@@ -65,22 +41,16 @@ export async function startReplication(options: ReplicationOptions): Promise<() 
         console.warn(`Failed to register schema for ${collectionName}:`, e);
       }
 
-      return replicateWebRTC({
+      return replicateWithWebsocketServer({
         collection,
-        topic,
-        connectionHandlerCreator: getConnectionHandler({
-          signalingServerUrl: wsUrl,
-          config: {
-            iceServers,
-          },
-        }),
-        pull: {},
-        push: {},
+        replicationIdentifier: topic,
+        url: wsUrl,
+        live: true,
       });
     }),
   );
 
   return async () => {
-    await Promise.all(pools.map((pool) => pool.cancel().catch(console.error)));
+    await Promise.all(replications.map((r) => r.cancel().catch(console.error)));
   };
 }
