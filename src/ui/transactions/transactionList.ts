@@ -1,10 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
+import { debounce } from "../../debounce";
 import "../merchants/merchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import "../shared/modal";
@@ -87,10 +87,6 @@ export class TransactionList extends BusyMixin(LitElement) {
       }
       .col-date {
         white-space: nowrap;
-      }
-      .col-tags tag-pills {
-        display: block;
-        width: 100%;
       }
       .col-checkbox {
         width: min-content;
