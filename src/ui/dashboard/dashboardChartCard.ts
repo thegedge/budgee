@@ -8,7 +8,7 @@ import { movingMedian } from "../../data/movingAverage";
 import { movingWindowSize } from "../../data/movingWindowSize";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
 import { aggregateByMerchant } from "../../database/aggregateByMerchant";
-import { aggregateByPeriod } from "../../database/aggregateByPeriod";
+import { type PeriodGranularity, aggregateByPeriod } from "../../database/aggregateByPeriod";
 import { aggregateByTag } from "../../database/aggregateByTag";
 import { type FilterOptions, filterTransactions } from "../../database/filterTransactions";
 import type {
@@ -208,11 +208,24 @@ export class DashboardChartCard extends LitElement {
     ];
 
     if (!isByDimension && this.config.chartType === "bar" && values.length >= 2) {
-      const windowSize = movingWindowSize(values.length);
+      // Compute median over all historical data (without startDate filter), then slice to display range
+      const allFiltered = filterTransactions(this.transactions, filterOptions);
+      const allAggregated = aggregateByPeriod(allFiltered, granularity as PeriodGranularity);
+      const allEntries = [...allAggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
+      const allValues = allEntries.map(([, val]) => Math.abs(val));
+      const windowSize = movingWindowSize(allValues.length);
+      const allMedian = movingMedian(allValues, windowSize);
+
+      const firstDisplayKey = entries[0]?.[0];
+      const sliceIndex = firstDisplayKey
+        ? allEntries.findIndex(([key]) => key === firstDisplayKey)
+        : 0;
+      const displayMedian = allMedian.slice(sliceIndex, sliceIndex + entries.length);
+
       datasets.push({
         type: "line",
         label: `${this.config.title} (${windowSize}-pt median)`,
-        data: movingMedian(values, windowSize),
+        data: displayMedian,
         borderColor: cssVar("--budgee-text-muted", 0.5),
         borderWidth: 1.5,
         pointRadius: 0,
