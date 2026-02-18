@@ -276,9 +276,11 @@ export class Application extends LitElement {
     this.#cancelReplication?.();
   }
 
-  #connectReplication() {
-    this.#cancelReplication?.();
+  async #connectReplication() {
+    const cancel = this.#cancelReplication;
     this.#cancelReplication = undefined;
+    await cancel?.();
+
     let url: string | null;
     try {
       url = localStorage.getItem("budgee-sync-url");
@@ -288,14 +290,11 @@ export class Application extends LitElement {
     if (url) {
       const iceServer = localStorage.getItem("budgee-ice-server");
       const iceServers: RTCIceServer[] = iceServer ? [{ urls: iceServer }] : [];
-      startReplication({ serverUrl: url, iceServers }).then(
-        (cancel) => {
-          this.#cancelReplication = cancel;
-        },
-        (e) => {
-          console.error("Failed to start replication:", e);
-        },
-      );
+      try {
+        this.#cancelReplication = await startReplication({ serverUrl: url, iceServers });
+      } catch (e) {
+        console.error("Failed to start replication:", e);
+      }
     }
   }
 
