@@ -62,9 +62,7 @@ export async function startReplication(options: ReplicationOptions): Promise<() 
     }),
   );
 
-  return () => {
-    for (const pool of pools) {
-      pool.cancel().catch(console.error);
-    }
+  return async () => {
+    await Promise.all(pools.map((pool) => pool.cancel().catch(console.error)));
   };
 }
