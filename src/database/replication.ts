@@ -1,5 +1,6 @@
 import type { RxCollection } from "rxdb/plugins/core";
-import { getConnectionHandlerSimplePeer, replicateWebRTC } from "rxdb/plugins/replication-webrtc";
+import { replicateWebRTC } from "rxdb/plugins/replication-webrtc";
+import { getConnectionHandler } from "./connection-handler";
 import type { DatabaseCollections } from "./db";
 import { waitForDb } from "./db";
 
@@ -67,7 +68,7 @@ export async function startReplication(options: ReplicationOptions): Promise<() 
       return replicateWebRTC({
         collection,
         topic,
-        connectionHandlerCreator: getConnectionHandlerSimplePeer({
+        connectionHandlerCreator: getConnectionHandler({
           signalingServerUrl: wsUrl,
           config: {
             iceServers,
