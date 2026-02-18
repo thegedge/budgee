@@ -286,7 +286,9 @@ export class Application extends LitElement {
       return;
     }
     if (url) {
-      startReplication(url).then(
+      const iceServer = localStorage.getItem("budgee-ice-server");
+      const iceServers: RTCIceServer[] = iceServer ? [{ urls: iceServer }] : [];
+      startReplication({ serverUrl: url, iceServers }).then(
         (cancel) => {
           this.#cancelReplication = cancel;
         },
