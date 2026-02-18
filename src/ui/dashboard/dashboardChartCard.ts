@@ -16,7 +16,7 @@ import type {
   Transaction,
 } from "../../database/types";
 import type { ChartData, ChartOptions } from "chart.js";
-import { movingAverage } from "../../data/movingAverage";
+import { movingMedian } from "../../data/movingAverage";
 import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
 import "../charts/chartWrapper";
@@ -212,7 +212,7 @@ export class DashboardChartCard extends LitElement {
       datasets.push({
         type: "line",
         label: `${this.config.title} (${window}-pt avg)`,
-        data: movingAverage(values, window),
+        data: movingMedian(values, window),
         borderColor: cssVar("--budgee-text-muted", 0.5),
         borderWidth: 1.5,
         pointRadius: 0,

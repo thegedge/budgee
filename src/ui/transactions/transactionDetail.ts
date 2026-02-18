@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
-import { movingAverage } from "../../data/movingAverage";
+import { movingMedian } from "../../data/movingAverage";
 import { movingAverageWindow } from "../../data/movingAverageWindow";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
@@ -258,7 +258,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
               {
                 type: "line" as const,
                 label: `Moving Avg (${window}-mo)`,
-                data: movingAverage(values, window),
+                data: movingMedian(values, window),
                 borderColor: cssVar("--budgee-text-muted", 0.5),
                 borderWidth: 1.5,
                 pointRadius: 0,
