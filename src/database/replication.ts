@@ -24,7 +24,7 @@ export async function startReplication(serverUrl: string): Promise<() => void> {
   const dbs = await waitForDb();
   const rxdb = dbs.rxdb;
 
-  const wsUrl = serverUrl.replace(/^http/, "ws") + "/ws";
+  const wsBaseUrl = serverUrl.replace(/^http/, "ws") + "/ws";
 
   const replications = await Promise.all(
     SYNCABLE_COLLECTIONS.map(async (collectionName) => {
@@ -44,7 +44,7 @@ export async function startReplication(serverUrl: string): Promise<() => void> {
       return replicateWithWebsocketServer({
         collection,
         replicationIdentifier: topic,
-        url: wsUrl,
+        url: `${wsBaseUrl}/${topic}`,
         live: true,
       });
     }),

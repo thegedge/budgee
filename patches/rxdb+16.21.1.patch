@@ -1,0 +1,13 @@
+diff --git a/node_modules/rxdb/dist/esm/plugins/replication-websocket/websocket-client.js b/node_modules/rxdb/dist/esm/plugins/replication-websocket/websocket-client.js
+index 2bcce59..0aa98ec 100644
+--- a/node_modules/rxdb/dist/esm/plugins/replication-websocket/websocket-client.js
++++ b/node_modules/rxdb/dist/esm/plugins/replication-websocket/websocket-client.js
+@@ -26,8 +26,6 @@ export async function createWebSocketClient(options) {
+   var message$ = new Subject();
+   var error$ = new Subject();
+   wsClient.onerror = err => {
+-    console.log('--- WAS CLIENT GOT ERROR:');
+-    console.log(err.error.message);
+     var emitError = newRxError('RC_STREAM', {
+       errors: toArray(err).map(er => errorToPlainJson(er)),
+       direction: 'pull'
