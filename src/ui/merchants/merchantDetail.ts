@@ -1,12 +1,12 @@
 import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
 import { movingMedian } from "../../data/movingAverage";
-import { movingAverageWindow } from "../../data/movingAverageWindow";
+import { movingWindowSize } from "../../data/movingWindowSize";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Transaction } from "../../database/types";
+import { debounce } from "../../debounce";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
 import "../shared/paginatedTable";
@@ -170,7 +170,7 @@ export class MerchantDetail extends LitElement {
   get #chartData(): ChartData {
     const entries = this.#monthlySpend;
     const values = entries.map((e) => e.total);
-    const window = movingAverageWindow(values.length);
+    const window = movingWindowSize(values.length);
     return {
       labels: entries.map((e) => e.month),
       datasets: [

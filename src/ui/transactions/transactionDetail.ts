@@ -1,18 +1,18 @@
+import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { debounce } from "../../debounce";
 import { Merchants } from "../../data/merchants";
 import { movingMedian } from "../../data/movingAverage";
-import { movingAverageWindow } from "../../data/movingAverageWindow";
+import { movingWindowSize } from "../../data/movingWindowSize";
 import { Tags } from "../../data/tags";
 import { Transactions } from "../../data/transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
-import type { ChartData } from "chart.js";
-import "../tags/tagAutocomplete";
+import { debounce } from "../../debounce";
 import "../charts/chartWrapper";
+import { cssVar } from "../cssVar";
 import { BusyMixin, busyStyles } from "../shared/busyMixin";
 import { tableStyles } from "../tableStyles";
-import { cssVar } from "../cssVar";
+import "../tags/tagAutocomplete";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -242,7 +242,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   get #merchantChartData(): ChartData {
     const entries = [...this._monthlySpend].reverse();
     const values = entries.map((e) => e.total);
-    const window = movingAverageWindow(values.length);
+    const window = movingWindowSize(values.length);
     return {
       labels: entries.map((e) => e.month),
       datasets: [

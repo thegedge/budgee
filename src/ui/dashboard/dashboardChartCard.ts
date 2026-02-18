@@ -1,9 +1,12 @@
+import type { ChartData, ChartOptions } from "chart.js";
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
-import { iconButtonStyles } from "../iconButtonStyles";
+import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import { movingMedian } from "../../data/movingAverage";
+import { movingWindowSize } from "../../data/movingWindowSize";
+import { parseRelativeDate } from "../../data/parseRelativeDate";
 import { aggregateByMerchant } from "../../database/aggregateByMerchant";
 import { aggregateByPeriod } from "../../database/aggregateByPeriod";
 import { aggregateByTag } from "../../database/aggregateByTag";
@@ -15,12 +18,9 @@ import type {
   Tag,
   Transaction,
 } from "../../database/types";
-import type { ChartData, ChartOptions } from "chart.js";
-import { movingMedian } from "../../data/movingAverage";
-import { movingAverageWindow } from "../../data/movingAverageWindow";
-import { parseRelativeDate } from "../../data/parseRelativeDate";
 import "../charts/chartWrapper";
 import { cssVar } from "../cssVar";
+import { iconButtonStyles } from "../iconButtonStyles";
 
 type ColSpan = NonNullable<DashboardChart["colSpan"]>;
 type RowSpan = NonNullable<DashboardChart["rowSpan"]>;
@@ -208,11 +208,11 @@ export class DashboardChartCard extends LitElement {
     ];
 
     if (!isByDimension && this.config.chartType === "bar" && values.length >= 2) {
-      const window = movingAverageWindow(values.length);
+      const windowSize = movingWindowSize(values.length);
       datasets.push({
         type: "line",
-        label: `${this.config.title} (${window}-pt avg)`,
-        data: movingMedian(values, window),
+        label: `${this.config.title} (${windowSize}-pt median)`,
+        data: movingMedian(values, windowSize),
         borderColor: cssVar("--budgee-text-muted", 0.5),
         borderWidth: 1.5,
         pointRadius: 0,
