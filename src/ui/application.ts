@@ -6,18 +6,18 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { waitForDb } from "../database/db";
 import { importDatabase } from "../database/importDb";
-import { hideLoadingOverlay, showLoadingOverlay } from "./shared/loadingOverlay";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
+import { hideLoadingOverlay, showLoadingOverlay } from "./shared/loadingOverlay";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
+import birdIcon from "lucide-static/icons/bird.svg?raw";
 import chartBarIcon from "lucide-static/icons/chart-column.svg?raw";
 import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
 import landmarkIcon from "lucide-static/icons/landmark.svg?raw";
+import refreshIcon from "lucide-static/icons/refresh-cw.svg?raw";
 import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
 import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
-import birdIcon from "lucide-static/icons/bird.svg?raw";
-import refreshIcon from "lucide-static/icons/refresh-cw.svg?raw";
 import tagIcon from "lucide-static/icons/tag.svg?raw";
 
 import "./accounts/accountList";
@@ -128,8 +128,18 @@ export class Application extends LitElement {
 
   static styles = css`
     :host {
-      display: flex;
+      width: 100vw;
+      max-width: 100vw;
       min-height: 100vh;
+
+      display: grid;
+      grid-template-areas:
+        "app-name main"
+        "nav main";
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+
       color: var(--budgee-text);
       font-family: sans-serif;
     }
@@ -141,100 +151,65 @@ export class Application extends LitElement {
     }
 
     .app-name {
+      grid-area: app-name;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
-      padding: 0.5rem 1rem 1rem;
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--budgee-text);
-      text-decoration: none;
-      border-bottom: 1px solid var(--budgee-border);
-      margin-bottom: 0.5rem;
-    }
+      background: var(--budgee-surface);
+      margin: 0;
 
-    .app-name svg.lucide {
-      width: 1.5rem;
-      height: 1.5rem;
+      width: stretch;
+      padding-block: 1rem;
+      padding-inline-end: 0.5rem;
+      border-right: 1px solid var(--budgee-border);
+
+      svg.lucide {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
     }
 
     nav {
+      grid-area: nav;
       display: flex;
       flex-direction: column;
-      gap: 0;
       background: var(--budgee-surface);
       border-right: 1px solid var(--budgee-border);
-      padding: 1rem 0;
       width: 180px;
       flex-shrink: 0;
+
+      a,
+      button {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        color: var(--budgee-text-muted);
+        font-size: 0.9rem;
+        border-left: 3px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+
+        &:hover {
+          color: var(--budgee-primary);
+        }
+
+        &.active {
+          color: var(--budgee-primary);
+          border-left-color: var(--budgee-primary);
+        }
+      }
     }
 
-    nav a,
-    nav button {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.5rem 1rem;
-      text-decoration: none;
-      color: var(--budgee-text-muted);
-      font-size: 0.9rem;
-      border-left: 3px solid transparent;
-      background: none;
-      border-top: none;
-      border-right: none;
-      border-bottom: none;
-      cursor: pointer;
-      font-family: inherit;
-      text-align: left;
-      transition:
-        color 0.15s,
-        border-color 0.15s;
-    }
-
-    nav a:hover,
-    nav button:hover {
-      color: var(--budgee-primary);
-    }
-
-    nav a.active {
-      color: var(--budgee-primary);
-      border-left-color: var(--budgee-primary);
-    }
-
-    .container {
-      flex: 1;
-      min-width: 0;
+    main {
+      grid-area: main;
       padding: 1.5rem 2rem;
-    }
-
-    @media (max-width: 768px) {
-      :host {
-        flex-direction: column;
-      }
-
-      nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        width: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--budgee-border);
-        padding: 0 0.5rem;
-      }
-
-      nav a,
-      nav button {
-        border-left: none;
-        border-bottom: 2px solid transparent;
-        padding: 0.5rem 0.75rem;
-      }
-
-      nav a.active {
-        border-bottom-color: var(--budgee-primary);
-      }
-
-      .container {
-        padding: 1rem;
-      }
     }
 
     .drop-overlay {
@@ -246,12 +221,49 @@ export class Application extends LitElement {
       justify-content: center;
       z-index: 9999;
       pointer-events: none;
-    }
 
-    .drop-overlay span {
       color: white;
       font-size: 1.5rem;
       font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      :host {
+        grid-template-areas:
+          "app-name nav"
+          "main main";
+      }
+
+      .app-name {
+        width: auto;
+        height: stretch;
+        padding: 1rem;
+        border-bottom: 1px solid var(--budgee-border);
+      }
+
+      nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--budgee-border);
+        padding: 0 0.5rem;
+
+        a,
+        button {
+          border-left: none;
+          border-bottom: 2px solid transparent;
+          padding: 0.5rem 0.75rem;
+
+          &.active {
+            border-bottom-color: var(--budgee-primary);
+          }
+        }
+      }
+
+      main {
+        padding: 1rem;
+      }
     }
   `;
 
@@ -346,8 +358,8 @@ export class Application extends LitElement {
 
   render() {
     return html`
+      <h1 class="app-name">${unsafeSVG(birdIcon)} Budgee</h1>
       <nav>
-        <div class="app-name">${unsafeSVG(birdIcon)} Budgee</div>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
         ${this.navLink("/transactions", "Transactions", banknotesIcon)}
         ${this.navLink("/accounts", "Accounts", landmarkIcon)}
@@ -357,13 +369,11 @@ export class Application extends LitElement {
         ${this.navLink("/import", "Database", arrowDownTrayIcon)}
         ${this.navLink("/settings", "Sync", refreshIcon)}
       </nav>
-      <div class="container">
-        ${this._router.outlet()}
-      </div>
+      <main>${this._router.outlet()}</main>
       ${
         this._dragOver
           ? html`
-              <div class="drop-overlay"><span>Drop file to import</span></div>
+              <div class="drop-overlay">Drop file to import</div>
             `
           : nothing
       }
