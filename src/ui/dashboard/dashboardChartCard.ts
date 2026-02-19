@@ -265,7 +265,7 @@ export class DashboardChartCard extends LitElement {
     }
 
     if (otherTotal !== 0) {
-      kept.push(["Other", otherTotal]);
+      kept.push(["other", otherTotal]);
     }
 
     return kept;
