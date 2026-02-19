@@ -13,16 +13,14 @@ import { hideLoadingOverlay, showLoadingOverlay } from "./shared/loadingOverlay"
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
 import birdIcon from "lucide-static/icons/bird.svg?raw";
 import chartBarIcon from "lucide-static/icons/chart-column.svg?raw";
-import arrowDownTrayIcon from "lucide-static/icons/download.svg?raw";
 import landmarkIcon from "lucide-static/icons/landmark.svg?raw";
-import refreshIcon from "lucide-static/icons/refresh-cw.svg?raw";
+import listFilterIcon from "lucide-static/icons/list-filter.svg?raw";
 import adjustmentsHorizontalIcon from "lucide-static/icons/settings.svg?raw";
 import buildingStorefrontIcon from "lucide-static/icons/store.svg?raw";
 import tagIcon from "lucide-static/icons/tag.svg?raw";
 
 import "./accounts/accountList";
 import "./dashboard/dashboard";
-import "./import/importer";
 import "./merchants/merchantList";
 import "./rules/ruleManager";
 import "./settings/settings";
@@ -108,13 +106,6 @@ export class Application extends LitElement {
       render: () =>
         html`
           <rule-manager></rule-manager>
-        `,
-    },
-    {
-      path: "/import",
-      render: () =>
-        html`
-          <database-manager></database-manager>
         `,
     },
     {
@@ -365,9 +356,8 @@ export class Application extends LitElement {
         ${this.navLink("/accounts", "Accounts", landmarkIcon)}
         ${this.navLink("/merchants", "Merchants", buildingStorefrontIcon)}
         ${this.navLink("/tags", "Tags", tagIcon)}
-        ${this.navLink("/rules", "Rules", adjustmentsHorizontalIcon)}
-        ${this.navLink("/import", "Database", arrowDownTrayIcon)}
-        ${this.navLink("/settings", "Sync", refreshIcon)}
+        ${this.navLink("/rules", "Rules", listFilterIcon)}
+        ${this.navLink("/settings", "Settings", adjustmentsHorizontalIcon)}
       </nav>
       <main>${this._router.outlet()}</main>
       ${
