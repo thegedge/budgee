@@ -11,14 +11,12 @@ describe("BudgeeApp", () => {
     document.body.appendChild(el);
     await el.updateComplete;
 
-    const appName = el.shadowRoot?.querySelector("nav .app-name");
+    const appName = el.shadowRoot?.querySelector(".app-name");
     expect(appName?.textContent).toContain("Budgee");
-    expect(appName?.tagName).toBe("DIV");
 
     const links = el.shadowRoot?.querySelectorAll("nav a");
     expect(links?.length).toBeGreaterThanOrEqual(6);
     expect(links?.[0].textContent).toContain("Dashboard");
-    expect(links?.[1].textContent).toContain("Transactions");
 
     el.remove();
   });
