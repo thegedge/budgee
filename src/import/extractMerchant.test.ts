@@ -23,10 +23,10 @@ describe("extractMerchant", () => {
   });
 
   it("strips trailing location (province code)", () => {
-    expect(extractMerchant("SOME MERCHANT OTTAWA, ON")).toBe("Some Merchant Ottawa");
+    expect(extractMerchant("SOME MERCHANT OTTAWA, ON")).toBe("Some Merchant");
   });
 
   it("handles description with both prefix and location", () => {
-    expect(extractMerchant("SQ *COFFEE SHOP TORONTO, ON")).toBe("Coffee Shop Toronto");
+    expect(extractMerchant("SQ *COFFEE SHOP TORONTO, ON")).toBe("Coffee Shop");
   });
 });
