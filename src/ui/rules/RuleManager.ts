@@ -220,56 +220,43 @@ export class RuleManager extends BusyMixin(LitElement) {
         merchantId = existing?.id ?? (await Merchants.create(merchantName));
       }
 
-      // Check for existing rule to merge with (only for new rules, not edits, and only if tags match)
-      if (!id && merchantId) {
-        const newTagSet = new Set(allTagIds);
-        const existingRule = this._rules.find(
-          (r) =>
-            r.merchantId === merchantId &&
-            r.tagIds.length === newTagSet.size &&
-            r.tagIds.every((id) => newTagSet.has(id)),
-        );
-        if (existingRule) {
-          const mergedConditions = [...existingRule.conditions, ...conditions];
-          const mergedTagIds = [...new Set([...existingRule.tagIds, ...allTagIds])];
-          const mergedLogic = existingRule.conditions.length <= 1 ? "or" : existingRule.logic;
-          const merged: MerchantRule = {
-            ...existingRule,
-            logic: mergedLogic,
-            conditions: mergedConditions,
-            tagIds: mergedTagIds,
-          };
-          await MerchantRules.put(merged);
-          this._showEditor = false;
-          this._editingRule = null;
-          this._editingMerchantName = "";
-          this._prefillDescription = "";
-          this._pendingRerunRule = merged;
-          await this.#refresh();
-          return;
-        }
-      }
-
       const rule: MerchantRule = id
         ? { id, logic, conditions, merchantId, tagIds: allTagIds }
         : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
 
       if (id) {
         await MerchantRules.put(rule);
-        this._showEditor = false;
-        this._editingRule = null;
-        this._editingMerchantName = "";
-        this._prefillDescription = "";
-        this._pendingRerunRule = rule;
       } else {
         rule.id = await MerchantRules.create(rule);
-        await MerchantRules.applyToTransactions(rule);
-        this._showEditor = false;
-        this._editingRule = null;
-        this._editingMerchantName = "";
-        this._prefillDescription = "";
       }
 
+      this._showEditor = false;
+      this._editingRule = null;
+      this._editingMerchantName = "";
+      this._prefillDescription = "";
+      this._pendingRerunRule = rule;
+      await this.#refresh();
+    });
+  }
+
+  async #onRuleMerge(e: CustomEvent) {
+    await this.withBusy(async () => {
+      const { existingRuleId, conditions } = e.detail;
+      const existingRule = this._rules.find((r) => r.id === existingRuleId);
+      if (!existingRule) return;
+
+      const merged: MerchantRule = {
+        ...existingRule,
+        logic: "or",
+        conditions: [...existingRule.conditions, ...conditions],
+      };
+      await MerchantRules.put(merged);
+
+      this._showEditor = false;
+      this._editingRule = null;
+      this._editingMerchantName = "";
+      this._prefillDescription = "";
+      this._pendingRerunRule = merged;
       await this.#refresh();
     });
   }
@@ -472,6 +459,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                 .editingRule=${this._editingRule}
                 .editingMerchantName=${this._editingMerchantName}
                 @rule-saved=${this.#onRuleSaved}
+                @rule-merge=${this.#onRuleMerge}
               ></rule-editor>
             </budgee-modal>
           `
