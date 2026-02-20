@@ -30,17 +30,11 @@ export class ConditionRow extends LitElement {
     iconButtonStyles,
     css`
       :host {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        margin-bottom: 0.25rem;
+        display: contents;
       }
       select,
       input {
         padding: 4px 8px;
-      }
-      input {
-        flex: 1;
       }
     `,
   ];

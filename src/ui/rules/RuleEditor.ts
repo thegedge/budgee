@@ -60,13 +60,23 @@ export class RuleEditor extends LitElement {
       margin-bottom: 1rem;
       background: var(--budgee-surface);
     }
+    .form-grid {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 0.25rem 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .form-grid label {
+      grid-column: 1 / 3;
+    }
+    .form-grid .field-value {
+      grid-column: 3 / 5;
+    }
     .form-row {
       display: flex;
       gap: 0.5rem;
       align-items: center;
-      margin-bottom: 0.5rem;
-    }
-    .conditions {
       margin-bottom: 0.5rem;
     }
     select,
@@ -89,7 +99,11 @@ export class RuleEditor extends LitElement {
       margin-bottom: 0.5rem;
     }
     .tags-row {
+      grid-column: 3 / 5;
+      display: flex;
       flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
     }
     .tag-badge {
       display: inline-block;
@@ -105,6 +119,7 @@ export class RuleEditor extends LitElement {
     }
     .existing-rules {
       margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
       padding: 0.5rem;
       background: var(--budgee-background, #f5f5f5);
       border-radius: 4px;
@@ -120,13 +135,19 @@ export class RuleEditor extends LitElement {
       padding: 0.25rem 0;
     }
     .existing-rule-conditions {
-      flex: 1;
       color: var(--budgee-text-muted);
     }
     .merge-btn {
       font-size: 0.8rem;
       padding: 2px 8px;
       flex-shrink: 0;
+    }
+    .save-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .spacer {
+      min-height: 2.5rem;
     }
   `;
 
@@ -279,9 +300,10 @@ export class RuleEditor extends LitElement {
   }
 
   render() {
+    const hasExistingRules = this.#existingRulesForMerchant().length > 0;
     return html`
       <h4>${this.editingRule ? "Edit Rule" : "Create Rule"}</h4>
-      <div class="conditions">
+      <div class="form-grid">
         ${this._conditions.map(
           (condition, i) => html`
           <condition-row
@@ -309,35 +331,43 @@ export class RuleEditor extends LitElement {
           : ""
       }
       <button class="add-condition" @click=${this.#addCondition}>+ Add Condition</button>
-      <div class="form-row">
+      <div class="form-grid">
         <label>Merchant:</label>
-        <merchant-autocomplete
+        <merchant-autocomplete class="field-value"
           .merchants=${this.merchants}
           .value=${this._merchantName}
           @merchant-changed=${(e: CustomEvent) => {
             this._merchantName = e.detail.name;
           }}
         ></merchant-autocomplete>
-      </div>
-      <div class="form-row tags-row">
         <label>Tags:</label>
-        ${this._pendingTagNames.map(
-          (name) => html`
-          <span class="tag-badge" @click=${() => this.#removePendingTag(name)}>
-            ${name} &times;
-          </span>
-        `,
-        )}
-        <tag-autocomplete
-          .tags=${this.tags}
-          .selectedTagIds=${this._selectedTagIds}
-          @tag-selected=${this.#onTagSelected}
-          @tag-created=${this.#onTagCreated}
-          @tag-removed=${(e: CustomEvent) => this.#removeTag(e.detail.tagId)}
-        ></tag-autocomplete>
+        <div class="tags-row">
+          ${this._pendingTagNames.map(
+            (name) => html`
+            <span class="tag-badge" @click=${() => this.#removePendingTag(name)}>
+              ${name} &times;
+            </span>
+          `,
+          )}
+          <tag-autocomplete
+            .tags=${this.tags}
+            .selectedTagIds=${this._selectedTagIds}
+            @tag-selected=${this.#onTagSelected}
+            @tag-created=${this.#onTagCreated}
+            @tag-removed=${(e: CustomEvent) => this.#removeTag(e.detail.tagId)}
+          ></tag-autocomplete>
+        </div>
       </div>
-      ${this.#renderExistingRules()}
-      <button @click=${this.#onSave}>${this.#existingRulesForMerchant().length > 0 ? "Create new" : "Save Rule"}</button>
+      ${
+        hasExistingRules
+          ? this.#renderExistingRules()
+          : html`
+              <div class="spacer"></div>
+            `
+      }
+      <div class="save-row">
+        <button @click=${this.#onSave}>${hasExistingRules ? "Create new" : "Save Rule"}</button>
+      </div>
     `;
   }
 }
