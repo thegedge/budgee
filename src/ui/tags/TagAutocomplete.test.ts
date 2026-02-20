@@ -148,4 +148,22 @@ describe("tag-autocomplete", () => {
 
     el.remove();
   });
+
+  it("should remove last selected tag on Backspace when input is empty", async () => {
+    const el = createElement();
+    el.selectedTagIds = ["t1", "t2"];
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const handler = vi.fn();
+    el.addEventListener("tag-removed", handler);
+
+    const input = el.shadowRoot!.querySelector("input")!;
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(handler.mock.calls[0][0].detail.tagId).toBe("t2");
+
+    el.remove();
+  });
 });
