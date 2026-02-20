@@ -91,8 +91,12 @@ export class RuleEditor extends LitElement {
       border: none;
       border-radius: 4px;
     }
-    button:hover {
+    button:hover:not(:disabled) {
       background-color: var(--budgee-primary-hover);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
     .add-condition {
       font-size: 0.85rem;
@@ -154,7 +158,7 @@ export class RuleEditor extends LitElement {
       justify-content: flex-end;
     }
     .spacer {
-      min-height: 5rem;
+      visibility: hidden;
     }
   `;
 
@@ -224,6 +228,14 @@ export class RuleEditor extends LitElement {
     this._selectedTagIds = this._selectedTagIds.filter((id) => id !== tagId);
   }
 
+  #hasAction() {
+    return (
+      this._merchantName.trim() !== "" ||
+      this._selectedTagIds.length > 0 ||
+      this._pendingTagNames.length > 0
+    );
+  }
+
   #validConditions() {
     return this._conditions.filter((c) => c.value.trim());
   }
@@ -285,6 +297,18 @@ export class RuleEditor extends LitElement {
     return rule.conditions
       .map((c) => `${c.operator} "${c.value}"`)
       .join(rule.logic === "and" ? " AND " : " OR ");
+  }
+
+  #renderExistingRulesPlaceholder() {
+    return html`
+      <div class="existing-rules spacer">
+        <h5>Existing rules for this merchant</h5>
+        <div class="existing-rule-item">
+          <span class="existing-rule-conditions">placeholder</span>
+          <button class="merge-btn">Merge</button>
+        </div>
+      </div>
+    `;
   }
 
   #renderExistingRules() {
@@ -366,15 +390,9 @@ export class RuleEditor extends LitElement {
           ></tag-autocomplete>
         </div>
       </div>
-      ${
-        hasExistingRules
-          ? this.#renderExistingRules()
-          : html`
-              <div class="spacer"></div>
-            `
-      }
+      ${hasExistingRules ? this.#renderExistingRules() : this.#renderExistingRulesPlaceholder()}
       <div class="save-row">
-        <button @click=${this.#onSave}>${hasExistingRules ? "Create new" : "Save Rule"}</button>
+        <button ?disabled=${!this.#hasAction()} @click=${this.#onSave}>Create new</button>
       </div>
     `;
   }
