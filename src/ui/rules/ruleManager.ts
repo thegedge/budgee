@@ -1,9 +1,11 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { debounce } from "../../debounce";
+import { matchesRule } from "../../import/matchesRule";
 import { MerchantRules } from "../../data/merchantRules";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { Merchants } from "../../data/merchants";
@@ -82,6 +84,9 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _unmerchantedFilter = "";
 
   @state()
+  private _unmatchedRuleIds = new Set<string>();
+
+  @state()
   private _overlapRefresh = 0;
 
   static styles = [
@@ -131,6 +136,17 @@ export class RuleManager extends BusyMixin(LitElement) {
       .actions {
         white-space: nowrap;
       }
+      .unmatched-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--budgee-warning, #b5850a);
+        font-size: 0.8rem;
+      }
+      .unmatched-warning svg {
+        width: 14px;
+        height: 14px;
+      }
       .sections-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -172,6 +188,16 @@ export class RuleManager extends BusyMixin(LitElement) {
     this._merchants = await Merchants.all();
     const allTx = await Transactions.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
+
+    const descriptions = allTx.map((t) => t.originalDescription.toLowerCase());
+    const unmatched = new Set<string>();
+    for (const rule of this._rules) {
+      if (!descriptions.some((d) => matchesRule(d, rule))) {
+        unmatched.add(rule.id);
+      }
+    }
+    this._unmatchedRuleIds = unmatched;
+
     this._overlapRefresh++;
   }
 
@@ -399,7 +425,10 @@ export class RuleManager extends BusyMixin(LitElement) {
                           .map(
                             (rule) => html`
                               <tr>
-                                <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                                <td class="condition-summary">
+                                  ${this.#formatConditions(rule)}
+                                  ${this._unmatchedRuleIds.has(rule.id) ? html`<span class="unmatched-warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</span>` : nothing}
+                                </td>
                                 <td>${this.#merchantName(rule.merchantId)}</td>
                                 <td>
                                   ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
