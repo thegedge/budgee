@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { db } from "./db";
+import { db } from "./Db";
 import type { DatabaseExport } from "./importDb";
 import { LATEST_VERSION, migrateDatabase, migrateExport } from "./migrations";
 

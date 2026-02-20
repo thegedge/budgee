@@ -1,4 +1,4 @@
-import { waitForDb } from "./db";
+import { waitForDb } from "./Db";
 import { LATEST_VERSION } from "./migrations";
 
 export async function exportDatabase() {

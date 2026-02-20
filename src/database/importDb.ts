@@ -1,4 +1,4 @@
-import { waitForDb } from "./db";
+import { waitForDb } from "./Db";
 import { uuid } from "../uuid";
 import type {
   Account,

@@ -1,4 +1,4 @@
-import { waitForDb } from "../src/database/db";
+import { waitForDb } from "../src/database/Db";
 
 export async function seed() {
   const db = await waitForDb();

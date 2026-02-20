@@ -2,8 +2,8 @@ import { BehaviorSubject, type Observable, combineLatest, map, merge, of, switch
 import type { RxCollection } from "rxdb/plugins/core";
 import type { RxReplicationState } from "rxdb/plugins/replication";
 import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
-import type { DatabaseCollections } from "./db";
-import { waitForDb } from "./db";
+import type { DatabaseCollections } from "./Db";
+import { waitForDb } from "./Db";
 
 export type SyncStatus = "not-configured" | "connecting" | "syncing" | "synced" | "error";
 
