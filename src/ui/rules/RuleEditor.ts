@@ -114,8 +114,15 @@ export class RuleEditor extends LitElement {
       font-size: 0.8rem;
       cursor: pointer;
     }
-    h4 {
+    .section-header {
+      font-weight: bold;
+      font-size: 0.9rem;
       margin: 0 0 0.5rem;
+    }
+    .section-header:not(:first-child) {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--budgee-border);
     }
     .existing-rules {
       margin-top: 0.75rem;
@@ -302,7 +309,7 @@ export class RuleEditor extends LitElement {
   render() {
     const hasExistingRules = this.#existingRulesForMerchant().length > 0;
     return html`
-      <h4>${this.editingRule ? "Edit Rule" : "Create Rule"}</h4>
+      <div class="section-header">Conditions</div>
       <div class="form-grid">
         ${this._conditions.map(
           (condition, i) => html`
@@ -331,6 +338,7 @@ export class RuleEditor extends LitElement {
           : ""
       }
       <button class="add-condition" @click=${this.#addCondition}>+ Add Condition</button>
+      <div class="section-header">Actions</div>
       <div class="form-grid">
         <label>Merchant:</label>
         <merchant-autocomplete class="field-value"
