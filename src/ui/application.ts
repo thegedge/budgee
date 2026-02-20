@@ -24,6 +24,7 @@ import "./dashboard/dashboard";
 import "./merchants/merchantList";
 import "./rules/ruleManager";
 import "./settings/settings";
+import "./shared/syncStatusIndicator";
 import "./tags/tagManager";
 import "./transactions/transactionList";
 
@@ -358,6 +359,8 @@ export class Application extends LitElement {
         ${this.navLink("/tags", "Tags", tagIcon)}
         ${this.navLink("/rules", "Rules", listFilterIcon)}
         ${this.navLink("/settings", "Settings", adjustmentsHorizontalIcon)}
+        <div style="flex:1"></div>
+        <sync-status-indicator></sync-status-indicator>
       </nav>
       <main>${this._router.outlet()}</main>
       ${
