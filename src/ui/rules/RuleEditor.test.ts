@@ -23,13 +23,18 @@ describe("rule-editor", () => {
         },
       }),
     );
+
+    const merchantAutocomplete = el.shadowRoot!.querySelector("merchant-autocomplete")!;
+    merchantAutocomplete.dispatchEvent(
+      new CustomEvent("merchant-changed", { detail: { name: "Starbucks" } }),
+    );
     await el.updateComplete;
 
     const handler = vi.fn();
     el.addEventListener("rule-saved", handler);
 
     const saveBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Save Rule",
+      (b) => b.textContent?.trim() === "Create new",
     )!;
     saveBtn.click();
 
