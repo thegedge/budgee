@@ -154,7 +154,7 @@ export class RuleEditor extends LitElement {
       justify-content: flex-end;
     }
     .spacer {
-      min-height: 2.5rem;
+      min-height: 5rem;
     }
   `;
 
