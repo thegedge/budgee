@@ -74,6 +74,13 @@ export class ChartWrapper extends LitElement {
           mode: "index",
           intersect: false,
         },
+        plugins: {
+          legend: {
+            labels: {
+              sort: (a, b) => (a.text ?? "").localeCompare(b.text ?? ""),
+            },
+          },
+        },
         ...this.options,
       },
     });
