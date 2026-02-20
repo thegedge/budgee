@@ -120,7 +120,13 @@ export class RuleEditor extends LitElement {
       padding: 0.25rem 0;
     }
     .existing-rule-conditions {
+      flex: 1;
       color: var(--budgee-text-muted);
+    }
+    .merge-btn {
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      flex-shrink: 0;
     }
   `;
 
@@ -190,8 +196,20 @@ export class RuleEditor extends LitElement {
     this._selectedTagIds = this._selectedTagIds.filter((id) => id !== tagId);
   }
 
+  #validConditions() {
+    return this._conditions.filter((c) => c.value.trim());
+  }
+
+  #resetForm() {
+    this._conditions = [{ field: "description", operator: "equals", value: "" }];
+    this._selectedTagIds = [];
+    this._merchantName = "";
+    this._pendingTagNames = [];
+    this._logic = "or";
+  }
+
   #onSave() {
-    const validConditions = this._conditions.filter((c) => c.value.trim());
+    const validConditions = this.#validConditions();
     if (validConditions.length === 0) return;
 
     this.dispatchEvent(
@@ -207,11 +225,23 @@ export class RuleEditor extends LitElement {
       }),
     );
 
-    this._conditions = [{ field: "description", operator: "equals", value: "" }];
-    this._selectedTagIds = [];
-    this._merchantName = "";
-    this._pendingTagNames = [];
-    this._logic = "or";
+    this.#resetForm();
+  }
+
+  #onMerge(rule: MerchantRule) {
+    const validConditions = this.#validConditions();
+    if (validConditions.length === 0) return;
+
+    this.dispatchEvent(
+      new CustomEvent("rule-merge", {
+        detail: {
+          existingRuleId: rule.id,
+          conditions: validConditions,
+        },
+      }),
+    );
+
+    this.#resetForm();
   }
 
   #existingRulesForMerchant() {
@@ -240,6 +270,7 @@ export class RuleEditor extends LitElement {
             <div class="existing-rule-item">
               <span class="existing-rule-conditions">${this.#formatConditions(rule)}</span>
               ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this.tags} .tagIds=${rule.tagIds}></tag-pills>` : nothing}
+              <button class="merge-btn" @click=${() => this.#onMerge(rule)}>Merge</button>
             </div>
           `,
         )}
@@ -305,8 +336,8 @@ export class RuleEditor extends LitElement {
           @tag-removed=${(e: CustomEvent) => this.#removeTag(e.detail.tagId)}
         ></tag-autocomplete>
       </div>
-      <button @click=${this.#onSave}>Save Rule</button>
       ${this.#renderExistingRules()}
+      <button @click=${this.#onSave}>${this.#existingRulesForMerchant().length > 0 ? "Create new" : "Save Rule"}</button>
     `;
   }
 }
