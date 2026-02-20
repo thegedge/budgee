@@ -1,9 +1,10 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Merchant, MerchantRule, RuleCondition, Tag } from "../../database/types";
 import { extractMerchant } from "../../import/extractMerchant";
 import "../merchants/merchantAutocomplete";
 import "../tags/tagAutocomplete";
+import "../tags/tagPills";
 import "./conditionRow";
 
 declare global {
@@ -19,6 +20,9 @@ export class RuleEditor extends LitElement {
 
   @property({ type: Array })
   merchants: Merchant[] = [];
+
+  @property({ type: Array })
+  rules: MerchantRule[] = [];
 
   @property({ type: String })
   prefillDescription = "";
@@ -98,6 +102,25 @@ export class RuleEditor extends LitElement {
     }
     h4 {
       margin: 0 0 0.5rem;
+    }
+    .existing-rules {
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: var(--budgee-background, #f5f5f5);
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .existing-rules h5 {
+      margin: 0 0 0.25rem;
+    }
+    .existing-rule-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0;
+    }
+    .existing-rule-conditions {
+      color: var(--budgee-text-muted);
     }
   `;
 
@@ -191,6 +214,39 @@ export class RuleEditor extends LitElement {
     this._logic = "or";
   }
 
+  #existingRulesForMerchant() {
+    if (!this._merchantName.trim()) return [];
+    const merchant = this.merchants.find(
+      (m) => m.name.toLowerCase() === this._merchantName.trim().toLowerCase(),
+    );
+    if (!merchant) return [];
+    return this.rules.filter((r) => r.merchantId === merchant.id && r.id !== this.editingRule?.id);
+  }
+
+  #formatConditions(rule: MerchantRule): string {
+    return rule.conditions
+      .map((c) => `${c.operator} "${c.value}"`)
+      .join(rule.logic === "and" ? " AND " : " OR ");
+  }
+
+  #renderExistingRules() {
+    const existing = this.#existingRulesForMerchant();
+    if (existing.length === 0) return nothing;
+    return html`
+      <div class="existing-rules">
+        <h5>Existing rules for this merchant</h5>
+        ${existing.map(
+          (rule) => html`
+            <div class="existing-rule-item">
+              <span class="existing-rule-conditions">${this.#formatConditions(rule)}</span>
+              ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this.tags} .tagIds=${rule.tagIds}></tag-pills>` : nothing}
+            </div>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <h4>${this.editingRule ? "Edit Rule" : "Create Rule"}</h4>
@@ -250,6 +306,7 @@ export class RuleEditor extends LitElement {
         ></tag-autocomplete>
       </div>
       <button @click=${this.#onSave}>Save Rule</button>
+      ${this.#renderExistingRules()}
     `;
   }
 }

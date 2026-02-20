@@ -194,9 +194,15 @@ export class RuleManager extends BusyMixin(LitElement) {
         merchantId = existing?.id ?? (await Merchants.create(merchantName));
       }
 
-      // Check for existing rule to merge with (only for new rules, not edits)
+      // Check for existing rule to merge with (only for new rules, not edits, and only if tags match)
       if (!id && merchantId) {
-        const existingRule = this._rules.find((r) => r.merchantId === merchantId);
+        const newTagSet = new Set(allTagIds);
+        const existingRule = this._rules.find(
+          (r) =>
+            r.merchantId === merchantId &&
+            r.tagIds.length === newTagSet.size &&
+            r.tagIds.every((id) => newTagSet.has(id)),
+        );
         if (existingRule) {
           const mergedConditions = [...existingRule.conditions, ...conditions];
           const mergedTagIds = [...new Set([...existingRule.tagIds, ...allTagIds])];
@@ -432,6 +438,7 @@ export class RuleManager extends BusyMixin(LitElement) {
               <rule-editor
                 .tags=${this._tags}
                 .merchants=${this._merchants}
+                .rules=${this._rules}
                 .prefillDescription=${this._prefillDescription}
                 .editingRule=${this._editingRule}
                 .editingMerchantName=${this._editingMerchantName}
