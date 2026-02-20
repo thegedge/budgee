@@ -1,6 +1,6 @@
-import { Accounts } from "../data/accounts";
-import { MerchantRules } from "../data/merchantRules";
-import { Transactions } from "../data/transactions";
+import { Accounts } from "../data/Accounts";
+import { MerchantRules } from "../data/MerchantRules";
+import { Transactions } from "../data/Transactions";
 import type { Transaction } from "../database/types";
 import { applyRules } from "./applyRules";
 import type { ColumnMapping } from "./parseCsv";

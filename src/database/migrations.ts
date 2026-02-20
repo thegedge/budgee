@@ -1,4 +1,4 @@
-import type { Databases } from "./db";
+import type { Databases } from "./Db";
 import type { DatabaseExport } from "./importDb";
 
 type Migration = (data: DatabaseExport) => DatabaseExport;

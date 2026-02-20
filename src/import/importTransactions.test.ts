@@ -1,6 +1,6 @@
 import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
-import { db } from "../database/db";
+import { db } from "../database/Db";
 import { allDocs } from "../database/allDocs";
 import { clearDb } from "../database/clearDb";
 import type { ColumnMapping } from "./parseCsv";
