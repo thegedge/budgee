@@ -185,6 +185,9 @@ export class TagAutocomplete extends LitElement {
       } else if (this.#showCreate) {
         this.#createTag();
       }
+    } else if (e.key === "Backspace" && this._query === "" && this.selectedTagIds.length > 0) {
+      e.preventDefault();
+      this.#removeTag(this.selectedTagIds[this.selectedTagIds.length - 1]);
     } else if (e.key === "Escape") {
       this.#close();
     }
