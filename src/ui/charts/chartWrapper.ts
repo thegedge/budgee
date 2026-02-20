@@ -70,6 +70,10 @@ export class ChartWrapper extends LitElement {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
         ...this.options,
       },
     });
