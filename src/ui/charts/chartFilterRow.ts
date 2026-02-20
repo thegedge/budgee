@@ -169,7 +169,7 @@ export class ChartFilterRow extends LitElement {
         )}
       </select>
       ${this.#renderValueInput()}
-      <button class="icon-btn icon-btn--danger" aria-label="Remove filter" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
+      <button class="icon-btn icon-btn--danger" title="Remove filter" aria-label="Remove filter" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
     `;
   }
 }

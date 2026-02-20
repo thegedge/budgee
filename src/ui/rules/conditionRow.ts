@@ -85,7 +85,7 @@ export class ConditionRow extends LitElement {
         .value=${this.condition.value}
         @input=${this.#onValueInput}
       />
-      <button class="icon-btn icon-btn--danger" aria-label="Remove condition" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
+      <button class="icon-btn icon-btn--danger" title="Remove condition" aria-label="Remove condition" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
     `;
   }
 }
