@@ -14,6 +14,9 @@ export const tableStyles = css`
   th {
     background-color: var(--budgee-primary);
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
   th.sortable {
     cursor: pointer;
