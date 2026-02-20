@@ -15,6 +15,7 @@ import "../shared/modal";
 import "../shared/paginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
+import "../tags/tagPills";
 import "./ruleEditor";
 import "./ruleOverlap";
 
@@ -259,12 +260,6 @@ export class RuleManager extends BusyMixin(LitElement) {
     this._showEditor = true;
   }
 
-  #tagLabel(tagId: string): string {
-    const tag = this._tags.find((t) => t.id === tagId);
-    if (!tag) return `#${tagId}`;
-    return tag.icon ? `${tag.icon} ${tag.name}` : tag.name;
-  }
-
   #tagName(tagId: string): string {
     return this._tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
   }
@@ -401,7 +396,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                                 <td class="condition-summary">${this.#formatConditions(rule)}</td>
                                 <td>${this.#merchantName(rule.merchantId)}</td>
                                 <td>
-                                  ${rule.tagIds.map((id) => this.#tagLabel(id)).join(", ") || "None"}
+                                  ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
                                 </td>
                                 <td class="actions">
                                   <button class="icon-btn" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
