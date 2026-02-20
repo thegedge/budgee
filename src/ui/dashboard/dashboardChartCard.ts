@@ -203,7 +203,7 @@ export class DashboardChartCard extends LitElement {
         data: values,
         backgroundColor: bgColors,
         borderColor: borderColors,
-        borderWidth: isPie ? 2 : 1,
+        borderWidth: 1,
       },
     ];
 
