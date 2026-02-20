@@ -13,6 +13,7 @@ import type {
   Transaction,
 } from "../../database/types";
 import "../shared/paginatedTable";
+import "../tags/tagPills";
 import type { PageChangeDetail } from "../shared/paginatedTable";
 import { tableStyles } from "../tableStyles";
 
@@ -239,10 +240,6 @@ export class DashboardTableCard extends LitElement {
     return this.accounts.find((a) => a.id === accountId)?.name ?? "";
   }
 
-  #tagNames(tagIds: string[]): string {
-    return tagIds.map((id) => this.tags.find((t) => t.id === id)?.name ?? `#${id}`).join(", ");
-  }
-
   #columnLabel(col: DashboardTableColumn): string {
     const labels: Record<DashboardTableColumn, string> = {
       date: "Date",
@@ -310,7 +307,7 @@ export class DashboardTableCard extends LitElement {
       case "merchant":
         return html`<td>${this.#merchantName(t.merchantId)}</td>`;
       case "tags":
-        return html`<td>${this.#tagNames(t.tagIds)}</td>`;
+        return html`<td><tag-pills .tags=${this.tags} .tagIds=${t.tagIds}></tag-pills></td>`;
       case "account":
         return html`<td>${this.#accountName(t.accountId)}</td>`;
       default:
