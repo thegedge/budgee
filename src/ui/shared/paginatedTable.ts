@@ -174,7 +174,7 @@ export class PaginatedTable extends LitElement {
     }, 200);
   }
 
-  render() {
+  #renderPaginationBar() {
     const size = this._effectivePageSize;
     const start = (this._currentPage - 1) * size + 1;
     const end = Math.min(this._currentPage * size, this.totalItems);
@@ -207,7 +207,14 @@ export class PaginatedTable extends LitElement {
           <button ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
         </div>
       </div>
+    `;
+  }
+
+  render() {
+    return html`
+      ${this.#renderPaginationBar()}
       <slot></slot>
+      ${this.#renderPaginationBar()}
     `;
   }
 }
