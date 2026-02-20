@@ -399,8 +399,8 @@ export class RuleManager extends BusyMixin(LitElement) {
                                   ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
                                 </td>
                                 <td class="actions">
-                                  <button class="icon-btn" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
-                                  <button class="icon-btn icon-btn--danger" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
+                                  <button class="icon-btn" title="Edit rule" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
+                                  <button class="icon-btn icon-btn--danger" title="Delete rule" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
                                 </td>
                               </tr>
                             `,

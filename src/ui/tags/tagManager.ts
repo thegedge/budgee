@@ -257,7 +257,7 @@ export class TagManager extends BusyMixin(LitElement) {
                       ${tag.name}
                     </td>
                     <td class="col-remove">
-                      <button class="icon-btn icon-btn--danger" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id)}>
+                      <button class="icon-btn icon-btn--danger" title="Remove tag" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id)}>
                         ${unsafeSVG(trash2Icon)}
                       </button>
                     </td>

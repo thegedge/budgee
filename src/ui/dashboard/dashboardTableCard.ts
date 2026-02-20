@@ -473,8 +473,8 @@ export class DashboardTableCard extends LitElement {
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
-          <button class="icon-btn" aria-label="Edit" @click=${this.#onEdit}>${unsafeSVG(wrenchIcon)}</button>
-          <button class="icon-btn icon-btn--danger" aria-label="Delete" @click=${this.#onDelete}>${unsafeSVG(trash2Icon)}</button>
+          <button class="icon-btn" title="Edit" aria-label="Edit" @click=${this.#onEdit}>${unsafeSVG(wrenchIcon)}</button>
+          <button class="icon-btn icon-btn--danger" title="Delete" aria-label="Delete" @click=${this.#onDelete}>${unsafeSVG(trash2Icon)}</button>
         </div>
       </div>
       ${this.#renderTable()}
