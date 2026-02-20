@@ -171,7 +171,7 @@ export class Application extends LitElement {
       flex-direction: column;
       background: var(--budgee-surface);
       border-right: 1px solid var(--budgee-border);
-      width: 180px;
+      width: 220px;
       flex-shrink: 0;
 
       a,
