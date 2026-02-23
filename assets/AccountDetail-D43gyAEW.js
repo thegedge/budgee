@@ -1,32 +1,32 @@
-import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t as K,g as U,n as V,r as h,m as Y,c as _,e as q,h as H}from"./index-B1dGPar4.js";var J=Object.defineProperty,Q=Object.getOwnPropertyDescriptor,S=t=>{throw TypeError(t)},p=(t,e,a,r)=>{for(var d=r>1?void 0:r?Q(e,a):e,g=t.length-1,s;g>=0;g--)(s=t[g])&&(d=(r?s(e,a,d):s(d))||d);return r&&d&&J(e,a,d),d},y=(t,e,a)=>e.has(t)||S("Cannot "+a),u=(t,e,a)=>(y(t,e,"read from private field"),a?a.call(t):e.get(t)),w=(t,e,a)=>e.has(t)?S("Cannot add the same private member more than once"):e instanceof WeakSet?e.add(t):e.set(t,a),x=(t,e,a,r)=>(y(t,e,"write to private field"),e.set(t,a),a),n=(t,e,a)=>(y(t,e,"access private method"),a),m,i,b,T,$,v,C,P,A,z,N,R,D,I,M;let c=class extends E(L){constructor(){super(...arguments),w(this,i),this.accountId="",this._transactions=null,this._editingName=!1,this._timeRange=12,this._currentPage=1,this._pageSize=25,w(this,m,[])}connectedCallback(){super.connectedCallback(),n(this,i,b).call(this);const t=W(()=>n(this,i,b).call(this),300);Promise.all([f.subscribe(t),k.subscribe(t)]).then(e=>{x(this,m,e)})}disconnectedCallback(){super.disconnectedCallback();for(const t of u(this,m))t.unsubscribe();x(this,m,[])}render(){if(!this._account)return o`
+import{B as O,i as W,j as _,T as S,b as r,k as F,l as V,d as G,A as K,f as U,t as Y,g as q,n as H,r as g,m as J,e as Q,c as y,h as X}from"./index-B9_8VI1M.js";var Z=Object.defineProperty,j=Object.getOwnPropertyDescriptor,T=t=>{throw TypeError(t)},h=(t,e,a,d)=>{for(var n=d>1?void 0:d?j(e,a):e,p=t.length-1,i;p>=0;p--)(i=t[p])&&(n=(d?i(e,a,n):i(n))||n);return d&&n&&Z(e,a,n),n},$=(t,e,a)=>e.has(t)||T("Cannot "+a),u=(t,e,a)=>($(t,e,"read from private field"),a?a.call(t):e.get(t)),w=(t,e,a)=>e.has(t)?T("Cannot add the same private member more than once"):e instanceof WeakSet?e.add(t):e.set(t,a),k=(t,e,a,d)=>($(t,e,"write to private field"),e.set(t,a),a),o=(t,e,a)=>($(t,e,"access private method"),a),v,s,f,C,x,M,b,P,z,A,I,N,D,E,R,L;let l=class extends O(W){constructor(){super(...arguments),w(this,s),this.accountId="",this._transactions=null,this._editingName=!1,this._timeRange=12,this._currentPage=1,this._pageSize=25,w(this,v,[])}connectedCallback(){super.connectedCallback(),o(this,s,f).call(this);const t=G(()=>o(this,s,f).call(this),300);Promise.all([_.subscribe(t),S.subscribe(t)]).then(e=>{k(this,v,e)})}disconnectedCallback(){super.disconnectedCallback();for(const t of u(this,v))t.unsubscribe();k(this,v,[])}render(){if(!this._account)return r`
         <p>Loading…</p>
-      `;const t=u(this,i,$),e=t===null;return o`
-      <span class="back-link" @click=${n(this,i,z)}>&larr; Back to accounts</span>
+      `;const t=u(this,s,x),e=t===null;return r`
+      <span class="back-link" @click=${o(this,s,I)}>&larr; Back to accounts</span>
 
       <div class="header">
         <h2>
-          ${this._editingName?o`<input
+          ${this._editingName?r`<input
                 class="edit-input"
                 .value=${this._account.name}
-                @keydown=${n(this,i,R)}
+                @keydown=${o(this,s,D)}
                 @blur=${()=>this._editingName=!1}
-              />`:o`<span class="editable" @click=${()=>this._editingName=!0}
+              />`:r`<span class="editable" @click=${()=>this._editingName=!0}
                 >${this._account.name}</span
               >`}
         </h2>
         <div class="meta">
           Type:
-          <select @change=${n(this,i,D)}>
+          <select @change=${o(this,s,E)}>
             <option value="" ?selected=${!this._account.type}>Not set</option>
-            ${B.map(a=>o`<option value=${a} ?selected=${this._account.type===a}>${O(a)}</option>`)}
+            ${F.map(a=>r`<option value=${a} ?selected=${this._account.type===a}>${V(a)}</option>`)}
           </select>
         </div>
       </div>
 
-      ${e?n(this,i,I).call(this):n(this,i,M).call(this,t)}
-    `}};m=new WeakMap;i=new WeakSet;b=async function(){this.accountId&&(this._account=await f.get(this.accountId),n(this,i,T).call(this))};T=async function(){this._transactions=await k.forAccount(this.accountId)};$=function(){if(!this._transactions)return null;if(this._timeRange===0)return this._transactions;const t=new Date;t.setMonth(t.getMonth()-this._timeRange);const e=t.toISOString().slice(0,10);return this._transactions.filter(a=>a.date>=e)};v=function(){const t=new Map;for(const e of u(this,i,$)??[]){const a=e.date.slice(0,7);t.set(a,(t.get(a)??0)+e.amount)}return[...t.entries()].sort(([e],[a])=>e.localeCompare(a)).map(([e,a])=>({month:e,total:a}))};C=function(){const t=u(this,i,v),e=t.map(r=>r.total),a=Y(e.length);return{labels:t.map(r=>r.month),datasets:[{label:this._account?.name??"Account",data:e,backgroundColor:_("--budgee-primary",.5),borderColor:_("--budgee-primary"),borderWidth:1},...e.length>=2?[{type:"line",label:`Moving Avg (${a}-mo)`,data:q(e,a),borderColor:_("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};P=function(t){this._timeRange=Number(t.target.value),this._currentPage=1};A=function(t){this._currentPage=t.detail.page,this._pageSize=t.detail.pageSize};z=function(){window.history.pushState({},"","/accounts"),window.dispatchEvent(new PopStateEvent("popstate"))};N=function(t){window.history.pushState({},"",`/transactions/${t}`),window.dispatchEvent(new PopStateEvent("popstate"))};R=async function(t){if(t.key!=="Enter")return;const e=t.target;await this.withBusy(async()=>{await f.update(this.accountId,{name:e.value}),this._editingName=!1,await n(this,i,b).call(this)})};D=async function(t){const e=t.target.value;await this.withBusy(async()=>{await f.update(this.accountId,{type:e||void 0}),await n(this,i,b).call(this)})};I=function(){return o`
+      ${e?o(this,s,R).call(this):o(this,s,L).call(this,t)}
+    `}};v=new WeakMap;s=new WeakSet;f=async function(){this.accountId&&(this._account=await _.get(this.accountId),o(this,s,C).call(this))};C=async function(){this._transactions=await S.forAccount(this.accountId)};x=function(){if(!this._transactions)return null;if(this._timeRange===0)return this._transactions;const t=new Date;t.setMonth(t.getMonth()-this._timeRange);const e=t.toISOString().slice(0,10);return this._transactions.filter(a=>a.date>=e)};M=function(){const t=new Map;for(const e of this._transactions??[]){const a=e.date.slice(0,7);t.set(a,(t.get(a)??0)+e.amount)}return[...t.entries()].sort(([e],[a])=>e.localeCompare(a)).map(([e,a])=>({month:e,total:a}))};b=function(){const t=new Map;for(const e of u(this,s,x)??[]){const a=e.date.slice(0,7);t.set(a,(t.get(a)??0)+e.amount)}return[...t.entries()].sort(([e],[a])=>e.localeCompare(a)).map(([e,a])=>({month:e,total:a}))};P=function(){const t=u(this,s,M),e=t.map(m=>m.total),a=J(e.length),d=Q(e,a),n=u(this,s,b),p=n[0]?.month,i=p?t.findIndex(m=>m.month===p):0,c=n.map(m=>m.total),B=d.slice(i,i+n.length);return{labels:n.map(m=>m.month),datasets:[{label:this._account?.name??"Account",data:c,backgroundColor:y("--budgee-primary",.5),borderColor:y("--budgee-primary"),borderWidth:1},...c.length>=2?[{type:"line",label:`Moving Avg (${a}-mo)`,data:B,borderColor:y("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};z=function(t){this._timeRange=Number(t.target.value),this._currentPage=1};A=function(t){this._currentPage=t.detail.page,this._pageSize=t.detail.pageSize};I=function(){window.history.pushState({},"","/accounts"),window.dispatchEvent(new PopStateEvent("popstate"))};N=function(t){window.history.pushState({},"",`/transactions/${t}`),window.dispatchEvent(new PopStateEvent("popstate"))};D=async function(t){if(t.key!=="Enter")return;const e=t.target;await this.withBusy(async()=>{await _.update(this.accountId,{name:e.value}),this._editingName=!1,await o(this,s,f).call(this)})};E=async function(t){const e=t.target.value;await this.withBusy(async()=>{await _.update(this.accountId,{type:e||void 0}),await o(this,s,f).call(this)})};R=function(){return r`
       <div class="summary-grid">
-        ${[0,1,2,3].map(()=>o`
+        ${[0,1,2,3].map(()=>r`
             <div class="summary-card">
               <div class="label loading">Loading…</div>
             </div>
@@ -37,12 +37,12 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
         <div class="section"><p class="loading">Loading summary…</p></div>
       </div>
       <div class="section-transactions"><p class="loading">Loading transactions…</p></div>
-    `};M=function(t){const e=(this._currentPage-1)*this._pageSize,a=t.slice(e,e+this._pageSize),r=t.reduce((s,l)=>s+l.amount,0),d=t.filter(s=>s.amount>0).reduce((s,l)=>s+l.amount,0),g=t.filter(s=>s.amount<0).reduce((s,l)=>s+l.amount,0);return o`
+    `};L=function(t){const e=(this._currentPage-1)*this._pageSize,a=t.slice(e,e+this._pageSize),d=t.reduce((i,c)=>i+c.amount,0),n=t.filter(i=>i.amount>0).reduce((i,c)=>i+c.amount,0),p=t.filter(i=>i.amount<0).reduce((i,c)=>i+c.amount,0);return r`
       <div class="summary-grid">
         <div class="summary-card">
           <div class="label">Balance</div>
-          <div class="value ${r<0?"amount-negative":"amount-positive"}">
-            ${r.toFixed(2)}
+          <div class="value ${d<0?"amount-negative":"amount-positive"}">
+            ${d.toFixed(2)}
           </div>
         </div>
         <div class="summary-card">
@@ -51,11 +51,11 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
         </div>
         <div class="summary-card">
           <div class="label">Income</div>
-          <div class="value amount-positive">${d.toFixed(2)}</div>
+          <div class="value amount-positive">${n.toFixed(2)}</div>
         </div>
         <div class="summary-card">
           <div class="label">Expenses</div>
-          <div class="value amount-negative">${g.toFixed(2)}</div>
+          <div class="value amount-negative">${p.toFixed(2)}</div>
         </div>
       </div>
 
@@ -63,14 +63,14 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
         <div class="section">
           <h3>
             Monthly Activity
-            <select @change=${n(this,i,P)}>
+            <select @change=${o(this,s,z)}>
               <option value="6" ?selected=${this._timeRange===6}>6 months</option>
               <option value="12" ?selected=${this._timeRange===12}>12 months</option>
               <option value="24" ?selected=${this._timeRange===24}>24 months</option>
               <option value="0" ?selected=${this._timeRange===0}>All time</option>
             </select>
           </h3>
-          ${u(this,i,v).length>0?o`<chart-wrapper chartType="bar" .data=${u(this,i,C)}></chart-wrapper>`:o`
+          ${u(this,s,b).length>0?r`<chart-wrapper chartType="bar" .data=${u(this,s,P)}></chart-wrapper>`:r`
                   <p>No transactions in this period.</p>
                 `}
         </div>
@@ -85,19 +85,19 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
               </tr>
             </thead>
             <tbody>
-              ${u(this,i,v).map(({month:s,total:l})=>o`
+              ${u(this,s,b).map(({month:i,total:c})=>r`
                 <tr>
-                  <td>${s}</td>
-                  <td class=${l<0?"amount-negative":"amount-positive"}>
-                    ${l.toFixed(2)}
+                  <td>${i}</td>
+                  <td class=${c<0?"amount-negative":"amount-positive"}>
+                    ${c.toFixed(2)}
                   </td>
                 </tr>
               `)}
-              ${u(this,i,v).length===0?o`
+              ${u(this,s,b).length===0?r`
                       <tr>
                         <td colspan="2">No data</td>
                       </tr>
-                    `:F}
+                    `:K}
             </tbody>
           </table>
         </div>
@@ -109,7 +109,7 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
           .totalItems=${t.length}
           .defaultPageSize=${25}
           storageKey="account-transactions"
-          @page-change=${n(this,i,A)}
+          @page-change=${o(this,s,A)}
         >
           <table>
             <thead>
@@ -120,12 +120,12 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
               </tr>
             </thead>
             <tbody>
-              ${a.map(s=>o`
-                <tr @click=${()=>n(this,i,N).call(this,s.id)}>
-                  <td>${s.date}</td>
-                  <td>${s.originalDescription}</td>
-                  <td class=${s.amount<0?"amount-negative":"amount-positive"}>
-                    ${s.amount.toFixed(2)}
+              ${a.map(i=>r`
+                <tr @click=${()=>o(this,s,N).call(this,i.id)}>
+                  <td>${i.date}</td>
+                  <td>${i.originalDescription}</td>
+                  <td class=${i.amount<0?"amount-negative":"amount-positive"}>
+                    ${i.amount.toFixed(2)}
                   </td>
                 </tr>
               `)}
@@ -133,7 +133,7 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
           </table>
         </paginated-table>
       </div>
-    `};c.styles=[G,K,U`
+    `};l.styles=[U,Y,q`
       :host {
         display: block;
       }
@@ -244,4 +244,4 @@ import{B as E,i as L,j as f,T as k,b as o,k as B,l as O,d as W,A as F,f as G,t a
         color: var(--budgee-text-muted);
         font-style: italic;
       }
-    `];p([V({type:String})],c.prototype,"accountId",2);p([h()],c.prototype,"_account",2);p([h()],c.prototype,"_transactions",2);p([h()],c.prototype,"_editingName",2);p([h()],c.prototype,"_timeRange",2);p([h()],c.prototype,"_currentPage",2);p([h()],c.prototype,"_pageSize",2);c=p([H("account-detail")],c);export{c as AccountDetail};
+    `];h([H({type:String})],l.prototype,"accountId",2);h([g()],l.prototype,"_account",2);h([g()],l.prototype,"_transactions",2);h([g()],l.prototype,"_editingName",2);h([g()],l.prototype,"_timeRange",2);h([g()],l.prototype,"_currentPage",2);h([g()],l.prototype,"_pageSize",2);l=h([X("account-detail")],l);export{l as AccountDetail};
