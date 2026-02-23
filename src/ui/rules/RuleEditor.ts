@@ -148,6 +148,9 @@ export class RuleEditor extends LitElement {
     .existing-rule-conditions {
       color: var(--budgee-text-muted);
     }
+    tag-pills {
+      flex-grow: 1;
+    }
     .merge-btn {
       font-size: 0.8rem;
       padding: 2px 8px;
