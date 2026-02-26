@@ -173,6 +173,11 @@ export class Application extends LitElement {
       border-right: 1px solid var(--budgee-border);
       width: 220px;
       flex-shrink: 0;
+      sync-status-indicator {
+        position: sticky;
+        bottom: 0;
+        background: var(--budgee-surface);
+      }
 
       a,
       button {
