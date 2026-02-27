@@ -14,7 +14,10 @@ function matchesCondition(description: string, condition: RuleCondition): boolea
   }
 }
 
-export function matchesRule(description: string, rule: MerchantRule): boolean {
+export function matchesRule(description: string, rule: MerchantRule, accountId?: string): boolean {
+  if (rule.accountId && rule.accountId !== accountId) {
+    return false;
+  }
   const method = rule.logic === "and" ? "every" : "some";
   return rule.conditions[method]((c) => matchesCondition(description, c));
 }

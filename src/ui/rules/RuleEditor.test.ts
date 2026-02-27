@@ -34,7 +34,7 @@ describe("rule-editor", () => {
     el.addEventListener("rule-saved", handler);
 
     const saveBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Create new",
+      (b) => b.textContent?.trim() === "Create",
     )!;
     saveBtn.click();
 
