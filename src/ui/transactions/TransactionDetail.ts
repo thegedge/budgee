@@ -1,6 +1,7 @@
 import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { buttonStyles } from "../buttonStyles";
 import { Merchants } from "../../data/Merchants";
 import { movingMedian } from "../../data/movingAverage";
 import { movingWindowSize } from "../../data/movingWindowSize";
@@ -46,6 +47,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   private _monthlySpend: MonthlySpend[] = [];
 
   static styles = [
+    buttonStyles,
     busyStyles,
     tableStyles,
     css`
@@ -110,16 +112,8 @@ export class TransactionDetail extends BusyMixin(LitElement) {
       .create-rule {
         display: inline-block;
         padding: 0.5rem 1rem;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
         text-decoration: none;
         font-size: 0.9rem;
-      }
-      .create-rule:hover {
-        background-color: var(--budgee-primary-hover);
       }
       .back-link {
         color: var(--budgee-primary);

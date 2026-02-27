@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { buttonStyles } from "../buttonStyles";
 
 export interface PageChangeDetail {
   page: number;
@@ -38,49 +39,37 @@ export class PaginatedTable extends LitElement {
 
   private _filterDebounce: ReturnType<typeof setTimeout> | null = null;
 
-  static styles = css`
-    .pagination-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      font-size: 0.875rem;
-      color: var(--budgee-text-muted);
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    select {
-      padding: 2px 6px;
-      border: 1px solid var(--budgee-border);
-      border-radius: 4px;
-      background: var(--budgee-surface);
-    }
-    .filter-input {
-      padding: 4px 8px;
-      border: 1px solid var(--budgee-border);
-      border-radius: 4px;
-      background: var(--budgee-surface);
-      font-size: 0.875rem;
-    }
-    button {
-      padding: 4px 12px;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover:not(:disabled) {
-      background-color: var(--budgee-primary-hover);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-  `;
+  static styles = [
+    buttonStyles,
+    css`
+      .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        color: var(--budgee-text-muted);
+      }
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      select {
+        padding: 2px 6px;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        background: var(--budgee-surface);
+      }
+      .filter-input {
+        padding: 4px 8px;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        font-size: 0.875rem;
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();
@@ -203,8 +192,8 @@ export class PaginatedTable extends LitElement {
         </div>
         <span>Showing ${start}–${end} of ${this.totalItems}</span>
         <div class="pagination-controls">
-          <button ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
-          <button ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
+          <button class="secondary" ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
+          <button class="secondary" ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
         </div>
       </div>
     `;

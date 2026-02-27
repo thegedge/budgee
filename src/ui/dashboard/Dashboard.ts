@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
+import { buttonStyles } from "../buttonStyles";
 import { Accounts } from "../../data/Accounts";
 import { DashboardCharts } from "../../data/DashboardCharts";
 import { DashboardTables } from "../../data/DashboardTables";
@@ -67,6 +68,7 @@ export class Dashboard extends LitElement {
   private _tableSortable?: Sortable;
 
   static styles = [
+    buttonStyles,
     tableStyles,
     css`
       :host {
@@ -118,15 +120,7 @@ export class Dashboard extends LitElement {
       }
       button {
         padding: 0.5rem 1rem;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
         margin-bottom: 1rem;
-      }
-      button:hover {
-        background-color: var(--budgee-primary-hover);
       }
       .button-bar {
         display: flex;

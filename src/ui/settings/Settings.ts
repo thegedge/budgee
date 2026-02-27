@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { buttonStyles } from "../buttonStyles";
 import { exportDatabase } from "../../database/exportDb";
 import { importDatabase } from "../../database/importDb";
 import { testConnection } from "../../database/replication";
@@ -18,81 +19,70 @@ export class Settings extends LitElement {
   @state() private _testError = "";
   @state() private _testedUrl = "";
 
-  static styles = css`
-    :host {
-      display: block;
-    }
+  static styles = [
+    buttonStyles,
+    css`
+      :host {
+        display: block;
+      }
 
-    section {
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface);
-    }
+      section {
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
 
-    h2 {
-      margin-top: 0;
-    }
+      h2 {
+        margin-top: 0;
+      }
 
-    .field {
-      margin-bottom: 1rem;
-    }
+      .field {
+        margin-bottom: 1rem;
+      }
 
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
 
-    input[type="url"] {
-      width: 100%;
-      max-width: 400px;
-      padding: 0.4rem 0.6rem;
-      border: 1px solid var(--budgee-border);
-      border-radius: 4px;
-      background: var(--budgee-surface);
-      color: var(--budgee-text);
-      font-size: 0.9rem;
-    }
+      input[type="url"] {
+        width: 100%;
+        max-width: 400px;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        color: var(--budgee-text);
+        font-size: 0.9rem;
+      }
 
-    .hint {
-      font-size: 0.8rem;
-      color: var(--budgee-text-muted);
-      margin-top: 0.25rem;
-    }
+      .hint {
+        font-size: 0.8rem;
+        color: var(--budgee-text-muted);
+        margin-top: 0.25rem;
+      }
 
-    button {
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
+      button {
+        padding: 0.5rem 1rem;
+      }
 
-    button:hover {
-      background-color: var(--budgee-primary-hover);
-    }
+      .test-result {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+      }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+      .test-result.success {
+        color: var(--budgee-positive, green);
+      }
 
-    .test-result {
-      font-size: 0.85rem;
-      margin-top: 0.25rem;
-    }
-
-    .test-result.success {
-      color: var(--budgee-positive, green);
-    }
-
-    .test-result.error {
-      color: var(--budgee-negative, red);
-    }
-  `;
+      .test-result.error {
+        color: var(--budgee-negative, red);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

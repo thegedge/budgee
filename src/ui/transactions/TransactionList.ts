@@ -5,6 +5,7 @@ import { Tags } from "../../data/Tags";
 import { Transactions } from "../../data/Transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import { debounce } from "../../debounce";
+import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/Modal";
@@ -71,6 +72,7 @@ export class TransactionList extends BusyMixin(LitElement) {
   private _showImporter = false;
 
   static styles = [
+    buttonStyles,
     busyStyles,
     tableStyles,
     css`
@@ -164,16 +166,8 @@ export class TransactionList extends BusyMixin(LitElement) {
       }
       .import-toggle {
         padding: 0.4rem 0.8rem;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
         margin-bottom: 0.5rem;
         font-size: 0.85rem;
-      }
-      .import-toggle:hover {
-        background-color: var(--budgee-primary-hover);
       }
     `,
   ];

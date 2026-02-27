@@ -10,6 +10,8 @@
   --budgee-primary: lch(72.1% 25.1 246.4);
   --budgee-row-alt: lch(94.8% 0 none);
   --budgee-row-hover: lch(92% 0 none);
+  --budgee-secondary-hover: lch(56% 0 none);
+  --budgee-secondary: lch(66% 0 none);
   --budgee-success: lch(63.6% 33.6 180.1);
   --budgee-surface: lch(100% 0 none);
   --budgee-text-muted: lch(56.7% 0 none);

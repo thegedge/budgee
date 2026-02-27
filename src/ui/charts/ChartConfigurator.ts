@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { buttonStyles } from "../buttonStyles";
 import type { Granularity } from "../../database/aggregations";
 import type {
   ChartFilterCondition,
@@ -64,69 +65,63 @@ export class ChartConfigurator extends LitElement {
   @state()
   private _initialized = false;
 
-  static styles = css`
-    :host {
-      display: block;
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface);
-    }
-    h4 {
-      margin-top: 0;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    input,
-    select {
-      padding: 4px 8px;
-    }
-    button {
-      padding: 4px 12px;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      margin-right: 0.5rem;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover);
-    }
-    .exclusions {
-      margin-bottom: 1rem;
-    }
-    .exclusions summary {
-      cursor: pointer;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-    }
-    .checkbox-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem 1rem;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .checkbox-list label {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.9rem;
-    }
-    .filters {
-      margin-bottom: 1rem;
-    }
-    .add-filter {
-      font-size: 0.85rem;
-    }
-  `;
+  static styles = [
+    buttonStyles,
+    css`
+      :host {
+        display: block;
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      h4 {
+        margin-top: 0;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      input,
+      select {
+        padding: 4px 8px;
+      }
+      button {
+        margin-right: 0.5rem;
+      }
+      .exclusions {
+        margin-bottom: 1rem;
+      }
+      .exclusions summary {
+        cursor: pointer;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+      .checkbox-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .checkbox-list label {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.9rem;
+      }
+      .filters {
+        margin-bottom: 1rem;
+      }
+      .add-filter {
+        font-size: 0.85rem;
+      }
+    `,
+  ];
 
   updated(changed: Map<string, unknown>) {
     if (changed.has("editingChart") && this.editingChart && !this._initialized) {
