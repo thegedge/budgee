@@ -159,6 +159,7 @@ export class RuleEditor extends LitElement {
     .save-row {
       display: flex;
       justify-content: flex-end;
+      gap: 0.5rem;
     }
     .spacer {
       visibility: hidden;
@@ -251,7 +252,7 @@ export class RuleEditor extends LitElement {
     this._logic = "or";
   }
 
-  #onSave() {
+  #onSave(apply: boolean) {
     const validConditions = this.#validConditions();
     if (validConditions.length === 0) return;
 
@@ -264,6 +265,7 @@ export class RuleEditor extends LitElement {
           tagIds: this._selectedTagIds,
           newTagNames: this._pendingTagNames,
           merchantName: this._merchantName.trim() || undefined,
+          apply,
         },
       }),
     );
@@ -271,7 +273,7 @@ export class RuleEditor extends LitElement {
     this.#resetForm();
   }
 
-  #onMerge(rule: MerchantRule) {
+  #onMerge(rule: MerchantRule, apply: boolean) {
     const validConditions = this.#validConditions();
     if (validConditions.length === 0) return;
 
@@ -280,6 +282,7 @@ export class RuleEditor extends LitElement {
         detail: {
           existingRuleId: rule.id,
           conditions: validConditions,
+          apply,
         },
       }),
     );
@@ -325,7 +328,8 @@ export class RuleEditor extends LitElement {
             <div class="existing-rule-item">
               <span class="existing-rule-conditions">${this.#formatConditions(rule)}</span>
               ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this.tags} .tagIds=${rule.tagIds}></tag-pills>` : nothing}
-              <button class="merge-btn" @click=${() => this.#onMerge(rule)}>Merge</button>
+              <button class="merge-btn" @click=${() => this.#onMerge(rule, false)}>Merge</button>
+              <button class="merge-btn" @click=${() => this.#onMerge(rule, true)}>Merge and apply</button>
             </div>
           `,
         )}
@@ -395,7 +399,8 @@ export class RuleEditor extends LitElement {
       </div>
       ${hasExistingRules ? this.#renderExistingRules() : this.#renderExistingRulesPlaceholder()}
       <div class="save-row">
-        <button ?disabled=${!this.#hasAction()} @click=${this.#onSave}>Create new</button>
+        <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(false)}>${this.editingRule ? "Save" : "Create"}</button>
+        <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(true)}>${this.editingRule ? "Save" : "Create"} and apply</button>
       </div>
     `;
   }

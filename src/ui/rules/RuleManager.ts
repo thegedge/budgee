@@ -57,9 +57,6 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _editingMerchantName = "";
 
   @state()
-  private _pendingRerunRule: MerchantRule | null = null;
-
-  @state()
   private _rulesPage = 1;
 
   @state()
@@ -117,17 +114,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
       button:hover {
         background-color: var(--budgee-primary-hover);
-      }
-      .secondary-btn {
-        background-color: var(--budgee-danger);
-      }
-      .secondary-btn:hover {
-        background-color: var(--budgee-danger-hover);
-      }
-      .confirm-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
       }
       .condition-summary {
         font-size: 0.85rem;
@@ -203,7 +189,7 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   async #onRuleSaved(e: CustomEvent) {
     await this.withBusy(async () => {
-      const { id, logic, conditions, tagIds, newTagNames, merchantName } = e.detail;
+      const { id, logic, conditions, tagIds, newTagNames, merchantName, apply } = e.detail;
 
       const allTagIds = [...(tagIds as string[])];
       if (newTagNames?.length) {
@@ -234,14 +220,18 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._editingRule = null;
       this._editingMerchantName = "";
       this._prefillDescription = "";
-      this._pendingRerunRule = rule;
+
+      if (apply) {
+        await MerchantRules.applyToTransactions(rule);
+      }
+
       await this.#refresh();
     });
   }
 
   async #onRuleMerge(e: CustomEvent) {
     await this.withBusy(async () => {
-      const { existingRuleId, conditions } = e.detail;
+      const { existingRuleId, conditions, apply } = e.detail;
       const existingRule = this._rules.find((r) => r.id === existingRuleId);
       if (!existingRule) return;
 
@@ -256,7 +246,11 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._editingRule = null;
       this._editingMerchantName = "";
       this._prefillDescription = "";
-      this._pendingRerunRule = merged;
+
+      if (apply) {
+        await MerchantRules.applyToTransactions(merged);
+      }
+
       await this.#refresh();
     });
   }
@@ -461,31 +455,6 @@ export class RuleManager extends BusyMixin(LitElement) {
                 @rule-saved=${this.#onRuleSaved}
                 @rule-merge=${this.#onRuleMerge}
               ></rule-editor>
-            </budgee-modal>
-          `
-          : nothing
-      }
-
-      ${
-        this._pendingRerunRule
-          ? html`
-            <budgee-modal
-              heading="Apply Rule"
-              @modal-close=${() => {
-                this._pendingRerunRule = null;
-              }}
-            >
-              <p>Apply this rule to existing unmerchanted transactions?</p>
-              <div class="confirm-actions">
-                <button @click=${async () => {
-                  await MerchantRules.applyToTransactions(this._pendingRerunRule!);
-                  this._pendingRerunRule = null;
-                  await this.#refresh();
-                }}>Apply</button>
-                <button class="secondary-btn" @click=${() => {
-                  this._pendingRerunRule = null;
-                }}>Skip</button>
-              </div>
             </budgee-modal>
           `
           : nothing
