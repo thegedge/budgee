@@ -42,14 +42,18 @@ export class Transactions {
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {
     const db = await waitForDb();
-    const result = await db.transactions.find({ selector: { merchantId } });
-    return result.sort((a, b) => b.date.localeCompare(a.date));
+    const all = await db.transactions.all();
+    return all
+      .filter((t) => t.merchantId === merchantId)
+      .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async forAccount(accountId: string): Promise<Transaction[]> {
     const db = await waitForDb();
-    const result = await db.transactions.find({ selector: { accountId } });
-    return result.sort((a, b) => b.date.localeCompare(a.date));
+    const all = await db.transactions.all();
+    return all
+      .filter((t) => t.accountId === accountId)
+      .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async deleteAll(): Promise<number> {
@@ -61,7 +65,8 @@ export class Transactions {
 
   static async deleteForAccount(accountId: string): Promise<number> {
     const db = await waitForDb();
-    const docs = await db.transactions.find({ selector: { accountId } });
+    const all = await db.transactions.all();
+    const docs = all.filter((t) => t.accountId === accountId);
     await Promise.all(docs.map((doc) => db.transactions.remove(doc.id)));
     return docs.length;
   }
