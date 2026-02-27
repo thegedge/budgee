@@ -434,33 +434,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
 
       ${
-        this._showEditor
-          ? html`
-            <budgee-modal
-              heading=${this._editingRule ? "Edit Rule" : "Create Rule"}
-              @modal-close=${() => {
-                this._showEditor = false;
-                this._editingRule = null;
-                this._editingMerchantName = "";
-                this._prefillDescription = "";
-              }}
-            >
-              <rule-editor
-                .tags=${this._tags}
-                .merchants=${this._merchants}
-                .rules=${this._rules}
-                .prefillDescription=${this._prefillDescription}
-                .editingRule=${this._editingRule}
-                .editingMerchantName=${this._editingMerchantName}
-                @rule-saved=${this.#onRuleSaved}
-                @rule-merge=${this.#onRuleMerge}
-              ></rule-editor>
-            </budgee-modal>
-          `
-          : nothing
-      }
-
-      ${
         this._unmerchanted.length > 0
           ? html`
             <div class="section">
@@ -514,8 +487,36 @@ export class RuleManager extends BusyMixin(LitElement) {
           : nothing
       }
 
-      <rule-overlap .refreshTrigger=${this._overlapRefresh}></rule-overlap>
       </div>
+
+      ${
+        this._showEditor
+          ? html`
+            <budgee-modal
+              heading=${this._editingRule ? "Edit Rule" : "Create Rule"}
+              @modal-close=${() => {
+                this._showEditor = false;
+                this._editingRule = null;
+                this._editingMerchantName = "";
+                this._prefillDescription = "";
+              }}
+            >
+              <rule-editor
+                .tags=${this._tags}
+                .merchants=${this._merchants}
+                .rules=${this._rules}
+                .prefillDescription=${this._prefillDescription}
+                .editingRule=${this._editingRule}
+                .editingMerchantName=${this._editingMerchantName}
+                @rule-saved=${this.#onRuleSaved}
+                @rule-merge=${this.#onRuleMerge}
+              ></rule-editor>
+            </budgee-modal>
+          `
+          : nothing
+      }
+
+      <rule-overlap .refreshTrigger=${this._overlapRefresh}></rule-overlap>
     `;
   }
 }
