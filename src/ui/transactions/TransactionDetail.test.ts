@@ -2,6 +2,7 @@ import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./TransactionDetail";
 import { TransactionDetail } from "./TransactionDetail";
 
@@ -29,12 +30,12 @@ describe("transaction-detail", () => {
     const el = document.createElement("transaction-detail") as TransactionDetail;
     el.transactionId = txId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("h2")!.textContent).toBe("Whole Foods Market");
-    expect(el.shadowRoot!.querySelector(".amount")!.textContent!.trim()).toBe("-42.50");
-    expect(el.shadowRoot!.querySelector(".meta")!.textContent).toContain("2024-01-15");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("h2")!.textContent).toBe("Whole Foods Market");
+      expect(el.shadowRoot!.querySelector(".amount")!.textContent!.trim()).toBe("-42.50");
+      expect(el.shadowRoot!.querySelector(".meta")!.textContent).toContain("2024-01-15");
+    });
 
     el.remove();
   });
@@ -56,10 +57,10 @@ describe("transaction-detail", () => {
     const el = document.createElement("transaction-detail") as TransactionDetail;
     el.transactionId = txId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector(".meta")!.textContent).toContain("Whole Foods");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector(".meta")!.textContent).toContain("Whole Foods");
+    });
 
     el.remove();
   });
@@ -80,13 +81,13 @@ describe("transaction-detail", () => {
     const el = document.createElement("transaction-detail") as TransactionDetail;
     el.transactionId = txId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const autocomplete = el.shadowRoot!.querySelector("tag-autocomplete")!;
-    const badges = autocomplete.shadowRoot!.querySelectorAll(".tag-pill");
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toContain("Groceries");
+    await waitFor(() => {
+      const autocomplete = el.shadowRoot!.querySelector("tag-autocomplete")!;
+      const badges = autocomplete.shadowRoot!.querySelectorAll(".tag-pill");
+      expect(badges).toHaveLength(1);
+      expect(badges[0].textContent).toContain("Groceries");
+    });
 
     el.remove();
   });
@@ -104,16 +105,19 @@ describe("transaction-detail", () => {
     const el = document.createElement("transaction-detail") as TransactionDetail;
     el.transactionId = txId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
+
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("textarea")).toBeTruthy();
+    });
 
     const textarea = el.shadowRoot!.querySelector("textarea")!;
     textarea.value = "Weekly groceries";
     textarea.dispatchEvent(new Event("blur"));
-    await new Promise((r) => setTimeout(r, 50));
 
-    const updated = await db.transactions.get(txId);
-    expect(updated!.memo).toBe("Weekly groceries");
+    await waitFor(async () => {
+      const updated = await db.transactions.get(txId);
+      expect(updated!.memo).toBe("Weekly groceries");
+    });
 
     el.remove();
   });
@@ -143,16 +147,17 @@ describe("transaction-detail", () => {
     const el = document.createElement("transaction-detail") as TransactionDetail;
     el.transactionId = txId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const sections = el.shadowRoot!.querySelectorAll(".section");
-    const relatedSection = Array.from(sections).find(
-      (s) => s.querySelector("h3")?.textContent === "Related Transactions",
-    )!;
-    const relatedRows = relatedSection.querySelectorAll("tbody tr");
-    expect(relatedRows).toHaveLength(1);
-    expect(relatedRows[0].querySelector("td")!.textContent).toBe("2024-01-10");
+    await waitFor(() => {
+      const sections = el.shadowRoot!.querySelectorAll(".section");
+      const relatedSection = Array.from(sections).find(
+        (s) => s.querySelector("h3")?.textContent === "Related Transactions",
+      )!;
+      expect(relatedSection).toBeTruthy();
+      const relatedRows = relatedSection.querySelectorAll("tbody tr");
+      expect(relatedRows).toHaveLength(1);
+      expect(relatedRows[0].querySelector("td")!.textContent).toBe("2024-01-10");
+    });
 
     el.remove();
   });

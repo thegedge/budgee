@@ -2,6 +2,7 @@ import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./TransactionList";
 import { TransactionList } from "./TransactionList";
 
@@ -18,10 +19,11 @@ describe("transaction-list", () => {
   it("should show empty message when no transactions", async () => {
     const el = document.createElement("transaction-list") as TransactionList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("p")!.textContent).toBe("No transactions found.");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("p")!.textContent).toBe("No transactions found.");
+    });
+
     el.remove();
   });
 
@@ -45,11 +47,13 @@ describe("transaction-list", () => {
 
     const el = document.createElement("transaction-list") as TransactionList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
+
+    await waitFor(() => {
+      const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+      expect(rows).toHaveLength(2);
+    });
 
     const rows = el.shadowRoot!.querySelectorAll("tbody tr");
-    expect(rows).toHaveLength(2);
 
     // Default sort is date descending, so 2024-01-02 comes first
     // Columns: Checkbox, Date, Merchant, Description, Amount, Tags
@@ -80,13 +84,14 @@ describe("transaction-list", () => {
 
     const el = document.createElement("transaction-list") as TransactionList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const pills = el.shadowRoot!.querySelector("tag-pills")!;
-    const badges = pills.shadowRoot!.querySelectorAll(".tag-pill");
-    expect(badges).toHaveLength(1);
-    expect(badges[0].textContent).toContain("Food");
+    await waitFor(() => {
+      const pills = el.shadowRoot!.querySelector("tag-pills")!;
+      expect(pills).toBeTruthy();
+      const badges = pills.shadowRoot!.querySelectorAll(".tag-pill");
+      expect(badges).toHaveLength(1);
+      expect(badges[0].textContent).toContain("Food");
+    });
 
     el.remove();
   });
@@ -104,12 +109,13 @@ describe("transaction-list", () => {
 
     const el = document.createElement("transaction-list") as TransactionList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const pills = el.shadowRoot!.querySelector("tag-pills")!;
-    expect(pills.shadowRoot!.querySelector("tag-autocomplete")).toBeNull();
-    expect(pills.shadowRoot!.querySelectorAll(".tag-pill")).toHaveLength(1);
+    await waitFor(() => {
+      const pills = el.shadowRoot!.querySelector("tag-pills")!;
+      expect(pills).toBeTruthy();
+      expect(pills.shadowRoot!.querySelector("tag-autocomplete")).toBeNull();
+      expect(pills.shadowRoot!.querySelectorAll(".tag-pill")).toHaveLength(1);
+    });
 
     el.remove();
   });

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { uuid } from "../../uuid";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./MerchantDetail";
 import { MerchantDetail } from "./MerchantDetail";
 
@@ -49,13 +50,13 @@ describe("merchant-detail", () => {
     const el = document.createElement("merchant-detail") as MerchantDetail;
     el.merchantId = merchantId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 200));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
+      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      expect(rows).toHaveLength(2);
+    });
 
-    const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
-    expect(rows).toHaveLength(2);
     el.remove();
   });
 
@@ -66,12 +67,14 @@ describe("merchant-detail", () => {
     const el = document.createElement("merchant-detail") as MerchantDetail;
     el.merchantId = merchantId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 200));
-    await el.updateComplete;
+
+    await waitFor(() => {
+      const editBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(".edit-name-btn")!;
+      expect(editBtn).toBeTruthy();
+    });
 
     // Click edit button
     const editBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(".edit-name-btn")!;
-    expect(editBtn).toBeTruthy();
     editBtn.click();
     await el.updateComplete;
 
@@ -97,13 +100,11 @@ describe("merchant-detail", () => {
     input2.value = "Tea House";
     input2.dispatchEvent(new Event("input"));
     input2.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
-    await el.updateComplete;
-    // Wait for debounced subscription reload
-    await new Promise((r) => setTimeout(r, 500));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector(".name-input")).toBeNull();
-    expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Tea House");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector(".name-input")).toBeNull();
+      expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Tea House");
+    });
 
     el.remove();
   });

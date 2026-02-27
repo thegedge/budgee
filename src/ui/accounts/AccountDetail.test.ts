@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { uuid } from "../../uuid";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./AccountDetail";
 import { AccountDetail } from "./AccountDetail";
 
@@ -49,14 +50,14 @@ describe("account-detail", () => {
     const el = document.createElement("account-detail") as AccountDetail;
     el.accountId = accountId;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 200));
-    await el.updateComplete;
 
-    const name = el.shadowRoot!.querySelector(".editable")!;
-    expect(name.textContent).toBe("Checking");
+    await waitFor(() => {
+      const name = el.shadowRoot!.querySelector(".editable")!;
+      expect(name.textContent).toBe("Checking");
+      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      expect(rows).toHaveLength(2);
+    });
 
-    const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
-    expect(rows).toHaveLength(2);
     el.remove();
   });
 });

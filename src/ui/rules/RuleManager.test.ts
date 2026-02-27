@@ -3,6 +3,7 @@ import { allDocs } from "../../database/allDocs";
 import { clearDb } from "../../database/clearDb";
 import { db } from "../../database/Db";
 import { uuid } from "../../uuid";
+import { waitFor } from "../testing";
 import "./RuleManager";
 import { RuleManager } from "./RuleManager";
 
@@ -30,8 +31,11 @@ describe("rule-manager", () => {
 
     const el = document.createElement("rule-manager") as RuleManager;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
+
+    await waitFor(() => {
+      const row = el.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
+      expect(row).toBeTruthy();
+    });
 
     const row = el.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
     row.click();
@@ -48,11 +52,12 @@ describe("rule-manager", () => {
         },
       }),
     );
-    await new Promise((r) => setTimeout(r, 50));
 
-    const rules = await allDocs(db.merchantRules);
-    expect(rules).toHaveLength(1);
-    expect(rules[0].conditions[0].value).toBe("starbucks");
+    await waitFor(async () => {
+      const rules = await allDocs(db.merchantRules);
+      expect(rules).toHaveLength(1);
+      expect(rules[0].conditions[0].value).toBe("starbucks");
+    });
 
     el.remove();
   });
@@ -67,18 +72,21 @@ describe("rule-manager", () => {
 
     const el = document.createElement("rule-manager") as RuleManager;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const deleteBtn = el.shadowRoot!.querySelector(
-      'button[aria-label="Delete rule"]',
-    ) as HTMLButtonElement;
-    expect(deleteBtn).toBeTruthy();
-    deleteBtn.click();
-    await new Promise((r) => setTimeout(r, 50));
+    let deleteBtn: HTMLButtonElement;
+    await waitFor(() => {
+      deleteBtn = el.shadowRoot!.querySelector(
+        'button[aria-label="Delete rule"]',
+      ) as HTMLButtonElement;
+      expect(deleteBtn).toBeTruthy();
+    });
 
-    const rules = await allDocs(db.merchantRules);
-    expect(rules).toHaveLength(0);
+    deleteBtn!.click();
+
+    await waitFor(async () => {
+      const rules = await allDocs(db.merchantRules);
+      expect(rules).toHaveLength(0);
+    });
 
     el.remove();
   });
