@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { uuid } from "../../uuid";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./MerchantList";
 import { MerchantList } from "./MerchantList";
 
@@ -18,10 +19,11 @@ describe("merchant-list", () => {
   it("should show empty message when no merchants", async () => {
     const el = document.createElement("merchant-list") as MerchantList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("p")!.textContent).toBe("No merchants found.");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("p")!.textContent).toBe("No merchants found.");
+    });
+
     el.remove();
   });
 
@@ -33,11 +35,12 @@ describe("merchant-list", () => {
 
     const el = document.createElement("merchant-list") as MerchantList;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const rows = el.shadowRoot!.querySelectorAll("tbody tr");
-    expect(rows).toHaveLength(2);
+    await waitFor(() => {
+      const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+      expect(rows).toHaveLength(2);
+    });
+
     el.remove();
   });
 });

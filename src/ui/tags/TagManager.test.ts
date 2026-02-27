@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { allDocs } from "../../database/allDocs";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./TagManager";
 import { TagManager } from "./TagManager";
 
@@ -27,14 +28,12 @@ describe("tag-manager", () => {
 
     const addBtn = el.shadowRoot!.querySelector("button")!;
     addBtn.click();
-    await el.updateComplete;
-    // Wait for async DB operation
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const tags = await allDocs(db.tags);
-    expect(tags).toHaveLength(1);
-    expect(tags[0].name).toBe("Food");
+    await waitFor(async () => {
+      const tags = await allDocs(db.tags);
+      expect(tags).toHaveLength(1);
+      expect(tags[0].name).toBe("Food");
+    });
 
     el.remove();
   });
@@ -53,12 +52,12 @@ describe("tag-manager", () => {
 
     const addBtn = el.shadowRoot!.querySelector("button")!;
     addBtn.click();
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const error = el.shadowRoot!.querySelector(".error");
-    expect(error).toBeTruthy();
-    expect(error!.textContent).toContain("already exists");
+    await waitFor(() => {
+      const error = el.shadowRoot!.querySelector(".error");
+      expect(error).toBeTruthy();
+      expect(error!.textContent).toContain("already exists");
+    });
 
     el.remove();
   });
@@ -68,21 +67,23 @@ describe("tag-manager", () => {
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
-    await el.updateComplete;
-    // Wait for connectedCallback refresh
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
+
+    await waitFor(() => {
+      const deleteBtn = el.shadowRoot!.querySelector(
+        'button[aria-label="Remove tag"]',
+      ) as HTMLButtonElement;
+      expect(deleteBtn).toBeTruthy();
+    });
 
     const deleteBtn = el.shadowRoot!.querySelector(
       'button[aria-label="Remove tag"]',
     ) as HTMLButtonElement;
-    expect(deleteBtn).toBeTruthy();
     deleteBtn.click();
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const tags = await allDocs(db.tags);
-    expect(tags).toHaveLength(0);
+    await waitFor(async () => {
+      const tags = await allDocs(db.tags);
+      expect(tags).toHaveLength(0);
+    });
 
     el.remove();
   });

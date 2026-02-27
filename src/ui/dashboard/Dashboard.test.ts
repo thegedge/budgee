@@ -2,6 +2,7 @@ import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { clearDb } from "../../database/clearDb";
+import { waitFor } from "../testing";
 import "./Dashboard";
 import { Dashboard } from "./Dashboard";
 
@@ -21,10 +22,11 @@ describe("budgee-dashboard", () => {
   it("should show empty message when no transactions", async () => {
     const el = document.createElement("budgee-dashboard") as Dashboard;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("p")!.textContent).toContain("No transactions");
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("p")!.textContent).toContain("No transactions");
+    });
+
     el.remove();
   });
 
@@ -48,11 +50,11 @@ describe("budgee-dashboard", () => {
 
     const el = document.createElement("budgee-dashboard") as Dashboard;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector(".chart-grid")).toBeTruthy();
-    expect(el.shadowRoot!.querySelector(".button-bar")).toBeTruthy();
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector(".chart-grid")).toBeTruthy();
+      expect(el.shadowRoot!.querySelector(".button-bar")).toBeTruthy();
+    });
 
     el.remove();
   });
@@ -77,11 +79,11 @@ describe("budgee-dashboard", () => {
 
     const el = document.createElement("budgee-dashboard") as Dashboard;
     document.body.appendChild(el);
-    await new Promise((r) => setTimeout(r, 50));
-    await el.updateComplete;
 
-    const tableCards = el.shadowRoot!.querySelectorAll("dashboard-table-card");
-    expect(tableCards).toHaveLength(1);
+    await waitFor(() => {
+      const tableCards = el.shadowRoot!.querySelectorAll("dashboard-table-card");
+      expect(tableCards).toHaveLength(1);
+    });
 
     el.remove();
   });
