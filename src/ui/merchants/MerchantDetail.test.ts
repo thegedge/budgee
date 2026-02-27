@@ -52,10 +52,59 @@ describe("merchant-detail", () => {
     await new Promise((r) => setTimeout(r, 200));
     await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("h2")!.textContent).toBe("Coffee Shop");
+    expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
 
     const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
     expect(rows).toHaveLength(2);
+    el.remove();
+  });
+
+  it("should allow inline editing of the merchant name", async () => {
+    const merchantId = uuid();
+    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
+
+    const el = document.createElement("merchant-detail") as MerchantDetail;
+    el.merchantId = merchantId;
+    document.body.appendChild(el);
+    await new Promise((r) => setTimeout(r, 200));
+    await el.updateComplete;
+
+    // Click edit button
+    const editBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(".edit-name-btn")!;
+    expect(editBtn).toBeTruthy();
+    editBtn.click();
+    await el.updateComplete;
+
+    // Input should appear with current name
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".name-input")!;
+    expect(input).toBeTruthy();
+    expect(input.value).toBe("Coffee Shop");
+
+    // Type new name and press Escape — should revert
+    input.value = "Tea House";
+    input.dispatchEvent(new Event("input"));
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector(".name-input")).toBeNull();
+    expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
+
+    // Edit again, type new name, press Enter — should save
+    el.shadowRoot!.querySelector<HTMLButtonElement>(".edit-name-btn")!.click();
+    await el.updateComplete;
+
+    const input2 = el.shadowRoot!.querySelector<HTMLInputElement>(".name-input")!;
+    input2.value = "Tea House";
+    input2.dispatchEvent(new Event("input"));
+    input2.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    await el.updateComplete;
+    // Wait for debounced subscription reload
+    await new Promise((r) => setTimeout(r, 500));
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector(".name-input")).toBeNull();
+    expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Tea House");
+
     el.remove();
   });
 });
