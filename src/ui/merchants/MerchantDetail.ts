@@ -38,7 +38,7 @@ export class MerchantDetail extends LitElement {
   private _transactions: Transaction[] = [];
 
   @state()
-  private _timeRange: TimeRange = 12;
+  private _timeRange: TimeRange = 0;
 
   @state()
   private _editingName = false;
@@ -257,6 +257,9 @@ export class MerchantDetail extends LitElement {
 
   updated(changed: Map<string, unknown>) {
     super.updated(changed);
+    if (changed.has("merchantId")) {
+      this.#load();
+    }
     if (changed.has("_editingName") && this._editingName) {
       const input = this.shadowRoot?.querySelector<HTMLInputElement>(".name-input");
       input?.focus();
@@ -301,7 +304,7 @@ export class MerchantDetail extends LitElement {
     const filtered = this.#filteredTransactions;
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = filtered.slice(start, start + this._pageSize);
-    const totalSpend = filtered.reduce((sum, t) => sum + t.amount, 0);
+    const totalSpend = this._transactions.reduce((sum, t) => sum + t.amount, 0);
 
     return html`
       <span class="back-link" @click=${this.#navigateBack}>&larr; Back to merchants</span>
@@ -322,7 +325,7 @@ export class MerchantDetail extends LitElement {
           }
         </h2>
         <div class="meta">
-          ${filtered.length} transactions &middot;
+          ${this._transactions.length} transactions &middot;
           <span class=${totalSpend < 0 ? "amount-negative" : "amount-positive"}>
             ${totalSpend.toFixed(2)} total
           </span>

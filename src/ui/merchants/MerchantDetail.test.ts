@@ -60,6 +60,33 @@ describe("merchant-detail", () => {
     el.remove();
   });
 
+  it("should render transactions when merchantId is set after connecting", async () => {
+    const merchantId = uuid();
+    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
+    await db.transactions.bulkDocs([
+      {
+        id: uuid(),
+        date: "2025-12-15",
+        amount: -5.5,
+        originalDescription: "Morning coffee",
+        tagIds: [],
+        merchantId,
+      },
+    ]);
+
+    const el = document.createElement("merchant-detail") as MerchantDetail;
+    document.body.appendChild(el);
+    el.merchantId = merchantId;
+
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
+      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      expect(rows).toHaveLength(1);
+    });
+
+    el.remove();
+  });
+
   it("should allow inline editing of the merchant name", async () => {
     const merchantId = uuid();
     await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
