@@ -4,6 +4,7 @@ import { Accounts } from "../../data/Accounts";
 import type { Account } from "../../database/types";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
+import { buttonStyles } from "../buttonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
 import { tableStyles } from "../tableStyles";
@@ -43,6 +44,7 @@ export class TransactionImporter extends BusyMixin(LitElement) {
   private _importMode: ImportMode = "append";
 
   static styles = [
+    buttonStyles,
     busyStyles,
     tableStyles,
     css`
@@ -61,14 +63,6 @@ export class TransactionImporter extends BusyMixin(LitElement) {
       }
       button {
         padding: 0.5rem 1rem;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
-      }
-      button:hover {
-        background-color: var(--budgee-primary-hover);
       }
     `,
   ];

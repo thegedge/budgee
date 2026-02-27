@@ -6,6 +6,7 @@ import { colorToHex } from "../../data/colorToHex";
 import { Tags } from "../../data/Tags";
 import type { Tag } from "../../database/types";
 import { debounce } from "../../debounce";
+import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/IconPicker";
@@ -45,6 +46,7 @@ export class TagManager extends BusyMixin(LitElement) {
   private _sortDir: SortDir = "asc";
 
   static styles = [
+    buttonStyles,
     busyStyles,
     tableStyles,
     iconButtonStyles,
@@ -66,17 +68,6 @@ export class TagManager extends BusyMixin(LitElement) {
       input {
         padding: 4px 8px;
         flex: 1;
-      }
-      button {
-        padding: 4px 12px;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
-      }
-      button:hover {
-        background-color: var(--budgee-primary-hover);
       }
       .error {
         color: var(--budgee-danger-hover);

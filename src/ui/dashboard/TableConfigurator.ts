@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { buttonStyles } from "../buttonStyles";
 import type {
   DashboardTable,
   DashboardTableColumn,
@@ -61,55 +62,49 @@ export class TableConfigurator extends LitElement {
   @state()
   private _initialized = false;
 
-  static styles = css`
-    :host {
-      display: block;
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface);
-    }
-    h4 {
-      margin-top: 0;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.5rem;
-      align-items: center;
-      max-width: 400px;
-      margin-bottom: 1rem;
-    }
-    input,
-    select {
-      padding: 4px 8px;
-    }
-    button {
-      padding: 4px 12px;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      margin-right: 0.5rem;
-    }
-    button:hover {
-      background-color: var(--budgee-primary-hover);
-    }
-    .checkbox-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem 1rem;
-      margin-bottom: 1rem;
-    }
-    .checkbox-list label {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.9rem;
-    }
-  `;
+  static styles = [
+    buttonStyles,
+    css`
+      :host {
+        display: block;
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      h4 {
+        margin-top: 0;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+        max-width: 400px;
+        margin-bottom: 1rem;
+      }
+      input,
+      select {
+        padding: 4px 8px;
+      }
+      button {
+        margin-right: 0.5rem;
+      }
+      .checkbox-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        margin-bottom: 1rem;
+      }
+      .checkbox-list label {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.9rem;
+      }
+    `,
+  ];
 
   updated(changed: Map<string, unknown>) {
     if (changed.has("editingTable") && this.editingTable && !this._initialized) {

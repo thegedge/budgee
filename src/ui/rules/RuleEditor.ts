@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Merchant, MerchantRule, RuleCondition, Tag } from "../../database/types";
 import { extractMerchant } from "../../import/extractMerchant";
+import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";
 import "../tags/TagAutocomplete";
 import "../tags/TagPills";
@@ -51,120 +52,108 @@ export class RuleEditor extends LitElement {
   @state()
   private _pendingTagNames: string[] = [];
 
-  static styles = css`
-    :host {
-      display: block;
-      border: 1px solid var(--budgee-border);
-      padding: 1rem;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-      background: var(--budgee-surface);
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: auto auto 1fr auto;
-      gap: 0.25rem 0.5rem;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-    .form-grid label {
-      grid-column: 1 / 3;
-    }
-    .form-grid .field-value {
-      grid-column: 3 / 5;
-    }
-    .form-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-    select,
-    input {
-      padding: 4px 8px;
-    }
-    button {
-      padding: 4px 12px;
-      cursor: pointer;
-      background-color: var(--budgee-primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-    }
-    button:hover:not(:disabled) {
-      background-color: var(--budgee-primary-hover);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-    .add-condition {
-      font-size: 0.85rem;
-      margin-bottom: 0.5rem;
-    }
-    .tags-row {
-      grid-column: 3 / 5;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .tag-badge {
-      display: inline-block;
-      background: var(--budgee-primary);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-    .section-header {
-      font-weight: bold;
-      font-size: 0.9rem;
-      margin: 0 0 0.5rem;
-    }
-    .section-header:not(:first-child) {
-      margin-top: 1rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--budgee-border);
-    }
-    .existing-rules {
-      margin-top: 0.75rem;
-      margin-bottom: 0.75rem;
-      padding: 0.5rem;
-      background: var(--budgee-background, #f5f5f5);
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-    .existing-rules h5 {
-      margin: 0 0 0.25rem;
-    }
-    .existing-rule-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.25rem 0;
-    }
-    .existing-rule-conditions {
-      color: var(--budgee-text-muted);
-    }
-    tag-pills {
-      flex-grow: 1;
-    }
-    .merge-btn {
-      font-size: 0.8rem;
-      padding: 2px 8px;
-      flex-shrink: 0;
-    }
-    .save-row {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-    }
-    .spacer {
-      visibility: hidden;
-    }
-  `;
+  static styles = [
+    buttonStyles,
+    css`
+      :host {
+        display: block;
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: auto auto 1fr auto;
+        gap: 0.25rem 0.5rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      .form-grid label {
+        grid-column: 1 / 3;
+      }
+      .form-grid .field-value {
+        grid-column: 3 / 5;
+      }
+      .form-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      select,
+      input {
+        padding: 4px 8px;
+      }
+      .add-condition {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+      .tags-row {
+        grid-column: 3 / 5;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .tag-badge {
+        display: inline-block;
+        background: var(--budgee-primary);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+      }
+      .section-header {
+        font-weight: bold;
+        font-size: 0.9rem;
+        margin: 0 0 0.5rem;
+      }
+      .section-header:not(:first-child) {
+        margin-top: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--budgee-border);
+      }
+      .existing-rules {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: var(--budgee-background, #f5f5f5);
+        border-radius: 4px;
+        font-size: 0.85rem;
+      }
+      .existing-rules h5 {
+        margin: 0 0 0.25rem;
+      }
+      .existing-rule-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0;
+      }
+      .existing-rule-conditions {
+        color: var(--budgee-text-muted);
+      }
+      tag-pills {
+        flex-grow: 1;
+      }
+      .merge-btn {
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        flex-shrink: 0;
+      }
+      .save-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+      .spacer {
+        visibility: hidden;
+      }
+    `,
+  ];
 
   updated(changed: Map<string, unknown>) {
     if (changed.has("editingRule") && this.editingRule) {
@@ -328,8 +317,8 @@ export class RuleEditor extends LitElement {
             <div class="existing-rule-item">
               <span class="existing-rule-conditions">${this.#formatConditions(rule)}</span>
               ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this.tags} .tagIds=${rule.tagIds}></tag-pills>` : nothing}
-              <button class="merge-btn" @click=${() => this.#onMerge(rule, false)}>Merge</button>
-              <button class="merge-btn" @click=${() => this.#onMerge(rule, true)}>Merge and apply</button>
+              <button class="merge-btn secondary" @click=${() => this.#onMerge(rule, false)}>Merge</button>
+              <button class="merge-btn secondary" @click=${() => this.#onMerge(rule, true)}>Merge and apply</button>
             </div>
           `,
         )}
@@ -368,7 +357,7 @@ export class RuleEditor extends LitElement {
           `
           : ""
       }
-      <button class="add-condition" @click=${this.#addCondition}>+ Add Condition</button>
+      <button class="add-condition secondary" @click=${this.#addCondition}>+ Add Condition</button>
       <div class="section-header">Actions</div>
       <div class="form-grid">
         <label>Merchant:</label>
@@ -399,7 +388,7 @@ export class RuleEditor extends LitElement {
       </div>
       ${hasExistingRules ? this.#renderExistingRules() : this.#renderExistingRulesPlaceholder()}
       <div class="save-row">
-        <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(false)}>${this.editingRule ? "Save" : "Create"}</button>
+        <button class="secondary" ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(false)}>${this.editingRule ? "Save" : "Create"}</button>
         <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(true)}>${this.editingRule ? "Save" : "Create"} and apply</button>
       </div>
     `;

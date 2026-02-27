@@ -4,6 +4,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import { buttonStyles } from "../buttonStyles";
 import { MerchantRules } from "../../data/MerchantRules";
 import { Merchants } from "../../data/Merchants";
 import { Tags } from "../../data/Tags";
@@ -87,6 +88,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _overlapRefresh = 0;
 
   static styles = [
+    buttonStyles,
     busyStyles,
     tableStyles,
     iconButtonStyles,
@@ -103,17 +105,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
       .section h3 {
         margin-top: 0;
-      }
-      button {
-        padding: 4px 12px;
-        cursor: pointer;
-        background-color: var(--budgee-primary);
-        color: white;
-        border: none;
-        border-radius: 4px;
-      }
-      button:hover {
-        background-color: var(--budgee-primary-hover);
       }
       .condition-summary {
         font-size: 0.85rem;
