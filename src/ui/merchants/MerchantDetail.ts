@@ -41,6 +41,12 @@ export class MerchantDetail extends LitElement {
   private _timeRange: TimeRange = 12;
 
   @state()
+  private _editingName = false;
+
+  @state()
+  private _draftName = "";
+
+  @state()
   private _currentPage = 1;
 
   @state()
@@ -109,6 +115,25 @@ export class MerchantDetail extends LitElement {
         border-radius: 4px;
         background: var(--budgee-surface);
         font-size: 0.875rem;
+      }
+      .edit-name-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.75em;
+        opacity: 0.5;
+        padding: 0 0.25em;
+      }
+      .edit-name-btn:hover {
+        opacity: 1;
+      }
+      .name-input {
+        font: inherit;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        padding: 0 0.25em;
+        width: 100%;
+        box-sizing: border-box;
       }
       tr {
         cursor: pointer;
@@ -230,6 +255,32 @@ export class MerchantDetail extends LitElement {
     this._pageSize = e.detail.pageSize;
   }
 
+  updated(changed: Map<string, unknown>) {
+    super.updated(changed);
+    if (changed.has("_editingName") && this._editingName) {
+      const input = this.shadowRoot?.querySelector<HTMLInputElement>(".name-input");
+      input?.focus();
+      input?.select();
+    }
+  }
+
+  #startEditingName() {
+    this._editingName = true;
+    this._draftName = this._merchant?.name ?? "";
+  }
+
+  #handleNameKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      const trimmed = this._draftName.trim();
+      if (trimmed && this._merchant) {
+        Merchants.update(this._merchant.id, { name: trimmed });
+      }
+      this._editingName = false;
+    } else if (e.key === "Escape") {
+      this._editingName = false;
+    }
+  }
+
   #navigateBack() {
     window.history.pushState({}, "", "/Merchants");
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -256,7 +307,20 @@ export class MerchantDetail extends LitElement {
       <span class="back-link" @click=${this.#navigateBack}>&larr; Back to merchants</span>
 
       <div class="header">
-        <h2>${this._merchant.name}</h2>
+        <h2>
+          ${
+            this._editingName
+              ? html`<input
+                class="name-input"
+                .value=${this._draftName}
+                @input=${(e: InputEvent) => {
+                  this._draftName = (e.target as HTMLInputElement).value;
+                }}
+                @keydown=${this.#handleNameKeydown}
+              />`
+              : html`${this._merchant.name} <button class="edit-name-btn" @click=${this.#startEditingName}>✎</button>`
+          }
+        </h2>
         <div class="meta">
           ${filtered.length} transactions &middot;
           <span class=${totalSpend < 0 ? "amount-negative" : "amount-positive"}>
