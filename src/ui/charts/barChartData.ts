@@ -39,6 +39,7 @@ export function barChartData(options: {
         v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
       ),
       borderWidth: 1,
+      maxBarThickness: 50,
     },
   ];
 
