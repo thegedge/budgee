@@ -4,8 +4,6 @@ import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
-import { movingMedian } from "../../data/movingAverage";
-import { movingWindowSize } from "../../data/movingWindowSize";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
 import { aggregateByMerchant } from "../../database/aggregateByMerchant";
 import { type PeriodGranularity, aggregateByPeriod } from "../../database/aggregateByPeriod";
@@ -18,6 +16,7 @@ import type {
   Tag,
   Transaction,
 } from "../../database/types";
+import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { cssVar } from "../cssVar";
 import { iconButtonStyles } from "../iconButtonStyles";
@@ -210,9 +209,21 @@ export class DashboardChartCard extends LitElement {
       entries.sort(([, a], [, b]) => Math.abs(b) - Math.abs(a));
     }
 
-    const rawValues = entries.map(([, val]) => val);
+    if (!isByDimension && this.config.chartType === "bar") {
+      const allFiltered = filterTransactions(this.transactions, filterOptions);
+      const allAggregated = aggregateByPeriod(allFiltered, granularity as PeriodGranularity);
+      const allEntries = [...allAggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
+      return barChartData({
+        allEntries,
+        displayEntries: entries,
+        label: this.config.title,
+        formatLabel: formatPeriodLabel,
+      });
+    }
+
     const isBar = this.config.chartType === "bar";
-    const values = isBar || isPie ? rawValues.map(Math.abs) : rawValues;
+    const rawValues = entries.map(([, val]) => val);
+    const values = isPie || isBar ? rawValues.map(Math.abs) : rawValues;
     const bgColors = isPie
       ? this.#pieColors(entries)
       : isBar
@@ -226,46 +237,17 @@ export class DashboardChartCard extends LitElement {
         ? rawValues.map((v) => (v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive")))
         : cssVar("--budgee-primary");
 
-    const datasets: ChartData["datasets"] = [
-      {
-        label: this.config.title,
-        data: values,
-        backgroundColor: bgColors,
-        borderColor: borderColors,
-        borderWidth: 1,
-      },
-    ];
-
-    if (!isByDimension && this.config.chartType === "bar" && values.length >= 2) {
-      // Compute median over all historical data (without startDate filter), then slice to display range
-      const allFiltered = filterTransactions(this.transactions, filterOptions);
-      const allAggregated = aggregateByPeriod(allFiltered, granularity as PeriodGranularity);
-      const allEntries = [...allAggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
-      const allValues = allEntries.map(([, val]) => Math.abs(val));
-      const windowSize = movingWindowSize(allValues.length);
-      const allMedian = movingMedian(allValues, windowSize);
-
-      const firstDisplayKey = entries[0]?.[0];
-      const sliceIndex = firstDisplayKey
-        ? allEntries.findIndex(([key]) => key === firstDisplayKey)
-        : 0;
-      const displayMedian = allMedian.slice(sliceIndex, sliceIndex + entries.length);
-
-      datasets.push({
-        type: "line",
-        label: `${this.config.title} (${windowSize}-pt median)`,
-        data: displayMedian,
-        borderColor: cssVar("--budgee-text-muted", 0.5),
-        borderWidth: 1.5,
-        pointRadius: 0,
-        fill: false,
-        tension: 0.3,
-      } as ChartData["datasets"][number]);
-    }
-
     return {
       labels: entries.map(([key]) => formatPeriodLabel(key)),
-      datasets,
+      datasets: [
+        {
+          label: this.config.title,
+          data: values,
+          backgroundColor: bgColors,
+          borderColor: borderColors,
+          borderWidth: 1,
+        },
+      ],
     };
   }
 
