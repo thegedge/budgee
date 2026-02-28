@@ -2,7 +2,9 @@
 
 A single-page app for transaction management and budgeting.
 
-> [!NOTE] This application was coded primarily by LLMs. I generally like to build everything myself,
+> [!NOTE]
+>
+> This application was coded primarily by LLMs. I generally like to build everything myself,
 > but this was one of those little things that I never found the time to work on and thought it
 > would be a great option for a mostly "vibe-coded" app.
 >
