@@ -54,6 +54,7 @@ export interface MerchantRule {
   logic: "and" | "or";
   conditions: RuleCondition[];
   merchantId?: string;
+  accountId?: string;
   tagIds: string[];
 }
 
