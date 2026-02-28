@@ -92,6 +92,12 @@ export class MerchantDetail extends LitElement {
         padding: 1rem;
         border-radius: 4px;
         background: var(--budgee-surface);
+        display: flex;
+        flex-direction: column;
+      }
+      .section chart-wrapper {
+        flex: 1;
+        min-height: 200px;
       }
       .section h3 {
         margin-top: 0;
