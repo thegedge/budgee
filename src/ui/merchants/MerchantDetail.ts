@@ -1,14 +1,11 @@
-import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Merchants } from "../../data/Merchants";
-import { movingMedian } from "../../data/movingAverage";
-import { movingWindowSize } from "../../data/movingWindowSize";
 import { Transactions } from "../../data/Transactions";
 import type { Merchant, Transaction } from "../../database/types";
 import { debounce } from "../../debounce";
+import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
-import { cssVar } from "../cssVar";
 import "../shared/PaginatedTable";
 import type { PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -20,11 +17,6 @@ declare global {
 }
 
 type TimeRange = 6 | 12 | 24 | 0;
-
-interface MonthlySpend {
-  month: string;
-  total: number;
-}
 
 @customElement("merchant-detail")
 export class MerchantDetail extends LitElement {
@@ -187,75 +179,22 @@ export class MerchantDetail extends LitElement {
     return this._transactions.filter((t) => t.date >= cutoffStr);
   }
 
-  get #allMonthlySpend(): MonthlySpend[] {
+  get #allMonthlySpend(): [string, number][] {
     const byMonth = new Map<string, number>();
     for (const tx of this._transactions) {
       const month = tx.date.slice(0, 7);
       byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
     }
-    return [...byMonth.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, total]) => ({ month, total }));
+    return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
-  get #monthlySpend(): MonthlySpend[] {
+  get #monthlySpend(): [string, number][] {
     const byMonth = new Map<string, number>();
     for (const tx of this.#filteredTransactions) {
       const month = tx.date.slice(0, 7);
       byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
     }
-    return [...byMonth.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, total]) => ({ month, total }));
-  }
-
-  get #chartData(): ChartData {
-    const allEntries = this.#allMonthlySpend;
-    const allValues = allEntries.map((e) => e.total);
-    const window = movingWindowSize(allValues.length);
-    const allMedian = movingMedian(allValues, window);
-
-    const displayEntries = this.#monthlySpend;
-    const firstDisplayMonth = displayEntries[0]?.month;
-    const sliceIndex = firstDisplayMonth
-      ? allEntries.findIndex((e) => e.month === firstDisplayMonth)
-      : 0;
-    const rawValues = displayEntries.map((e) => e.total);
-    const displayValues = rawValues.map(Math.abs);
-    const displayMedian = allMedian
-      .slice(sliceIndex, sliceIndex + displayEntries.length)
-      .map(Math.abs);
-
-    return {
-      labels: displayEntries.map((e) => e.month),
-      datasets: [
-        {
-          label: this._merchant?.name ?? "Merchant",
-          data: displayValues,
-          backgroundColor: rawValues.map((v) =>
-            v < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
-          ),
-          borderColor: rawValues.map((v) =>
-            v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
-          ),
-          borderWidth: 1,
-        },
-        ...(displayValues.length >= 2
-          ? [
-              {
-                type: "line" as const,
-                label: `Moving Avg (${window}-mo)`,
-                data: displayMedian,
-                borderColor: cssVar("--budgee-text-muted", 0.5),
-                borderWidth: 1.5,
-                pointRadius: 0,
-                fill: false,
-                tension: 0.3,
-              } as ChartData["datasets"][number],
-            ]
-          : []),
-      ],
-    };
+    return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
   #onTimeRangeChange(e: Event) {
@@ -358,7 +297,7 @@ export class MerchantDetail extends LitElement {
           </h3>
           ${
             this.#monthlySpend.length > 0
-              ? html`<chart-wrapper chartType="bar" .data=${this.#chartData}></chart-wrapper>`
+              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlySpend, displayEntries: this.#monthlySpend, label: this._merchant?.name ?? "Merchant" })}></chart-wrapper>`
               : html`
                   <p>No transactions in this period.</p>
                 `
@@ -376,7 +315,7 @@ export class MerchantDetail extends LitElement {
             </thead>
             <tbody>
               ${this.#monthlySpend.map(
-                ({ month, total }) => html`
+                ([month, total]) => html`
                 <tr>
                   <td>${month}</td>
                   <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
