@@ -246,6 +246,7 @@ export class DashboardChartCard extends LitElement {
           backgroundColor: bgColors,
           borderColor: borderColors,
           borderWidth: 1,
+          maxBarThickness: 50,
         },
       ],
     };
