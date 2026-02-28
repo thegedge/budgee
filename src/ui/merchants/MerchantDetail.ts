@@ -214,7 +214,8 @@ export class MerchantDetail extends LitElement {
     const sliceIndex = firstDisplayMonth
       ? allEntries.findIndex((e) => e.month === firstDisplayMonth)
       : 0;
-    const displayValues = displayEntries.map((e) => e.total);
+    const rawValues = displayEntries.map((e) => e.total);
+    const displayValues = rawValues.map(Math.abs);
     const displayMedian = allMedian.slice(sliceIndex, sliceIndex + displayEntries.length);
 
     return {
@@ -223,8 +224,12 @@ export class MerchantDetail extends LitElement {
         {
           label: this._merchant?.name ?? "Merchant",
           data: displayValues,
-          backgroundColor: cssVar("--budgee-primary", 0.5),
-          borderColor: cssVar("--budgee-primary"),
+          backgroundColor: rawValues.map((v) =>
+            v < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
+          ),
+          borderColor: rawValues.map((v) =>
+            v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
+          ),
           borderWidth: 1,
         },
         ...(displayValues.length >= 2
