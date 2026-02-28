@@ -6,10 +6,10 @@ describe("movingMedian", () => {
     expect(movingMedian([1, 2, 3], 1)).toEqual([1, 2, 3]);
   });
 
-  it("returns nulls for the first window-1 entries", () => {
+  it("uses partial window for early entries", () => {
     const result = movingMedian([1, 2, 3, 4, 5], 3);
-    expect(result[0]).toBeNull();
-    expect(result[1]).toBeNull();
+    expect(result[0]).toBe(1); // median of [1]
+    expect(result[1]).toBe(1.5); // median of [1,2]
   });
 
   it("computes the correct median starting at index window-1", () => {
@@ -21,9 +21,9 @@ describe("movingMedian", () => {
 
   it("handles window equal to data length", () => {
     const result = movingMedian([10, 20, 30], 3);
-    expect(result[0]).toBeNull();
-    expect(result[1]).toBeNull();
-    expect(result[2]).toBe(20);
+    expect(result[0]).toBe(10); // median of [10]
+    expect(result[1]).toBe(15); // median of [10,20]
+    expect(result[2]).toBe(20); // median of [10,20,30]
   });
 
   it("handles empty array", () => {
@@ -32,7 +32,7 @@ describe("movingMedian", () => {
 
   it("handles even window size", () => {
     const result = movingMedian([4, 8, 6, 2], 2);
-    expect(result[0]).toBeNull();
+    expect(result[0]).toBe(4); // median of [4]
     expect(result[1]).toBe(6); // median of [4,8] = (4+8)/2
     expect(result[2]).toBe(7); // median of [8,6] = (6+8)/2
     expect(result[3]).toBe(4); // median of [6,2] = (2+6)/2
@@ -40,7 +40,7 @@ describe("movingMedian", () => {
 
   it("handles negative values", () => {
     const result = movingMedian([-10, -20, -30], 2);
-    expect(result[0]).toBeNull();
+    expect(result[0]).toBe(-10); // median of [-10]
     expect(result[1]).toBe(-15); // median of [-10,-20]
     expect(result[2]).toBe(-25); // median of [-20,-30]
   });
