@@ -1,4 +1,5 @@
 import { LitElement, css, html, nothing } from "lit";
+import { cardNetworkFromPrefix } from "../../cardNetwork";
 import { customElement, property, state } from "lit/decorators.js";
 import { Accounts } from "../../data/Accounts";
 import { Transactions } from "../../data/Transactions";
@@ -435,6 +436,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
             )}
           </select>
+          ${cardNetworkFromPrefix(this._account.name) ? html` (${cardNetworkFromPrefix(this._account.name)})` : nothing}
         </div>
       </div>
 
