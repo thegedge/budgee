@@ -222,7 +222,9 @@ export class MerchantDetail extends LitElement {
       : 0;
     const rawValues = displayEntries.map((e) => e.total);
     const displayValues = rawValues.map(Math.abs);
-    const displayMedian = allMedian.slice(sliceIndex, sliceIndex + displayEntries.length);
+    const displayMedian = allMedian
+      .slice(sliceIndex, sliceIndex + displayEntries.length)
+      .map(Math.abs);
 
     return {
       labels: displayEntries.map((e) => e.month),
