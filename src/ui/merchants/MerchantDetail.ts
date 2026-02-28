@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Merchants } from "../../data/Merchants";
 import { Transactions } from "../../data/Transactions";
@@ -59,25 +59,11 @@ export class MerchantDetail extends LitElement {
         display: inline-block;
       }
       .header {
-        border: 1px solid var(--budgee-border);
-        padding: 1rem;
-        border-radius: 4px;
         margin-bottom: 1rem;
-        background: var(--budgee-surface);
       }
       .header h2 {
         margin-top: 0;
-        margin-bottom: 0.25rem;
-      }
-      .meta {
-        color: var(--budgee-text-muted);
-        font-size: 0.9rem;
-      }
-      .top-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0;
       }
       .section {
         border: 1px solid var(--budgee-border);
@@ -86,6 +72,7 @@ export class MerchantDetail extends LitElement {
         background: var(--budgee-surface);
         display: flex;
         flex-direction: column;
+        margin-bottom: 1rem;
       }
       .section chart-wrapper {
         flex: 1;
@@ -256,8 +243,6 @@ export class MerchantDetail extends LitElement {
     const filtered = this.#filteredTransactions;
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = filtered.slice(start, start + this._pageSize);
-    const totalSpend = this._transactions.reduce((sum, t) => sum + t.amount, 0);
-
     return html`
       <span class="back-link" @click=${this.#navigateBack}>&larr; Back to merchants</span>
 
@@ -276,66 +261,25 @@ export class MerchantDetail extends LitElement {
               : html`${this._merchant.name} <button class="edit-name-btn" @click=${this.#startEditingName}>✎</button>`
           }
         </h2>
-        <div class="meta">
-          ${this._transactions.length} transactions &middot;
-          <span class=${totalSpend < 0 ? "amount-negative" : "amount-positive"}>
-            ${totalSpend.toFixed(2)} total
-          </span>
-        </div>
       </div>
 
-      <div class="top-row">
-        <div class="section">
-          <h3>
-            Monthly Spend
-            <select @change=${this.#onTimeRangeChange}>
-              <option value="6" ?selected=${this._timeRange === 6}>6 months</option>
-              <option value="12" ?selected=${this._timeRange === 12}>12 months</option>
-              <option value="24" ?selected=${this._timeRange === 24}>24 months</option>
-              <option value="0" ?selected=${this._timeRange === 0}>All time</option>
-            </select>
-          </h3>
-          ${
-            this.#monthlySpend.length > 0
-              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlySpend, displayEntries: this.#monthlySpend, label: this._merchant?.name ?? "Merchant" })}></chart-wrapper>`
-              : html`
-                  <p>No transactions in this period.</p>
-                `
-          }
-        </div>
-
-        <div class="section">
-          <h3>Summary</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${this.#monthlySpend.map(
-                ([month, total]) => html`
-                <tr>
-                  <td>${month}</td>
-                  <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
-                    ${total.toFixed(2)}
-                  </td>
-                </tr>
-              `,
-              )}
-              ${
-                this.#monthlySpend.length === 0
-                  ? html`
-                      <tr>
-                        <td colspan="2">No data</td>
-                      </tr>
-                    `
-                  : nothing
-              }
-            </tbody>
-          </table>
-        </div>
+      <div class="section">
+        <h3>
+          Monthly Spend
+          <select @change=${this.#onTimeRangeChange}>
+            <option value="6" ?selected=${this._timeRange === 6}>6 months</option>
+            <option value="12" ?selected=${this._timeRange === 12}>12 months</option>
+            <option value="24" ?selected=${this._timeRange === 24}>24 months</option>
+            <option value="0" ?selected=${this._timeRange === 0}>All time</option>
+          </select>
+        </h3>
+        ${
+          this.#monthlySpend.length > 0
+            ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlySpend, displayEntries: this.#monthlySpend, label: this._merchant?.name ?? "Merchant" })}></chart-wrapper>`
+            : html`
+                <p>No transactions in this period.</p>
+              `
+        }
       </div>
 
       <div class="section-transactions">
