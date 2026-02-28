@@ -16,7 +16,7 @@ export function BusyMixin<T extends Constructor<LitElement>>(superClass: T) {
   class BusyMixinClass extends superClass {
     private _busy = false;
 
-    protected async withBusy<R>(fn: () => Promise<R>): Promise<R> {
+    async withBusy<R>(fn: () => Promise<R>): Promise<R> {
       this._busy = true;
       this.toggleAttribute("busy", true);
       this.requestUpdate();

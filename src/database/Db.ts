@@ -97,6 +97,7 @@ const merchantRuleSchema: RxJsonSchema<MerchantRule> = {
       },
     },
     merchantId: { type: "string" },
+    accountId: { type: "string" },
     tagIds: { type: "array", items: { type: "string" } },
   },
   required: ["id", "logic", "conditions", "tagIds"],
