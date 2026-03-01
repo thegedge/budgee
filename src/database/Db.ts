@@ -294,7 +294,7 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
     hashFunction,
   });
 
-  const collections = await rxdb.addCollections({
+  await rxdb.addCollections({
     transactions: { schema: transactionSchema },
     tags: { schema: tagSchema },
     merchants: { schema: merchantSchema },
@@ -308,8 +308,6 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
     meta: { schema: metaSchema },
     backups: { schema: backupSchema },
   });
-
-  await collections.merchant_rules.migratePromise();
 
   return {
     rxdb,
