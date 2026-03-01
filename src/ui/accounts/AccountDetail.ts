@@ -24,7 +24,8 @@ declare global {
   }
 }
 
-type TimeRange = 1 | 6 | 12 | 0;
+import type { TimeRange } from "../shared/TimeRangePicker";
+import "../shared/TimeRangePicker";
 
 @customElement("account-detail")
 export class AccountDetail extends BusyMixin(LitElement) {
@@ -125,28 +126,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
       .section-transactions h3 {
         margin-top: 0;
       }
-      .time-range-links {
-        display: inline-flex;
-        gap: 0.5rem;
+      time-range-picker {
         margin-left: 0.75rem;
-        font-size: 0.875rem;
-        font-weight: normal;
-      }
-      .time-range-links button {
-        background: none;
-        border: none;
-        padding: 2px 6px;
-        border-radius: 4px;
-        cursor: pointer;
-        color: var(--budgee-text-muted);
-      }
-      .time-range-links button:hover {
-        color: var(--budgee-text);
-      }
-      .time-range-links button.active {
-        color: var(--budgee-text);
-        font-weight: 600;
-        background: var(--budgee-bg);
       }
       tr {
         cursor: pointer;
@@ -217,8 +198,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
     return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
-  #setTimeRange(range: TimeRange) {
-    this._timeRange = range;
+  #onTimeRangeChange(e: Event) {
+    this._timeRange = (e.target as HTMLElementTagNameMap["time-range-picker"]).value;
     this._currentPage = 1;
   }
 
@@ -284,12 +265,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
         <div class="section">
           <h3>
             Monthly Activity
-            <span class="time-range-links">
-              <button class=${this._timeRange === 1 ? "active" : ""} @click=${() => this.#setTimeRange(1)}>1M</button>
-              <button class=${this._timeRange === 6 ? "active" : ""} @click=${() => this.#setTimeRange(6)}>6M</button>
-              <button class=${this._timeRange === 12 ? "active" : ""} @click=${() => this.#setTimeRange(12)}>1Y</button>
-              <button class=${this._timeRange === 0 ? "active" : ""} @click=${() => this.#setTimeRange(0)}>All</button>
-            </span>
+            <time-range-picker .value=${this._timeRange} @change=${this.#onTimeRangeChange}></time-range-picker>
           </h3>
           ${
             this.#monthlyTotals.length > 0
