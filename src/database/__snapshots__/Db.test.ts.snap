@@ -1,0 +1,347 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`schema snapshots > accounts schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "name": {
+      "type": "string",
+    },
+    "type": {
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+    "name",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > backups schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "data": {
+      "type": "string",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > dashboard_charts schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "chartType": {
+      "type": "string",
+    },
+    "colSpan": {
+      "type": "number",
+    },
+    "descriptionFilter": {
+      "type": "string",
+    },
+    "descriptionFilterMode": {
+      "type": "string",
+    },
+    "direction": {
+      "type": "string",
+    },
+    "endDate": {
+      "type": "string",
+    },
+    "excludedMerchantIds": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "excludedTagIds": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "filters": {
+      "items": {
+        "properties": {
+          "field": {
+            "type": "string",
+          },
+          "operator": {
+            "type": "string",
+          },
+          "value": {
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "granularity": {
+      "type": "string",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "legendPosition": {
+      "type": "string",
+    },
+    "merchantId": {
+      "type": "string",
+    },
+    "position": {
+      "type": "number",
+    },
+    "rowSpan": {
+      "type": "number",
+    },
+    "startDate": {
+      "type": "string",
+    },
+    "tagId": {
+      "type": "string",
+    },
+    "title": {
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+    "title",
+    "chartType",
+    "granularity",
+    "position",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > dashboard_tables schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "colSpan": {
+      "type": "number",
+    },
+    "columns": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "model": {
+      "type": "string",
+    },
+    "position": {
+      "type": "number",
+    },
+    "rowSpan": {
+      "type": "number",
+    },
+    "title": {
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+    "title",
+    "model",
+    "columns",
+    "position",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > merchant_rules schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "accountId": {
+      "type": "string",
+    },
+    "conditions": {
+      "items": {
+        "properties": {
+          "field": {
+            "type": "string",
+          },
+          "operator": {
+            "type": "string",
+          },
+          "value": {
+            "type": "string",
+          },
+        },
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "logic": {
+      "type": "string",
+    },
+    "merchantId": {
+      "type": "string",
+    },
+    "tagIds": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+  },
+  "required": [
+    "id",
+    "logic",
+    "conditions",
+    "tagIds",
+  ],
+  "version": 1,
+}
+`;
+
+exports[`schema snapshots > merchants schema should match snapshot 1`] = `
+{
+  "indexes": [
+    "name",
+  ],
+  "properties": {
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "name": {
+      "maxLength": 200,
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+    "name",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > meta schema should match snapshot 1`] = `
+{
+  "indexes": undefined,
+  "properties": {
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "value": {
+      "type": "number",
+    },
+  },
+  "required": [
+    "id",
+    "value",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > tags schema should match snapshot 1`] = `
+{
+  "indexes": [
+    "name",
+  ],
+  "properties": {
+    "color": {
+      "type": "string",
+    },
+    "icon": {
+      "type": "string",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "name": {
+      "maxLength": 200,
+      "type": "string",
+    },
+  },
+  "required": [
+    "id",
+    "name",
+  ],
+  "version": 0,
+}
+`;
+
+exports[`schema snapshots > transactions schema should match snapshot 1`] = `
+{
+  "indexes": [
+    "date",
+  ],
+  "properties": {
+    "accountId": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "amount": {
+      "type": "number",
+    },
+    "date": {
+      "maxLength": 10,
+      "type": "string",
+    },
+    "id": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "memo": {
+      "type": "string",
+    },
+    "merchantId": {
+      "maxLength": 100,
+      "type": "string",
+    },
+    "originalDescription": {
+      "type": "string",
+    },
+    "tagIds": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+  },
+  "required": [
+    "id",
+    "date",
+    "amount",
+    "originalDescription",
+    "tagIds",
+  ],
+  "version": 0,
+}
+`;

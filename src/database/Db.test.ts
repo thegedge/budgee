@@ -1,6 +1,19 @@
 import { uuid } from "../uuid";
 import { describe, expect, it, beforeEach } from "vitest";
-import { db } from "./Db";
+import { collectionSchemas, db } from "./Db";
+
+describe("schema snapshots", () => {
+  for (const [name, schema] of Object.entries(collectionSchemas)) {
+    it(`${name} schema should match snapshot`, () => {
+      expect({
+        version: schema.version,
+        properties: schema.properties,
+        required: schema.required,
+        indexes: "indexes" in schema ? schema.indexes : undefined,
+      }).toMatchSnapshot();
+    });
+  }
+});
 
 describe("BudgeeDatabase", () => {
   beforeEach(async () => {

@@ -8,6 +8,8 @@ import { waitForDb } from "../database/Db";
 import { importDatabase } from "../database/importDb";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
+import { SchemaVersionError } from "../database/Db";
+import { showDatabaseErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
@@ -272,7 +274,12 @@ export class Application extends LitElement {
     this.addEventListener("drop", this.#onDrop);
     waitForDb()
       .then((dbs) => migrateDatabase(dbs))
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        if (error instanceof SchemaVersionError) {
+          showDatabaseErrorOverlay();
+        }
+      });
     this.#connectReplication();
   }
 

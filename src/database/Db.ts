@@ -20,6 +20,16 @@ import type {
 
 addRxPlugin(RxDBMigrationSchemaPlugin);
 
+export class SchemaVersionError extends Error {
+  override cause: unknown;
+
+  constructor(message: string, cause: unknown) {
+    super(message);
+    this.name = "SchemaVersionError";
+    this.cause = cause;
+  }
+}
+
 const ID_FIELD = { type: "string" as const, maxLength: 100 };
 
 const transactionSchema: RxJsonSchema<Transaction> = {
@@ -183,6 +193,18 @@ const backupSchema: RxJsonSchema<{ id: string; data?: string }> = {
   required: ["id"],
 };
 
+export const collectionSchemas = {
+  transactions: transactionSchema,
+  tags: tagSchema,
+  merchants: merchantSchema,
+  accounts: accountSchema,
+  merchant_rules: merchantRuleSchema,
+  dashboard_charts: dashboardChartSchema,
+  dashboard_tables: dashboardTableSchema,
+  meta: metaSchema,
+  backups: backupSchema,
+} as const;
+
 type DatabaseCollections = {
   transactions: RxCollection<Transaction>;
   tags: RxCollection<Tag>;
@@ -294,20 +316,28 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
     hashFunction,
   });
 
-  await rxdb.addCollections({
-    transactions: { schema: transactionSchema },
-    tags: { schema: tagSchema },
-    merchants: { schema: merchantSchema },
-    accounts: { schema: accountSchema },
-    merchant_rules: {
-      schema: merchantRuleSchema,
-      migrationStrategies: { 1: (doc: MerchantRule) => doc },
-    },
-    dashboard_charts: { schema: dashboardChartSchema },
-    dashboard_tables: { schema: dashboardTableSchema },
-    meta: { schema: metaSchema },
-    backups: { schema: backupSchema },
-  });
+  try {
+    await rxdb.addCollections({
+      transactions: { schema: transactionSchema },
+      tags: { schema: tagSchema },
+      merchants: { schema: merchantSchema },
+      accounts: { schema: accountSchema },
+      merchant_rules: {
+        schema: merchantRuleSchema,
+        migrationStrategies: { 1: (doc: MerchantRule) => doc },
+      },
+      dashboard_charts: { schema: dashboardChartSchema },
+      dashboard_tables: { schema: dashboardTableSchema },
+      meta: { schema: metaSchema },
+      backups: { schema: backupSchema },
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("DB6")) {
+      throw new SchemaVersionError("Database schema version mismatch (DB6)", error);
+    }
+    throw error;
+  }
 
   return {
     rxdb,
