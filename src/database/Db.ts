@@ -79,7 +79,7 @@ const accountSchema: RxJsonSchema<Account> = {
 };
 
 const merchantRuleSchema: RxJsonSchema<MerchantRule> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -299,7 +299,10 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
     tags: { schema: tagSchema },
     merchants: { schema: merchantSchema },
     accounts: { schema: accountSchema },
-    merchant_rules: { schema: merchantRuleSchema },
+    merchant_rules: {
+      schema: merchantRuleSchema,
+      migrationStrategies: { 1: (doc: MerchantRule) => doc },
+    },
     dashboard_charts: { schema: dashboardChartSchema },
     dashboard_tables: { schema: dashboardTableSchema },
     meta: { schema: metaSchema },
