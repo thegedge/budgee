@@ -1,14 +1,14 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-export type TimeRange = 1 | 6 | 12 | 0;
-
-const OPTIONS: { value: TimeRange; label: string }[] = [
+const OPTIONS = [
   { value: 1, label: "1M" },
   { value: 6, label: "6M" },
   { value: 12, label: "1Y" },
   { value: 0, label: "All" },
 ];
+
+export type TimeRange = (typeof OPTIONS)[number]["value"];
 
 declare global {
   interface HTMLElementTagNameMap {
