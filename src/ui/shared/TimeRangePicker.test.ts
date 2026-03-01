@@ -46,7 +46,11 @@ describe("time-range-picker", () => {
     oneYearBtn.click();
 
     expect(events).toHaveLength(1);
-    expect(events[0].timeRange!.toString()).toBe(Temporal.Duration.from({ years: 1 }).toString());
+    expect(
+      Temporal.Duration.compare(events[0].timeRange!, Temporal.Duration.from({ years: 1 }), {
+        relativeTo: Temporal.Now.plainDateISO(),
+      }),
+    ).toBe(0);
   });
 
   it("should highlight correctly when value is set externally", async () => {

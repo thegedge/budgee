@@ -68,7 +68,8 @@ export class TimeRangePicker extends LitElement {
 
   #isActive(option: TimeRange): boolean {
     if (this.value === null || option === null) return this.value === option;
-    return this.value.toString() === option.toString();
+    const relativeTo = Temporal.Now.plainDateISO();
+    return Temporal.Duration.compare(this.value, option, { relativeTo }) === 0;
   }
 
   #select(value: TimeRange) {
