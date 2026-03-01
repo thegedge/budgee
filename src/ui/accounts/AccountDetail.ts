@@ -95,29 +95,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
         background: var(--budgee-surface);
         color: var(--budgee-text);
       }
-      .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-      .summary-card {
-        border: 1px solid var(--budgee-border);
-        padding: 1rem;
-        border-radius: 4px;
-        background: var(--budgee-surface);
-        text-align: center;
-      }
-      .summary-card .label {
-        color: var(--budgee-text-muted);
-        font-size: 0.8rem;
-        margin-bottom: 0.25rem;
-      }
-      .summary-card .value {
-        font-size: 1.25rem;
-        font-weight: bold;
-        font-variant-numeric: tabular-nums;
-      }
       .top-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -284,32 +261,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
   #renderTransactionData(filtered: Transaction[]) {
     const start = (this._currentPage - 1) * this._pageSize;
     const pageTransactions = filtered.slice(start, start + this._pageSize);
-    const balance = filtered.reduce((sum, t) => sum + t.amount, 0);
-    const income = filtered.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-    const expenses = filtered.filter((t) => t.amount < 0).reduce((sum, t) => sum + t.amount, 0);
-
     return html`
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="label">Balance</div>
-          <div class="value ${balance < 0 ? "amount-negative" : "amount-positive"}">
-            ${balance.toFixed(2)}
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Transactions</div>
-          <div class="value">${filtered.length}</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Income</div>
-          <div class="value amount-positive">${income.toFixed(2)}</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Expenses</div>
-          <div class="value amount-negative">${expenses.toFixed(2)}</div>
-        </div>
-      </div>
-
       <div class="top-row">
         <div class="section">
           <h3>
