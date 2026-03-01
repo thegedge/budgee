@@ -1,14 +1,24 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { Temporal } from "@js-temporal/polyfill";
 
 const OPTIONS = [
-  { value: 1, label: "1M" },
-  { value: 6, label: "6M" },
-  { value: 12, label: "1Y" },
-  { value: 0, label: "All" },
+  { value: Temporal.Duration.from({ months: 1 }), label: "1M" },
+  { value: Temporal.Duration.from({ months: 6 }), label: "6M" },
+  { value: Temporal.Duration.from({ years: 1 }), label: "1Y" },
+  { value: null, label: "All" },
 ];
 
-export type TimeRange = (typeof OPTIONS)[number]["value"];
+export type TimeRange = Temporal.Duration | null;
+
+export class TimeRangeChangeEvent extends Event {
+  timeRange: TimeRange;
+
+  constructor(timeRange: TimeRange) {
+    super("time-range-change", { bubbles: true });
+    this.timeRange = timeRange;
+  }
+}
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -43,21 +53,26 @@ export class TimeRangePicker extends LitElement {
     }
   `;
 
-  @property({ type: Number })
-  value: TimeRange = 0;
+  @property({ attribute: false })
+  value: TimeRange = null;
 
   render() {
     return OPTIONS.map(
       ({ value, label }) =>
         html`<button
-          class=${this.value === value ? "active" : ""}
+          class=${this.#isActive(value) ? "active" : ""}
           @click=${() => this.#select(value)}
         >${label}</button>`,
     );
   }
 
+  #isActive(option: TimeRange): boolean {
+    if (this.value === null || option === null) return this.value === option;
+    return Temporal.Duration.compare(this.value, option) === 0;
+  }
+
   #select(value: TimeRange) {
     this.value = value;
-    this.dispatchEvent(new Event("change", { bubbles: true }));
+    this.dispatchEvent(new TimeRangeChangeEvent(value));
   }
 }

@@ -24,7 +24,8 @@ declare global {
   }
 }
 
-import type { TimeRange } from "../shared/TimeRangePicker";
+import { Temporal } from "@js-temporal/polyfill";
+import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import "../shared/TimeRangePicker";
 
 @customElement("account-detail")
@@ -42,7 +43,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
   private _editingName = false;
 
   @state()
-  private _timeRange: TimeRange = 0;
+  private _timeRange: TimeRange = null;
 
   @state()
   private _currentPage = 1;
@@ -173,10 +174,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   get #filteredTransactions(): Transaction[] | null {
     if (!this._transactions) return null;
-    if (this._timeRange === 0) return this._transactions;
-    const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - this._timeRange);
-    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    if (this._timeRange === null) return this._transactions;
+    const cutoffStr = Temporal.Now.plainDateISO().subtract(this._timeRange).toString();
     return this._transactions.filter((t) => t.date >= cutoffStr);
   }
 
@@ -198,8 +197,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
     return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
-  #onTimeRangeChange(e: Event) {
-    this._timeRange = (e.target as HTMLElementTagNameMap["time-range-picker"]).value;
+  #onTimeRangeChange(e: TimeRangeChangeEvent) {
+    this._timeRange = e.timeRange;
     this._currentPage = 1;
   }
 
@@ -265,7 +264,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
         <div class="section">
           <h3>
             Monthly Activity
-            <time-range-picker .value=${this._timeRange} @change=${this.#onTimeRangeChange}></time-range-picker>
+            <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
           </h3>
           ${
             this.#monthlyTotals.length > 0
