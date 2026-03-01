@@ -94,12 +94,28 @@ export class MerchantDetail extends LitElement {
       .section-transactions h3 {
         margin-top: 0;
       }
-      select {
-        padding: 2px 6px;
-        border: 1px solid var(--budgee-border);
-        border-radius: 4px;
-        background: var(--budgee-surface);
+      .time-range-links {
+        display: inline-flex;
+        gap: 0.5rem;
+        margin-left: 0.75rem;
         font-size: 0.875rem;
+        font-weight: normal;
+      }
+      .time-range-links button {
+        background: none;
+        border: none;
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--budgee-text-muted);
+      }
+      .time-range-links button:hover {
+        color: var(--budgee-text);
+      }
+      .time-range-links button.active {
+        color: var(--budgee-text);
+        font-weight: 600;
+        background: var(--budgee-bg);
       }
       .edit-name-btn {
         background: none;
@@ -184,8 +200,8 @@ export class MerchantDetail extends LitElement {
     return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
-  #onTimeRangeChange(e: Event) {
-    this._timeRange = Number((e.target as HTMLSelectElement).value) as TimeRange;
+  #setTimeRange(range: TimeRange) {
+    this._timeRange = range;
     this._currentPage = 1;
   }
 
@@ -266,12 +282,12 @@ export class MerchantDetail extends LitElement {
       <div class="section">
         <h3>
           Monthly Spend
-          <select @change=${this.#onTimeRangeChange}>
-            <option value="6" ?selected=${this._timeRange === 6}>6 months</option>
-            <option value="12" ?selected=${this._timeRange === 12}>12 months</option>
-            <option value="24" ?selected=${this._timeRange === 24}>24 months</option>
-            <option value="0" ?selected=${this._timeRange === 0}>All time</option>
-          </select>
+          <span class="time-range-links">
+              <button class=${this._timeRange === 6 ? "active" : ""} @click=${() => this.#setTimeRange(6)}>6M</button>
+              <button class=${this._timeRange === 12 ? "active" : ""} @click=${() => this.#setTimeRange(12)}>1Y</button>
+              <button class=${this._timeRange === 24 ? "active" : ""} @click=${() => this.#setTimeRange(24)}>2Y</button>
+              <button class=${this._timeRange === 0 ? "active" : ""} @click=${() => this.#setTimeRange(0)}>All</button>
+            </span>
         </h3>
         ${
           this.#monthlySpend.length > 0
