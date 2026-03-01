@@ -224,7 +224,7 @@ export class MerchantDetail extends LitElement {
   }
 
   #navigateBack() {
-    window.history.pushState({}, "", "/Merchants");
+    window.history.pushState({}, "", "/merchants");
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 

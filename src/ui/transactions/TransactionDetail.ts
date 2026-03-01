@@ -272,7 +272,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   }
 
   #navigateBack() {
-    window.history.pushState({}, "", "/Transactions");
+    window.history.pushState({}, "", "/transactions");
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
 

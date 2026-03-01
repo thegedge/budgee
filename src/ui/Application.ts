@@ -53,7 +53,7 @@ export class Application extends LitElement {
         `,
     },
     {
-      path: "/Transactions",
+      path: "/transactions",
       render: () =>
         html`
           <transaction-list></transaction-list>
@@ -83,7 +83,7 @@ export class Application extends LitElement {
       },
     },
     {
-      path: "/Merchants",
+      path: "/merchants",
       render: () =>
         html`
           <merchant-list></merchant-list>
@@ -98,7 +98,7 @@ export class Application extends LitElement {
       },
     },
     {
-      path: "/Tags",
+      path: "/tags",
       render: () =>
         html`
           <tag-manager></tag-manager>
@@ -338,7 +338,7 @@ export class Application extends LitElement {
     if (!file) return;
 
     if (file.name.endsWith(".csv")) {
-      window.history.pushState({}, "", "/Transactions");
+      window.history.pushState({}, "", "/transactions");
       window.dispatchEvent(new PopStateEvent("popstate"));
       await this.updateComplete;
       document.dispatchEvent(new CustomEvent("budgee-import-csv", { detail: { file } }));
@@ -365,10 +365,10 @@ export class Application extends LitElement {
       <h1 class="app-name">${unsafeSVG(birdIcon)} Budgee</h1>
       <nav>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
-        ${this.navLink("/Transactions", "Transactions", banknotesIcon)}
+        ${this.navLink("/transactions", "Transactions", banknotesIcon)}
         ${this.navLink("/accounts", "Accounts", landmarkIcon)}
-        ${this.navLink("/Merchants", "Merchants", buildingStorefrontIcon)}
-        ${this.navLink("/Tags", "Tags", tagIcon)}
+        ${this.navLink("/merchants", "Merchants", buildingStorefrontIcon)}
+        ${this.navLink("/tags", "Tags", tagIcon)}
         ${this.navLink("/rules", "Rules", listFilterIcon)}
         ${this.navLink("/settings", "Settings", adjustmentsHorizontalIcon)}
         <div style="flex:1"></div>
