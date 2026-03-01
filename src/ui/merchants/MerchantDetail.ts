@@ -16,7 +16,7 @@ declare global {
   }
 }
 
-type TimeRange = 6 | 12 | 24 | 0;
+type TimeRange = 1 | 6 | 12 | 0;
 
 @customElement("merchant-detail")
 export class MerchantDetail extends LitElement {
@@ -283,9 +283,9 @@ export class MerchantDetail extends LitElement {
         <h3>
           Monthly Spend
           <span class="time-range-links">
+              <button class=${this._timeRange === 1 ? "active" : ""} @click=${() => this.#setTimeRange(1)}>1M</button>
               <button class=${this._timeRange === 6 ? "active" : ""} @click=${() => this.#setTimeRange(6)}>6M</button>
               <button class=${this._timeRange === 12 ? "active" : ""} @click=${() => this.#setTimeRange(12)}>1Y</button>
-              <button class=${this._timeRange === 24 ? "active" : ""} @click=${() => this.#setTimeRange(24)}>2Y</button>
               <button class=${this._timeRange === 0 ? "active" : ""} @click=${() => this.#setTimeRange(0)}>All</button>
             </span>
         </h3>
