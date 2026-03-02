@@ -10,23 +10,25 @@ describe("matchesRule", () => {
     tagIds: [],
   };
 
+  const tx = (originalDescription: string, accountId?: string) => ({ originalDescription, accountId });
+
   it("should match when no accountId on rule", () => {
-    expect(matchesRule("coffee shop", rule)).toBe(true);
-    expect(matchesRule("coffee shop", rule, "acc1")).toBe(true);
+    expect(matchesRule(tx("coffee shop"), rule)).toBe(true);
+    expect(matchesRule(tx("coffee shop", "acc1"), rule)).toBe(true);
   });
 
   it("should match when accountId matches", () => {
     const scoped = { ...rule, accountId: "acc1" };
-    expect(matchesRule("coffee shop", scoped, "acc1")).toBe(true);
+    expect(matchesRule(tx("coffee shop", "acc1"), scoped)).toBe(true);
   });
 
   it("should not match when accountId differs", () => {
     const scoped = { ...rule, accountId: "acc1" };
-    expect(matchesRule("coffee shop", scoped, "acc2")).toBe(false);
+    expect(matchesRule(tx("coffee shop", "acc2"), scoped)).toBe(false);
   });
 
   it("should not match when rule has accountId but transaction has none", () => {
     const scoped = { ...rule, accountId: "acc1" };
-    expect(matchesRule("coffee shop", scoped)).toBe(false);
+    expect(matchesRule(tx("coffee shop"), scoped)).toBe(false);
   });
 });

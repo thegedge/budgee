@@ -5,9 +5,8 @@ export function applyRules(
   transaction: Omit<Transaction, "id">,
   rules: MerchantRule[],
 ): Omit<Transaction, "id"> {
-  const description = transaction.originalDescription.toLowerCase();
   for (const rule of rules) {
-    if (!matchesRule(description, rule)) {
+    if (!matchesRule(transaction, rule)) {
       continue;
     }
 

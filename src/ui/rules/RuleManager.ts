@@ -166,10 +166,9 @@ export class RuleManager extends BusyMixin(LitElement) {
     const allTx = await Transactions.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
-    const descriptions = allTx.map((t) => t.originalDescription.toLowerCase());
     const unmatched = new Set<string>();
     for (const rule of this._rules) {
-      if (!descriptions.some((d) => matchesRule(d, rule))) {
+      if (!allTx.some((t) => matchesRule(t, rule))) {
         unmatched.add(rule.id);
       }
     }

@@ -48,8 +48,7 @@ export class MerchantRules {
     const allTx = await db.transactions.all();
     const updates: Transaction[] = [];
     for (const tx of allTx) {
-      const description = tx.originalDescription.toLowerCase();
-      if (matchesRule(description, rule)) {
+      if (matchesRule(tx, rule)) {
         updates.push({
           ...tx,
           merchantId: rule.merchantId ?? tx.merchantId,

@@ -81,8 +81,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
       const pairCounts = new Map<string, OverlapPair>();
 
       for (const tx of transactions) {
-        const desc = tx.originalDescription.toLowerCase();
-        const matching = rules.filter((r) => matchesRule(desc, r));
+        const matching = rules.filter((r) => matchesRule(tx, r));
         if (matching.length < 2) continue;
 
         for (let i = 0; i < matching.length; i++) {
