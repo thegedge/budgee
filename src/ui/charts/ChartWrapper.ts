@@ -82,6 +82,9 @@ export class ChartWrapper extends LitElement {
               sort: (a, b) => (a.text ?? "").localeCompare(b.text ?? ""),
             },
           },
+          tooltip: {
+            animation: false,
+          },
         },
         ...this.options,
       },
