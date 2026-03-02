@@ -31,6 +31,9 @@ export class RuleEditor extends LitElement {
   @property({ type: String })
   prefillDescription = "";
 
+  @property({ type: String })
+  prefillAccountId = "";
+
   @property({ attribute: false })
   editingRule: MerchantRule | null = null;
 
@@ -166,9 +169,14 @@ export class RuleEditor extends LitElement {
       this._merchantName = this.editingMerchantName;
       this._pendingTagNames = [];
     } else if (changed.has("prefillDescription") && this.prefillDescription) {
-      this._conditions = [
+      const conditions: RuleCondition[] = [
         { field: "description", operator: "equals", value: this.prefillDescription },
       ];
+      if (this.prefillAccountId) {
+        conditions.push({ field: "account", operator: "equals", value: this.prefillAccountId });
+      }
+      this._conditions = conditions;
+      this._logic = conditions.length > 1 ? "and" : "or";
       this._merchantName = extractMerchant(this.prefillDescription);
       this._prefillPristine = true;
       this._pendingTagNames = [];
