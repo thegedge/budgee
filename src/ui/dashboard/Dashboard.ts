@@ -54,7 +54,7 @@ export class Dashboard extends LitElement {
   columns = 12;
 
   @property({ type: Number })
-  rows = 4;
+  rows = 12;
 
   @state()
   private _showChartConfigurator = false;
@@ -92,7 +92,7 @@ export class Dashboard extends LitElement {
       .table-grid {
         display: grid;
         grid-template-columns: 1fr;
-        grid-auto-rows: 200px;
+        grid-auto-rows: var(--grid-row-height);
         gap: 1rem;
         margin-bottom: 1rem;
       }
@@ -130,6 +130,7 @@ export class Dashboard extends LitElement {
 
   willUpdate() {
     this.style.setProperty("--grid-columns", String(this.columns));
+    this.style.setProperty("--grid-row-height", `${800 / this.rows}px`);
   }
 
   connectedCallback() {
