@@ -1,4 +1,4 @@
-import type { Transaction } from "../database/types";
+import type { TransactionRecord } from "../database/types";
 
 export interface FilterOptions {
   tagId?: string;
@@ -13,9 +13,9 @@ export interface FilterOptions {
 }
 
 export function filterTransactions(
-  transactions: Transaction[],
+  transactions: TransactionRecord[],
   options: FilterOptions,
-): Transaction[] {
+): TransactionRecord[] {
   return transactions.filter((tx) => {
     if (options.tagId !== undefined && !tx.tagIds.includes(options.tagId)) return false;
     if (options.excludedTagId !== undefined && tx.tagIds.includes(options.excludedTagId))

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Transaction } from "../../database/types";
+import type { Transaction } from "../../models/Transaction";
 import "./ChartConfigurator";
 import { ChartConfigurator } from "./ChartConfigurator";
 

@@ -1,4 +1,4 @@
-import type { MerchantRule, RuleCondition, Transaction } from "../database/types";
+import type { MerchantRuleRecord, RuleCondition, TransactionRecord } from "../database/types";
 
 function matchesCondition(description: string, condition: RuleCondition): boolean {
   const value = condition.value.toLowerCase();
@@ -15,8 +15,8 @@ function matchesCondition(description: string, condition: RuleCondition): boolea
 }
 
 export function matchesRule(
-  transaction: Pick<Transaction, "description" | "accountId">,
-  rule: MerchantRule,
+  transaction: Pick<TransactionRecord, "description" | "accountId">,
+  rule: MerchantRuleRecord,
 ): boolean {
   if (rule.accountId && rule.accountId !== transaction.accountId) {
     return false;

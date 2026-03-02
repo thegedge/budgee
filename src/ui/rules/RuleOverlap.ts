@@ -1,10 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { MerchantRule } from "../../database/types";
+import { MerchantRule } from "../../models/MerchantRule";
 import { matchesRule } from "../../import/matchesRule";
-import { MerchantRules } from "../../models/MerchantRules";
-import { Merchants } from "../../models/Merchants";
-import { Transactions } from "../../models/Transactions";
+import { Merchant } from "../../models/Merchant";
+import { Transaction } from "../../models/Transaction";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { tableStyles } from "../tableStyles";
 
@@ -72,9 +71,9 @@ export class RuleOverlap extends BusyMixin(LitElement) {
   async #analyze() {
     await this.withBusy(async () => {
       const [rules, transactions, merchants] = await Promise.all([
-        MerchantRules.all(),
-        Transactions.all(),
-        Merchants.all(),
+        MerchantRule.all(),
+        Transaction.all(),
+        Merchant.all(),
       ]);
 
       this._merchants = new Map(merchants.map((m) => [m.id, m.name]));

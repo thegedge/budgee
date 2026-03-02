@@ -1,7 +1,7 @@
-import type { Transaction } from "../database/types";
-import { Accounts } from "../models/Accounts";
-import { MerchantRules } from "../models/MerchantRules";
-import { Transactions } from "../models/Transactions";
+import type { TransactionRecord } from "../database/types";
+import { Account } from "../models/Account";
+import { MerchantRule } from "../models/MerchantRule";
+import { Transaction } from "../models/Transaction";
 import { applyRules } from "./applyRules";
 import type { ColumnMapping } from "./parseCsv";
 
@@ -12,12 +12,12 @@ export async function importTransactions(
   mapping: ColumnMapping,
   options: { accountId?: string; importMode: ImportMode },
 ): Promise<number> {
-  const rules = await MerchantRules.all();
+  const rules = await MerchantRule.all();
   const accountIdsByName = mapping.account
     ? await resolveAccountIds(rows, mapping.account)
     : undefined;
 
-  const transactions: Omit<Transaction, "id">[] = rows
+  const transactions: Omit<TransactionRecord, "id">[] = rows
     .map((row) =>
       rowToTransaction(
         row,
@@ -25,14 +25,14 @@ export async function importTransactions(
         accountIdsByName?.get(row[mapping.account!]) ?? options.accountId,
       ),
     )
-    .filter((t): t is Omit<Transaction, "id"> => t !== undefined)
+    .filter((t): t is Omit<TransactionRecord, "id"> => t !== undefined)
     .map((t) => applyRules(t, rules));
 
   if (options.importMode === "replace") {
-    await Transactions.deleteAll();
+    await Transaction.deleteAll();
   }
 
-  await Transactions.bulkAdd(transactions);
+  await Transaction.bulkAdd(transactions);
   return transactions.length;
 }
 
@@ -41,7 +41,7 @@ async function resolveAccountIds(
   accountColumn: string,
 ): Promise<Map<string, string>> {
   const uniqueNames = [...new Set(rows.map((r) => r[accountColumn]).filter(Boolean))];
-  const existingAccounts = await Accounts.all();
+  const existingAccounts = await Account.all();
 
   const nameToId = new Map<string, string>();
   for (const account of existingAccounts) {
@@ -54,9 +54,9 @@ async function resolveAccountIds(
     if (existing) {
       result.set(name, existing);
     } else {
-      const id = await Accounts.create({ name });
-      result.set(name, id);
-      nameToId.set(name.toLowerCase(), id);
+      const account = await Account.create({ name });
+      result.set(name, account.id);
+      nameToId.set(name.toLowerCase(), account.id);
     }
   }
 
@@ -67,7 +67,7 @@ function rowToTransaction(
   row: Record<string, string>,
   mapping: ColumnMapping,
   accountId?: string,
-): Omit<Transaction, "id"> | undefined {
+): Omit<TransactionRecord, "id"> | undefined {
   const dateStr = mapping.date ? row[mapping.date] : undefined;
   const amountStr = mapping.amount ? row[mapping.amount] : undefined;
   const creditStr = mapping.credit ? row[mapping.credit] : undefined;

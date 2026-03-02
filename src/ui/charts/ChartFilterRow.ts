@@ -2,13 +2,9 @@ import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
-import type {
-  ChartFilterCondition,
-  ChartFilterField,
-  ChartFilterOperator,
-  Merchant,
-  Tag,
-} from "../../database/types";
+import type { ChartFilterCondition, ChartFilterField, ChartFilterOperator } from "../../database/types";
+import type { Merchant } from "../../models/Merchant";
+import type { Tag } from "../../models/Tag";
 import { iconButtonStyles } from "../iconButtonStyles";
 
 declare global {

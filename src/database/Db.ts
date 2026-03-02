@@ -9,13 +9,13 @@ import {
 } from "rxdb/plugins/core";
 import { RxDBMigrationSchemaPlugin } from "rxdb/plugins/migration-schema";
 import type {
-  Account,
-  DashboardChart,
-  DashboardTable,
-  Merchant,
-  MerchantRule,
-  Tag,
-  Transaction,
+  AccountRecord,
+  DashboardChartRecord,
+  DashboardTableRecord,
+  MerchantRecord,
+  MerchantRuleRecord,
+  TagRecord,
+  TransactionRecord,
 } from "./types";
 
 addRxPlugin(RxDBMigrationSchemaPlugin);
@@ -32,7 +32,7 @@ export class SchemaVersionError extends Error {
 
 const ID_FIELD = { type: "string" as const, maxLength: 100 };
 
-const transactionSchema: RxJsonSchema<Transaction> = {
+const transactionSchema: RxJsonSchema<TransactionRecord> = {
   version: 1,
   primaryKey: "id",
   type: "object",
@@ -50,7 +50,7 @@ const transactionSchema: RxJsonSchema<Transaction> = {
   indexes: ["date"],
 };
 
-const tagSchema: RxJsonSchema<Tag> = {
+const tagSchema: RxJsonSchema<TagRecord> = {
   version: 0,
   primaryKey: "id",
   type: "object",
@@ -64,7 +64,7 @@ const tagSchema: RxJsonSchema<Tag> = {
   indexes: ["name"],
 };
 
-const merchantSchema: RxJsonSchema<Merchant> = {
+const merchantSchema: RxJsonSchema<MerchantRecord> = {
   version: 0,
   primaryKey: "id",
   type: "object",
@@ -76,7 +76,7 @@ const merchantSchema: RxJsonSchema<Merchant> = {
   indexes: ["name"],
 };
 
-const accountSchema: RxJsonSchema<Account> = {
+const accountSchema: RxJsonSchema<AccountRecord> = {
   version: 0,
   primaryKey: "id",
   type: "object",
@@ -88,7 +88,7 @@ const accountSchema: RxJsonSchema<Account> = {
   required: ["id", "name"],
 };
 
-const merchantRuleSchema: RxJsonSchema<MerchantRule> = {
+const merchantRuleSchema: RxJsonSchema<MerchantRuleRecord> = {
   version: 1,
   primaryKey: "id",
   type: "object",
@@ -113,7 +113,7 @@ const merchantRuleSchema: RxJsonSchema<MerchantRule> = {
   required: ["id", "logic", "conditions", "tagIds"],
 };
 
-const dashboardChartSchema: RxJsonSchema<DashboardChart> = {
+const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
   version: 0,
   primaryKey: "id",
   type: "object",
@@ -150,7 +150,7 @@ const dashboardChartSchema: RxJsonSchema<DashboardChart> = {
   required: ["id", "title", "chartType", "granularity", "position"],
 };
 
-const dashboardTableSchema: RxJsonSchema<DashboardTable> = {
+const dashboardTableSchema: RxJsonSchema<DashboardTableRecord> = {
   version: 0,
   primaryKey: "id",
   type: "object",
@@ -206,13 +206,13 @@ export const collectionSchemas = {
 } as const;
 
 type DatabaseCollections = {
-  transactions: RxCollection<Transaction>;
-  tags: RxCollection<Tag>;
-  merchants: RxCollection<Merchant>;
-  accounts: RxCollection<Account>;
-  merchant_rules: RxCollection<MerchantRule>;
-  dashboard_charts: RxCollection<DashboardChart>;
-  dashboard_tables: RxCollection<DashboardTable>;
+  transactions: RxCollection<TransactionRecord>;
+  tags: RxCollection<TagRecord>;
+  merchants: RxCollection<MerchantRecord>;
+  accounts: RxCollection<AccountRecord>;
+  merchant_rules: RxCollection<MerchantRuleRecord>;
+  dashboard_charts: RxCollection<DashboardChartRecord>;
+  dashboard_tables: RxCollection<DashboardTableRecord>;
   meta: RxCollection<SchemaVersionDoc>;
   backups: RxCollection<{ id: string; data?: string }>;
 };
@@ -279,13 +279,13 @@ export type { DatabaseCollections };
 
 export interface Databases {
   rxdb: RxDatabase<DatabaseCollections>;
-  transactions: Collection<Transaction>;
-  tags: Collection<Tag>;
-  merchants: Collection<Merchant>;
-  accounts: Collection<Account>;
-  merchantRules: Collection<MerchantRule>;
-  dashboardCharts: Collection<DashboardChart>;
-  dashboardTables: Collection<DashboardTable>;
+  transactions: Collection<TransactionRecord>;
+  tags: Collection<TagRecord>;
+  merchants: Collection<MerchantRecord>;
+  accounts: Collection<AccountRecord>;
+  merchantRules: Collection<MerchantRuleRecord>;
+  dashboardCharts: Collection<DashboardChartRecord>;
+  dashboardTables: Collection<DashboardTableRecord>;
   meta: Collection<SchemaVersionDoc>;
   backups: Collection<{ id: string; data?: string }>;
 }
@@ -335,7 +335,7 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
         schema: merchantRuleSchema,
         migrationStrategies: {
           // accountId field was added; no data migration needed
-          1: (doc: MerchantRule) => doc,
+          1: (doc: MerchantRuleRecord) => doc,
         },
       },
       dashboard_charts: { schema: dashboardChartSchema },
@@ -366,7 +366,7 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
 }
 
 export async function destroyAll(dbs: Databases) {
-  const rxCollection = (dbs.transactions as Collection<Transaction>).rxCollection;
+  const rxCollection = (dbs.transactions as Collection<TransactionRecord>).rxCollection;
   const rxdb = rxCollection.database;
   const storage = rxdb.storage;
   const name = rxdb.name;

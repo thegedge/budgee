@@ -1,10 +1,10 @@
-import type { MerchantRule, Transaction } from "../database/types";
+import type { MerchantRuleRecord, TransactionRecord } from "../database/types";
 import { matchesRule } from "./matchesRule";
 
 export function applyRules(
-  transaction: Omit<Transaction, "id">,
-  rules: MerchantRule[],
-): Omit<Transaction, "id"> {
+  transaction: Omit<TransactionRecord, "id">,
+  rules: MerchantRuleRecord[],
+): Omit<TransactionRecord, "id"> {
   for (const rule of rules) {
     if (!matchesRule(transaction, rule)) {
       continue;

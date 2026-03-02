@@ -1,9 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { Merchant, Transaction } from "../../database/types";
+import { Merchant } from "../../models/Merchant";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { Merchants } from "../../models/Merchants";
-import { Transactions } from "../../models/Transactions";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -58,7 +57,7 @@ export class MerchantList extends LitElement {
     super.connectedCallback();
     this.#load();
     const debouncedLoad = debounce(() => this.#load(), 300);
-    Promise.all([Merchants.subscribe(debouncedLoad), Transactions.subscribe(debouncedLoad)]).then(
+    Promise.all([Merchant.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
       (subs) => {
         this.#subscriptions = subs;
       },
@@ -72,7 +71,7 @@ export class MerchantList extends LitElement {
   }
 
   async #load() {
-    const merchants = await Merchants.all();
+    const merchants = await Merchant.all();
     this._rows = merchants.map((m) => ({
       merchant: m,
       transactionCount: null,
@@ -82,7 +81,7 @@ export class MerchantList extends LitElement {
   }
 
   async #loadTransactionStats() {
-    const transactions = await Transactions.all();
+    const transactions = await Transaction.all();
     const countMap = new Map<string, number>();
     const spendMap = new Map<string, number>();
     for (const tx of transactions as Transaction[]) {

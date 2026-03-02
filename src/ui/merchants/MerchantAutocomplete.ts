@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Merchant } from "../../database/types";
+import type { Merchant } from "../../models/Merchant";
 
 declare global {
   interface HTMLElementTagNameMap {

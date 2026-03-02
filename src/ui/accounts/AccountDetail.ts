@@ -1,16 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { cardNetworkFromPrefix } from "../../cardNetwork";
-import {
-  ACCOUNT_TYPES,
-  type Account,
-  type AccountType,
-  type Transaction,
-  accountTypeLabel,
-} from "../../database/types";
+import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
+import { Account } from "../../models/Account";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { Accounts } from "../../models/Accounts";
-import { Transactions } from "../../models/Transactions";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -149,7 +143,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
     super.connectedCallback();
     this.#load();
     const debouncedLoad = debounce(() => this.#load(), 300);
-    Promise.all([Accounts.subscribe(debouncedLoad), Transactions.subscribe(debouncedLoad)]).then(
+    Promise.all([Account.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
       (subs) => {
         this.#subscriptions = subs;
       },
@@ -164,12 +158,12 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   async #load() {
     if (!this.accountId) return;
-    this._account = await Accounts.get(this.accountId);
+    this._account = await Account.get(this.accountId);
     this.#loadTransactions();
   }
 
   async #loadTransactions() {
-    this._transactions = await Transactions.forAccount(this.accountId);
+    this._transactions = await Transaction.forAccount(this.accountId);
   }
 
   get #filteredTransactions(): Transaction[] | null {
@@ -221,7 +215,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
     if (e.key !== "Enter") return;
     const input = e.target as HTMLInputElement;
     await this.withBusy(async () => {
-      await Accounts.update(this.accountId, { name: input.value });
+      await Account.update(this.accountId, { name: input.value });
       this._editingName = false;
       await this.#load();
     });
@@ -230,7 +224,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
   async #onTypeChange(e: Event) {
     const value = (e.target as HTMLSelectElement).value;
     await this.withBusy(async () => {
-      await Accounts.update(this.accountId, {
+      await Account.update(this.accountId, {
         type: (value || undefined) as AccountType | undefined,
       });
       await this.#load();

@@ -1,10 +1,9 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { Merchant, Tag, Transaction } from "../../database/types";
+import { Merchant } from "../../models/Merchant";
+import { Tag } from "../../models/Tag";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { Merchants } from "../../models/Merchants";
-import { Tags } from "../../models/Tags";
-import { Transactions } from "../../models/Transactions";
 import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -180,9 +179,9 @@ export class TransactionList extends BusyMixin(LitElement) {
     document.addEventListener("budgee-import-csv", this.#onCsvDrop);
     const debouncedRefresh = debounce(() => this.#refresh(), 300);
     Promise.all([
-      Transactions.subscribe(debouncedRefresh),
-      Tags.subscribe(debouncedRefresh),
-      Merchants.subscribe(debouncedRefresh),
+      Transaction.subscribe(debouncedRefresh),
+      Tag.subscribe(debouncedRefresh),
+      Merchant.subscribe(debouncedRefresh),
     ]).then((subs) => {
       this.#subscriptions = subs;
     });
@@ -215,9 +214,9 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   async #refresh() {
     const [transactions, tags, merchants] = await Promise.all([
-      Transactions.all(),
-      Tags.all(),
-      Merchants.all(),
+      Transaction.all(),
+      Tag.all(),
+      Merchant.all(),
     ]);
     this._transactions = transactions;
     this._tags = tags;
@@ -352,8 +351,8 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   async #bulkCreateTag(e: CustomEvent) {
     const name = e.detail.name as string;
-    const tagId = await Tags.create(name);
-    await this.#applyTagToSelected(tagId);
+    const tag = await Tag.create(name);
+    await this.#applyTagToSelected(tag.id);
   }
 
   async #applyTagToSelected(tagId: string) {
@@ -363,7 +362,7 @@ export class TransactionList extends BusyMixin(LitElement) {
         (t) => this._selectedIds.has(t.id) && !t.tagIds.includes(tagId),
       ).map((t) => ({ ...t, tagIds: [...t.tagIds, tagId] }));
       if (toUpdate.length > 0) {
-        await Transactions.bulkPut(toUpdate);
+        await Transaction.bulkPut(toUpdate);
       }
       this.#clearSelection();
       await this.#refresh();
@@ -377,8 +376,7 @@ export class TransactionList extends BusyMixin(LitElement) {
     await this.withBusy(async () => {
       let merchant = this._merchantList.find((m) => m.name.toLowerCase() === name.toLowerCase());
       if (!merchant) {
-        const id = await Merchants.create(name);
-        merchant = { id, name };
+        merchant = await Merchant.create(name);
       }
 
       const toUpdate = this._transactions!.filter((t) => this._selectedIds.has(t.id)).map((t) => ({
@@ -386,7 +384,7 @@ export class TransactionList extends BusyMixin(LitElement) {
         merchantId: merchant!.id,
       }));
       if (toUpdate.length > 0) {
-        await Transactions.bulkPut(toUpdate);
+        await Transaction.bulkPut(toUpdate);
       }
       this.#clearSelection();
       await this.#refresh();

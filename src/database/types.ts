@@ -1,4 +1,4 @@
-export interface Transaction {
+export interface TransactionRecord {
   id: string;
   date: string; // ISO 8601 date string (YYYY-MM-DD)
   amount: number;
@@ -9,14 +9,14 @@ export interface Transaction {
   tagIds: string[];
 }
 
-export interface Tag {
+export interface TagRecord {
   id: string;
   name: string;
   icon?: string;
   color?: string;
 }
 
-export interface Merchant {
+export interface MerchantRecord {
   id: string;
   name: string;
 }
@@ -35,7 +35,7 @@ export function accountTypeLabel(type: AccountType): string {
   return ACCOUNT_TYPE_LABELS[type];
 }
 
-export interface Account {
+export interface AccountRecord {
   id: string;
   name: string;
   type?: AccountType;
@@ -49,7 +49,7 @@ export interface RuleCondition {
   value: string;
 }
 
-export interface MerchantRule {
+export interface MerchantRuleRecord {
   id: string;
   logic: "and" | "or";
   conditions: RuleCondition[];
@@ -75,7 +75,7 @@ export interface ChartFilterCondition {
   value: string;
 }
 
-export interface DashboardChart {
+export interface DashboardChartRecord {
   id: string;
   title: string;
   chartType: "bar" | "line" | "pie" | "doughnut";
@@ -104,7 +104,7 @@ export type TagColumn = "name" | "transactionCount" | "totalAmount";
 
 export type DashboardTableColumn = TransactionColumn | MerchantColumn | TagColumn;
 
-export interface DashboardTable {
+export interface DashboardTableRecord {
   id: string;
   title: string;
   model: DashboardTableModel;

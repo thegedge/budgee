@@ -1,11 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
-import type {
-  DashboardTable,
-  DashboardTableColumn,
-  DashboardTableModel,
-} from "../../database/types";
+import type { DashboardTableColumn, DashboardTableModel } from "../../database/types";
+import type { DashboardTable } from "../../models/DashboardTable";
 
 declare global {
   interface HTMLElementTagNameMap {

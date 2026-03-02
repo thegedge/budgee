@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Tag } from "../../database/types";
+import type { Tag } from "../../models/Tag";
 import "./RuleEditor";
 import { RuleEditor } from "./RuleEditor";
 

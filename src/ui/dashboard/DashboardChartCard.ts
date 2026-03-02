@@ -11,13 +11,11 @@ import {
   mapKeys,
 } from "../../charting/aggregateBy";
 import { type FilterOptions, filterTransactions } from "../../charting/filterTransactions";
-import type {
-  ChartFilterCondition,
-  DashboardChart,
-  Merchant,
-  Tag,
-  Transaction,
-} from "../../database/types";
+import type { ChartFilterCondition } from "../../database/types";
+import type { DashboardChart } from "../../models/DashboardChart";
+import type { Merchant } from "../../models/Merchant";
+import type { Tag } from "../../models/Tag";
+import type { Transaction } from "../../models/Transaction";
 import { parseRelativeDate } from "../../models/parseRelativeDate";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";

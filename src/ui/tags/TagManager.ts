@@ -2,10 +2,9 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
-import type { Tag } from "../../database/types";
+import { Tag } from "../../models/Tag";
 import { debounce } from "../../debounce";
 import { colorToHex } from "../../models/colorToHex";
-import { Tags } from "../../models/Tags";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -96,7 +95,7 @@ export class TagManager extends BusyMixin(LitElement) {
     super.connectedCallback();
     this.#refreshTags();
     const debouncedRefresh = debounce(() => this.#refreshTags(), 300);
-    Tags.subscribe(debouncedRefresh).then((sub) => {
+    Tag.subscribe(debouncedRefresh).then((sub) => {
       this.#subscriptions = [sub];
     });
   }
@@ -108,7 +107,7 @@ export class TagManager extends BusyMixin(LitElement) {
   }
 
   async #refreshTags() {
-    this._tags = await Tags.all();
+    this._tags = await Tag.all();
   }
 
   async #addTag() {
@@ -117,14 +116,14 @@ export class TagManager extends BusyMixin(LitElement) {
 
     this._error = "";
 
-    const existing = await Tags.byName(name);
+    const existing = await Tag.byName(name);
     if (existing) {
       this._error = `Tag "${name}" already exists.`;
       return;
     }
 
     await this.withBusy(async () => {
-      await Tags.create(name);
+      await Tag.create(name);
       this._newTagName = "";
       await this.#refreshTags();
     });
@@ -132,14 +131,14 @@ export class TagManager extends BusyMixin(LitElement) {
 
   async #deleteTag(id: string) {
     await this.withBusy(async () => {
-      await Tags.remove(id);
+      await Tag.remove(id);
       await this.#refreshTags();
     });
   }
 
   async #saveTagIcon(tag: Tag, icon: string) {
     await this.withBusy(async () => {
-      await Tags.update(tag.id, { icon: icon || undefined });
+      await Tag.update(tag.id, { icon: icon || undefined });
       await this.#refreshTags();
     });
   }
@@ -150,7 +149,7 @@ export class TagManager extends BusyMixin(LitElement) {
 
   async #saveTagColor(tag: Tag, color: string) {
     await this.withBusy(async () => {
-      await Tags.update(tag.id, { color });
+      await Tag.update(tag.id, { color });
       await this.#refreshTags();
     });
   }

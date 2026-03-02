@@ -4,13 +4,12 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
-import type { Merchant, MerchantRule, Tag, Transaction } from "../../database/types";
+import { Merchant } from "../../models/Merchant";
+import { MerchantRule } from "../../models/MerchantRule";
+import { Tag } from "../../models/Tag";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { matchesRule } from "../../import/matchesRule";
-import { MerchantRules } from "../../models/MerchantRules";
-import { Merchants } from "../../models/Merchants";
-import { Tags } from "../../models/Tags";
-import { Transactions } from "../../models/Transactions";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -144,10 +143,10 @@ export class RuleManager extends BusyMixin(LitElement) {
     this.#refresh();
     const debouncedRefresh = debounce(() => this.#refresh(), 300);
     Promise.all([
-      MerchantRules.subscribe(debouncedRefresh),
-      Tags.subscribe(debouncedRefresh),
-      Merchants.subscribe(debouncedRefresh),
-      Transactions.subscribe(debouncedRefresh),
+      MerchantRule.subscribe(debouncedRefresh),
+      Tag.subscribe(debouncedRefresh),
+      Merchant.subscribe(debouncedRefresh),
+      Transaction.subscribe(debouncedRefresh),
     ]).then((subs) => {
       this.#subscriptions = subs;
     });
@@ -160,10 +159,10 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   async #refresh() {
-    this._rules = await MerchantRules.all();
-    this._tags = await Tags.all();
-    this._merchants = await Merchants.all();
-    const allTx = await Transactions.all();
+    this._rules = await MerchantRule.all();
+    this._tags = await Tag.all();
+    this._merchants = await Merchant.all();
+    const allTx = await Transaction.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
     const unmatched = new Set<string>();
@@ -184,26 +183,26 @@ export class RuleManager extends BusyMixin(LitElement) {
       const allTagIds = [...(tagIds as string[])];
       if (newTagNames?.length) {
         for (const name of newTagNames as string[]) {
-          const existing = await Tags.byName(name);
-          const tagId = existing?.id ?? (await Tags.create(name));
+          const existing = await Tag.byName(name);
+          const tagId = existing?.id ?? (await Tag.create(name)).id;
           allTagIds.push(tagId);
         }
       }
 
       let merchantId: string | undefined;
       if (merchantName) {
-        const existing = await Merchants.byName(merchantName);
-        merchantId = existing?.id ?? (await Merchants.create(merchantName));
+        const existing = await Merchant.byName(merchantName);
+        merchantId = existing?.id ?? (await Merchant.create(merchantName)).id;
       }
 
-      const rule: MerchantRule = id
-        ? { id, logic, conditions, merchantId, tagIds: allTagIds }
-        : ({ logic, conditions, merchantId, tagIds: allTagIds } as MerchantRule);
+      const ruleData = { logic, conditions, merchantId, tagIds: allTagIds, accountId: undefined };
 
+      let savedRule: MerchantRule;
       if (id) {
-        await MerchantRules.put(rule);
+        await MerchantRule.put({ ...ruleData, id });
+        savedRule = new MerchantRule({ ...ruleData, id });
       } else {
-        rule.id = await MerchantRules.create(rule);
+        savedRule = await MerchantRule.create(ruleData);
       }
 
       this._showEditor = false;
@@ -212,7 +211,7 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._prefillDescription = "";
 
       if (apply) {
-        await MerchantRules.applyToTransactions(rule);
+        await MerchantRule.applyToTransactions(savedRule);
       }
 
       await this.#refresh();
@@ -225,12 +224,15 @@ export class RuleManager extends BusyMixin(LitElement) {
       const existingRule = this._rules.find((r) => r.id === existingRuleId);
       if (!existingRule) return;
 
-      const merged: MerchantRule = {
-        ...existingRule,
-        logic: "or",
+      const mergedData = {
+        id: existingRule.id,
+        logic: "or" as const,
         conditions: [...existingRule.conditions, ...conditions],
+        merchantId: existingRule.merchantId,
+        accountId: existingRule.accountId,
+        tagIds: existingRule.tagIds,
       };
-      await MerchantRules.put(merged);
+      await MerchantRule.put(mergedData);
 
       this._showEditor = false;
       this._editingRule = null;
@@ -238,7 +240,7 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._prefillDescription = "";
 
       if (apply) {
-        await MerchantRules.applyToTransactions(merged);
+        await MerchantRule.applyToTransactions(mergedData);
       }
 
       await this.#refresh();
@@ -247,7 +249,7 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   async #deleteRule(id: string) {
     await this.withBusy(async () => {
-      await MerchantRules.remove(id);
+      await MerchantRule.remove(id);
       await this.#refresh();
     });
   }
@@ -255,7 +257,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   async #editRule(rule: MerchantRule) {
     let merchantName = "";
     if (rule.merchantId) {
-      const merchant = await Merchants.get(rule.merchantId);
+      const merchant = await Merchant.get(rule.merchantId);
       merchantName = merchant?.name ?? "";
     }
     this._editingRule = rule;

@@ -3,14 +3,12 @@ import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
-import type {
-  Account,
-  DashboardTable,
-  DashboardTableColumn,
-  Merchant,
-  Tag,
-  Transaction,
-} from "../../database/types";
+import type { DashboardTableColumn } from "../../database/types";
+import type { Account } from "../../models/Account";
+import type { DashboardTable } from "../../models/DashboardTable";
+import type { Merchant } from "../../models/Merchant";
+import type { Tag } from "../../models/Tag";
+import type { Transaction } from "../../models/Transaction";
 import { iconButtonStyles } from "../iconButtonStyles";
 import "../shared/PaginatedTable";
 import type { PageChangeDetail } from "../shared/PaginatedTable";

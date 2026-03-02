@@ -1,9 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Merchant, Transaction } from "../../database/types";
+import { Merchant } from "../../models/Merchant";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { Merchants } from "../../models/Merchants";
-import { Transactions } from "../../models/Transactions";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import "../shared/PaginatedTable";
@@ -133,7 +132,7 @@ export class MerchantDetail extends LitElement {
     super.connectedCallback();
     this.#load();
     const debouncedLoad = debounce(() => this.#load(), 300);
-    Promise.all([Merchants.subscribe(debouncedLoad), Transactions.subscribe(debouncedLoad)]).then(
+    Promise.all([Merchant.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
       (subs) => {
         this.#subscriptions = subs;
       },
@@ -149,8 +148,8 @@ export class MerchantDetail extends LitElement {
   async #load() {
     if (!this.merchantId) return;
     const [merchant, transactions] = await Promise.all([
-      Merchants.get(this.merchantId),
-      Transactions.forMerchant(this.merchantId),
+      Merchant.get(this.merchantId),
+      Transaction.forMerchant(this.merchantId),
     ]);
     this._merchant = merchant;
     this._transactions = transactions;
@@ -211,7 +210,7 @@ export class MerchantDetail extends LitElement {
     if (e.key === "Enter") {
       const trimmed = this._draftName.trim();
       if (trimmed && this._merchant) {
-        Merchants.update(this._merchant.id, { name: trimmed });
+        Merchant.update(this._merchant.id, { name: trimmed });
       }
       this._editingName = false;
     } else if (e.key === "Escape") {

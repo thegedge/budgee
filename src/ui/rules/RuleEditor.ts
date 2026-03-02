@@ -1,6 +1,9 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Merchant, MerchantRule, RuleCondition, Tag } from "../../database/types";
+import type { RuleCondition } from "../../database/types";
+import type { Merchant } from "../../models/Merchant";
+import type { MerchantRule } from "../../models/MerchantRule";
+import type { Tag } from "../../models/Tag";
 import { extractMerchant } from "../../import/extractMerchant";
 import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";

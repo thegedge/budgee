@@ -1,9 +1,8 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { Account } from "../../database/types";
+import { Account } from "../../models/Account";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
-import { Accounts } from "../../models/Accounts";
 import { buttonStyles } from "../buttonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
@@ -69,7 +68,7 @@ export class TransactionImporter extends BusyMixin(LitElement) {
 
   async loadFile(file: File) {
     await this.withBusy(async () => {
-      this._accounts = await Accounts.all();
+      this._accounts = await Account.all();
       this._result = await parseCsv(file);
       this._mapping = { ...this._result.suggestedMapping };
       this._step = "mapping";
@@ -107,7 +106,7 @@ export class TransactionImporter extends BusyMixin(LitElement) {
     const existing = this._accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
     if (existing) return existing.id;
 
-    return Accounts.create({ name });
+    return (await Account.create({ name })).id;
   }
 
   async #onImport() {

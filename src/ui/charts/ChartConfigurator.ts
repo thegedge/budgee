@@ -1,13 +1,11 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Granularity } from "../../charting/aggregations";
-import type {
-  ChartFilterCondition,
-  DashboardChart,
-  Merchant,
-  Tag,
-  Transaction,
-} from "../../database/types";
+import type { ChartFilterCondition } from "../../database/types";
+import type { DashboardChart } from "../../models/DashboardChart";
+import type { Merchant } from "../../models/Merchant";
+import type { Tag } from "../../models/Tag";
+import type { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
 import "./ChartFilterRow";
 

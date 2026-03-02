@@ -1,10 +1,10 @@
-import type { Transaction } from "../database/types";
+import type { TransactionRecord } from "../database/types";
 
 export type PeriodGranularity = "day" | "month" | "year";
 
 export function aggregateBy(
-  transactions: Transaction[],
-  keysFn: (tx: Transaction) => string[],
+  transactions: TransactionRecord[],
+  keysFn: (tx: TransactionRecord) => string[],
 ): Map<string, number> {
   const totals = new Map<string, number>();
   for (const tx of transactions) {
@@ -41,7 +41,7 @@ function periodKey(date: string, granularity: PeriodGranularity): string {
 }
 
 export function aggregateByPeriod(
-  transactions: Transaction[],
+  transactions: TransactionRecord[],
   granularity: PeriodGranularity,
 ): Map<string, number> {
   return aggregateBy(transactions, (tx) => [periodKey(tx.date, granularity)]);

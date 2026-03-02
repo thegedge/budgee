@@ -1,21 +1,13 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
-import type {
-  Account,
-  DashboardChart,
-  DashboardTable,
-  Merchant,
-  Tag,
-  Transaction,
-} from "../../database/types";
+import { Account } from "../../models/Account";
+import { DashboardChart } from "../../models/DashboardChart";
+import { DashboardTable } from "../../models/DashboardTable";
+import { Merchant } from "../../models/Merchant";
+import { Tag } from "../../models/Tag";
+import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { Accounts } from "../../models/Accounts";
-import { DashboardCharts } from "../../models/DashboardCharts";
-import { DashboardTables } from "../../models/DashboardTables";
-import { Merchants } from "../../models/Merchants";
-import { Tags } from "../../models/Tags";
-import { Transactions } from "../../models/Transactions";
 import { buttonStyles } from "../buttonStyles";
 import "../charts/ChartConfigurator";
 import "../charts/ChartWrapper";
@@ -137,12 +129,12 @@ export class Dashboard extends LitElement {
     this.#refresh();
     const debouncedRefresh = debounce(() => this.#refresh(), 300);
     Promise.all([
-      Transactions.subscribe(debouncedRefresh),
-      Tags.subscribe(debouncedRefresh),
-      Merchants.subscribe(debouncedRefresh),
-      Accounts.subscribe(debouncedRefresh),
-      DashboardCharts.subscribe(debouncedRefresh),
-      DashboardTables.subscribe(debouncedRefresh),
+      Transaction.subscribe(debouncedRefresh),
+      Tag.subscribe(debouncedRefresh),
+      Merchant.subscribe(debouncedRefresh),
+      Account.subscribe(debouncedRefresh),
+      DashboardChart.subscribe(debouncedRefresh),
+      DashboardTable.subscribe(debouncedRefresh),
     ]).then((subs) => {
       this.#subscriptions = subs;
     });
@@ -166,22 +158,22 @@ export class Dashboard extends LitElement {
   }
 
   async #refresh() {
-    this._transactions = await Transactions.all();
-    this._tags = await Tags.all();
-    this._merchants = await Merchants.all();
-    this._accounts = await Accounts.all();
-    this._charts = await DashboardCharts.all();
-    this._tables = await DashboardTables.all();
+    this._transactions = await Transaction.all();
+    this._tags = await Tag.all();
+    this._merchants = await Merchant.all();
+    this._accounts = await Account.all();
+    this._charts = await DashboardChart.all();
+    this._tables = await DashboardTable.all();
 
     if (this._charts.length === 0) {
-      await DashboardCharts.create({
+      await DashboardChart.create({
         title: "Monthly Overview",
         chartType: "bar",
         granularity: "month",
         colSpan: 6,
         position: 0,
       });
-      this._charts = await DashboardCharts.all();
+      this._charts = await DashboardChart.all();
     }
   }
 
@@ -223,9 +215,9 @@ export class Dashboard extends LitElement {
     });
 
     if (kind === "chart") {
-      await DashboardCharts.reorder(ids);
+      await DashboardChart.reorder(ids);
     } else {
-      await DashboardTables.reorder(ids);
+      await DashboardTable.reorder(ids);
     }
     await this.#refresh();
   }
@@ -233,7 +225,7 @@ export class Dashboard extends LitElement {
   async #onChartSaved(e: CustomEvent) {
     const detail = e.detail;
     if (detail.id) {
-      await DashboardCharts.update(detail.id, {
+      await DashboardChart.update(detail.id, {
         title: detail.title,
         chartType: detail.chartType,
         granularity: detail.granularity,
@@ -244,7 +236,7 @@ export class Dashboard extends LitElement {
         filters: detail.filters,
       });
     } else {
-      await DashboardCharts.create({
+      await DashboardChart.create({
         ...detail,
         colSpan: 6,
         position: this._charts.length,
@@ -262,7 +254,7 @@ export class Dashboard extends LitElement {
 
   async #onChartResized(e: CustomEvent) {
     const { id, colSpan, rowSpan } = e.detail;
-    await DashboardCharts.update(id, {
+    await DashboardChart.update(id, {
       ...(colSpan !== undefined && { colSpan }),
       ...(rowSpan !== undefined && { rowSpan }),
     });
@@ -270,14 +262,14 @@ export class Dashboard extends LitElement {
   }
 
   async #onChartDeleted(e: CustomEvent) {
-    await DashboardCharts.remove(e.detail.id);
+    await DashboardChart.remove(e.detail.id);
     await this.#refresh();
   }
 
   async #onTableSaved(e: CustomEvent) {
     const detail = e.detail;
     if (detail.id) {
-      await DashboardTables.update(detail.id, {
+      await DashboardTable.update(detail.id, {
         title: detail.title,
         model: detail.model,
         columns: detail.columns,
@@ -285,7 +277,7 @@ export class Dashboard extends LitElement {
         rowSpan: detail.rowSpan,
       });
     } else {
-      await DashboardTables.create({
+      await DashboardTable.create({
         ...detail,
         position: this._tables.length,
       });
@@ -302,7 +294,7 @@ export class Dashboard extends LitElement {
 
   async #onTableResized(e: CustomEvent) {
     const { id, colSpan, rowSpan } = e.detail;
-    await DashboardTables.update(id, {
+    await DashboardTable.update(id, {
       ...(colSpan !== undefined && { colSpan }),
       ...(rowSpan !== undefined && { rowSpan }),
     });
@@ -310,7 +302,7 @@ export class Dashboard extends LitElement {
   }
 
   async #onTableDeleted(e: CustomEvent) {
-    await DashboardTables.remove(e.detail.id);
+    await DashboardTable.remove(e.detail.id);
     await this.#refresh();
   }
 
