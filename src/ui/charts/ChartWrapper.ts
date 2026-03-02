@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { Chart, type ChartData, type ChartOptions, type ChartType, registerables } from "chart.js";
+import { merge } from "chart.js/helpers";
 
 Chart.register(...registerables);
 Chart.defaults.plugins.tooltip.animation = { duration: 0 };
@@ -70,22 +71,24 @@ export class ChartWrapper extends LitElement {
     this._chart = new Chart(ctx, {
       type: this.chartType,
       data: this.data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: "index",
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            labels: {
-              sort: (a, b) => (a.text ?? "").localeCompare(b.text ?? ""),
+      options: merge(
+        {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              labels: {
+                sort: (a, b) => (a.text ?? "").localeCompare(b.text ?? ""),
+              },
             },
           },
-        },
-        ...this.options,
-      },
+        } satisfies ChartOptions,
+        this.options,
+      ),
     });
   }
 }
