@@ -48,14 +48,14 @@ describe("MerchantRules", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -5,
-        originalDescription: "COFFEE SHOP",
+        description: "COFFEE SHOP",
         tagIds: [],
       },
       {
         id: uuid(),
         date: "2024-01-02",
         amount: -10,
-        originalDescription: "GROCERY STORE",
+        description: "GROCERY STORE",
         tagIds: [],
       },
     ]);
@@ -78,11 +78,11 @@ describe("MerchantRules", () => {
     expect(count).toBe(1);
 
     const txs = await db.transactions.all();
-    const coffee = txs.find((t) => t.originalDescription === "COFFEE SHOP");
+    const coffee = txs.find((t) => t.description === "COFFEE SHOP");
     expect(coffee?.merchantId).toBe(merchantId);
     expect(coffee?.tagIds).toContain(tagId);
 
-    const grocery = txs.find((t) => t.originalDescription === "GROCERY STORE");
+    const grocery = txs.find((t) => t.description === "GROCERY STORE");
     expect(grocery?.merchantId).toBeUndefined();
   });
 });

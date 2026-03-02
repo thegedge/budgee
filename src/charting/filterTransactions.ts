@@ -33,7 +33,7 @@ export function filterTransactions(
       if (operator === "gte" && !(tx.amount >= value)) return false;
     }
     if (options.descriptionFilter) {
-      const matches = tx.originalDescription
+      const matches = tx.description
         .toLowerCase()
         .includes(options.descriptionFilter.toLowerCase());
       if (options.descriptionFilterMode === "exclude" && matches) return false;

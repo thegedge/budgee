@@ -56,7 +56,7 @@ describe("BudgeeDatabase", () => {
       id: txId,
       date: "2023-10-27",
       amount: -5.5,
-      originalDescription: "Starbucks Coffee",
+      description: "Starbucks Coffee",
       tagIds: [tagId],
       merchantId,
       accountId,

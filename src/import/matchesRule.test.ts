@@ -10,7 +10,7 @@ describe("matchesRule", () => {
     tagIds: [],
   };
 
-  const tx = (originalDescription: string, accountId?: string) => ({ originalDescription, accountId });
+  const tx = (description: string, accountId?: string) => ({ description, accountId });
 
   it("should match when no accountId on rule", () => {
     expect(matchesRule(tx("coffee shop"), rule)).toBe(true);

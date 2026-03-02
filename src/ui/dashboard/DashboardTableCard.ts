@@ -303,7 +303,7 @@ export class DashboardTableCard extends LitElement {
       case "amount":
         return html`<td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">${t.amount.toFixed(2)}</td>`;
       case "description":
-        return html`<td>${t.originalDescription}</td>`;
+        return html`<td>${t.description}</td>`;
       case "merchant":
         return html`<td>${this.#merchantName(t.merchantId)}</td>`;
       case "tags":

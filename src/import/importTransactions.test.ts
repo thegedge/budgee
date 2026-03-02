@@ -46,7 +46,7 @@ describe("importTransactions", () => {
     const sorted = stored.sort((a, b) => a.date.localeCompare(b.date));
     expect(sorted[0].date).toBe("2024-01-01");
     expect(sorted[0].amount).toBe(50);
-    expect(sorted[0].originalDescription).toBe("Groceries");
+    expect(sorted[0].description).toBe("Groceries");
     expect(sorted[0].accountId).toBe(accountId);
     expect(sorted[1].amount).toBe(-2500);
   });
@@ -149,7 +149,7 @@ describe("importTransactions", () => {
 
     const stored = await db.transactions.all();
     expect(stored).toHaveLength(1);
-    expect(stored[0].originalDescription).toBe("Coffee");
+    expect(stored[0].description).toBe("Coffee");
   });
 
   it("should create accounts from account column and assign correct accountIds", async () => {
@@ -194,6 +194,6 @@ describe("importTransactions", () => {
 
     const stored = await db.transactions.all();
     expect(stored).toHaveLength(1);
-    expect(stored[0].originalDescription).toBe("Coffee");
+    expect(stored[0].description).toBe("Coffee");
   });
 });

@@ -294,7 +294,7 @@ export class MerchantDetail extends LitElement {
                 (t) => html`
                 <tr @click=${() => this.#navigateToTransaction(t.id)}>
                   <td>${t.date}</td>
-                  <td>${t.originalDescription}</td>
+                  <td>${t.description}</td>
                   <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
                     ${t.amount.toFixed(2)}
                   </td>

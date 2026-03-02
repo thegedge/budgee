@@ -23,7 +23,7 @@ describe("rule-manager", () => {
     await db.transactions.put({
       id: uuid(),
       date: "2024-01-01",
-      originalDescription: "STARBUCKS",
+      description: "STARBUCKS",
       amount: 5.0,
       tagIds: [],
     });

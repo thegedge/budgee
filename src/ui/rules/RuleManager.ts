@@ -346,7 +346,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   #selectTransaction(tx: Transaction) {
-    this._prefillDescription = tx.originalDescription;
+    this._prefillDescription = tx.description;
     this._showEditor = true;
   }
 
@@ -432,7 +432,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                 const lower = this._unmerchantedFilter.toLowerCase();
                 const filtered = lower
                   ? this._unmerchanted.filter((tx) =>
-                      tx.originalDescription.toLowerCase().includes(lower),
+                      tx.description.toLowerCase().includes(lower),
                     )
                   : this._unmerchanted;
                 return html`
@@ -462,7 +462,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                             (tx) => html`
                           <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
                             <td>${tx.date}</td>
-                            <td>${tx.originalDescription}</td>
+                            <td>${tx.description}</td>
                             <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
                           </tr>
                         `,

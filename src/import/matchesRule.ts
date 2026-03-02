@@ -15,14 +15,14 @@ function matchesCondition(description: string, condition: RuleCondition): boolea
 }
 
 export function matchesRule(
-  transaction: Pick<Transaction, "originalDescription" | "accountId">,
+  transaction: Pick<Transaction, "description" | "accountId">,
   rule: MerchantRule,
 ): boolean {
   if (rule.accountId && rule.accountId !== transaction.accountId) {
     return false;
   }
 
-  const description = transaction.originalDescription.toLowerCase();
+  const description = transaction.description.toLowerCase();
   switch (rule.logic) {
     case "and":
       return rule.conditions.every((c) => matchesCondition(description, c));

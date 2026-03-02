@@ -250,7 +250,7 @@ export class TransactionList extends BusyMixin(LitElement) {
 
     if (!this._filter) return true;
     const lower = this._filter.toLowerCase();
-    if (t.originalDescription.toLowerCase().includes(lower)) return true;
+    if (t.description.toLowerCase().includes(lower)) return true;
     if (t.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
     if (t.merchantId && this._merchants.get(t.merchantId)?.toLowerCase().includes(lower))
       return true;
@@ -295,7 +295,7 @@ export class TransactionList extends BusyMixin(LitElement) {
       } else if (col === "merchant") {
         cmp = this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId));
       } else if (col === "description") {
-        cmp = a.originalDescription.localeCompare(b.originalDescription);
+        cmp = a.description.localeCompare(b.description);
       } else if (col === "amount") {
         cmp = a.amount - b.amount;
       } else if (col === "tags") {
@@ -585,7 +585,7 @@ export class TransactionList extends BusyMixin(LitElement) {
                       }}>${this._merchants.get(t.merchantId!)}</a>`
                     : ""
                 }</td>
-                <td>${t.originalDescription}</td>
+                <td>${t.description}</td>
                 <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                   ${t.amount.toFixed(2)}
                 </td>

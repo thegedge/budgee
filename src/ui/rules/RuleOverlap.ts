@@ -90,13 +90,13 @@ export class RuleOverlap extends BusyMixin(LitElement) {
             const existing = pairCounts.get(key);
             if (existing) {
               existing.count++;
-              existing.samples.add(tx.originalDescription);
+              existing.samples.add(tx.description);
             } else {
               pairCounts.set(key, {
                 ruleA: matching[i],
                 ruleB: matching[j],
                 count: 1,
-                samples: new Set([tx.originalDescription]),
+                samples: new Set([tx.description]),
               });
             }
           }

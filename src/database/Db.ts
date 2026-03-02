@@ -33,20 +33,20 @@ export class SchemaVersionError extends Error {
 const ID_FIELD = { type: "string" as const, maxLength: 100 };
 
 const transactionSchema: RxJsonSchema<Transaction> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
     id: ID_FIELD,
     date: { type: "string", maxLength: 10 },
     amount: { type: "number" },
-    originalDescription: { type: "string" },
+    description: { type: "string" },
     memo: { type: "string" },
     merchantId: { type: "string", maxLength: 100 },
     accountId: { type: "string", maxLength: 100 },
     tagIds: { type: "array", items: { type: "string" } },
   },
-  required: ["id", "date", "amount", "originalDescription", "tagIds"],
+  required: ["id", "date", "amount", "description", "tagIds"],
   indexes: ["date"],
 };
 
@@ -318,13 +318,24 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
 
   try {
     await rxdb.addCollections({
-      transactions: { schema: transactionSchema },
+      transactions: {
+        schema: transactionSchema,
+        migrationStrategies: {
+          1: (doc: Record<string, unknown>) => {
+            doc.description = doc.originalDescription;
+            delete doc.originalDescription;
+            return doc;
+          },
+        },
+      },
       tags: { schema: tagSchema },
       merchants: { schema: merchantSchema },
       accounts: { schema: accountSchema },
       merchant_rules: {
         schema: merchantRuleSchema,
-        migrationStrategies: { 1: (doc: MerchantRule) => doc },
+        migrationStrategies: {
+          1: (doc: MerchantRule) => doc,
+        },
       },
       dashboard_charts: { schema: dashboardChartSchema },
       dashboard_tables: { schema: dashboardTableSchema },

@@ -23,7 +23,7 @@ describe("transaction-detail", () => {
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
-      originalDescription: "Whole Foods Market",
+      description: "Whole Foods Market",
       tagIds: [],
     });
 
@@ -49,7 +49,7 @@ describe("transaction-detail", () => {
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
-      originalDescription: "Whole Foods Market #123",
+      description: "Whole Foods Market #123",
       merchantId,
       tagIds: [],
     });
@@ -74,7 +74,7 @@ describe("transaction-detail", () => {
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
-      originalDescription: "Whole Foods",
+      description: "Whole Foods",
       tagIds: [tagId],
     });
 
@@ -98,7 +98,7 @@ describe("transaction-detail", () => {
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
-      originalDescription: "Whole Foods",
+      description: "Whole Foods",
       tagIds: [],
     });
 
@@ -131,7 +131,7 @@ describe("transaction-detail", () => {
       id: txId,
       date: "2024-01-15",
       amount: -5.5,
-      originalDescription: "Starbucks #1",
+      description: "Starbucks #1",
       merchantId,
       tagIds: [],
     });
@@ -139,7 +139,7 @@ describe("transaction-detail", () => {
       id: uuid(),
       date: "2024-01-10",
       amount: -4.75,
-      originalDescription: "Starbucks #2",
+      description: "Starbucks #2",
       merchantId,
       tagIds: [],
     });

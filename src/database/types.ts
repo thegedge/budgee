@@ -2,7 +2,7 @@ export interface Transaction {
   id: string;
   date: string; // ISO 8601 date string (YYYY-MM-DD)
   amount: number;
-  originalDescription: string;
+  description: string;
   memo?: string;
   merchantId?: string;
   accountId?: string;

@@ -266,7 +266,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   }
 
   #createRule(tx: Transaction) {
-    const params = new URLSearchParams({ description: tx.originalDescription });
+    const params = new URLSearchParams({ description: tx.description });
     window.history.pushState({}, "", `/rules?${params}`);
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
@@ -289,7 +289,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
       <span class="back-link" @click=${this.#navigateBack}>&larr; Back to transactions</span>
 
       <div class="header">
-        <h2>${tx.originalDescription}</h2>
+        <h2>${tx.description}</h2>
         <div class="amount ${tx.amount < 0 ? "amount-negative" : "amount-positive"}">
           ${tx.amount.toFixed(2)}
         </div>
@@ -346,7 +346,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
                     (t) => html`
                     <tr>
                       <td>${t.date}</td>
-                      <td>${t.originalDescription}</td>
+                      <td>${t.description}</td>
                       <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                         ${t.amount.toFixed(2)}
                       </td>

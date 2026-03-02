@@ -33,14 +33,14 @@ describe("transaction-list", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -50,
-        originalDescription: "Groceries",
+        description: "Groceries",
         tagIds: [],
       },
       {
         id: uuid(),
         date: "2024-01-02",
         amount: 2500,
-        originalDescription: "Payroll",
+        description: "Payroll",
         tagIds: [],
       },
     ]);
@@ -78,7 +78,7 @@ describe("transaction-list", () => {
       id: uuid(),
       date: "2024-01-01",
       amount: -50,
-      originalDescription: "Groceries",
+      description: "Groceries",
       tagIds: [tagId],
     });
 
@@ -103,7 +103,7 @@ describe("transaction-list", () => {
       id: uuid(),
       date: "2024-01-01",
       amount: -50,
-      originalDescription: "Groceries",
+      description: "Groceries",
       tagIds: [tagId],
     });
 

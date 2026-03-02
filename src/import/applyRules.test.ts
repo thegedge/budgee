@@ -6,7 +6,7 @@ describe("applyRules", () => {
   const baseTransaction: Omit<Transaction, "id"> = {
     date: "2024-01-01",
     amount: -5.75,
-    originalDescription: "Starbucks Coffee #123",
+    description: "Starbucks Coffee #123",
     tagIds: [],
   };
 

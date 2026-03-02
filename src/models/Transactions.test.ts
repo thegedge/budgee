@@ -14,14 +14,14 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -10,
-        originalDescription: "A",
+        description: "A",
         tagIds: [],
       },
       {
         id: uuid(),
         date: "2024-01-02",
         amount: -20,
-        originalDescription: "B",
+        description: "B",
         tagIds: [],
       },
     ]);
@@ -35,11 +35,11 @@ describe("Transactions", () => {
       id,
       date: "2024-01-01",
       amount: -10,
-      originalDescription: "Test",
+      description: "Test",
       tagIds: [],
     });
     const tx = await Transactions.get(id);
-    expect(tx?.originalDescription).toBe("Test");
+    expect(tx?.description).toBe("Test");
   });
 
   it("should update a transaction", async () => {
@@ -48,7 +48,7 @@ describe("Transactions", () => {
       id,
       date: "2024-01-01",
       amount: -10,
-      originalDescription: "Test",
+      description: "Test",
       tagIds: [],
     });
     await Transactions.update(id, { amount: -20 });
@@ -63,7 +63,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -10,
-        originalDescription: "A",
+        description: "A",
         tagIds: [],
         merchantId,
       },
@@ -71,7 +71,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-03",
         amount: -30,
-        originalDescription: "C",
+        description: "C",
         tagIds: [],
         merchantId,
       },
@@ -79,7 +79,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-02",
         amount: -20,
-        originalDescription: "B",
+        description: "B",
         tagIds: [],
         merchantId,
       },
@@ -87,7 +87,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -5,
-        originalDescription: "D",
+        description: "D",
         tagIds: [],
         merchantId: "m2",
       },
@@ -103,7 +103,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -10,
-        originalDescription: "A",
+        description: "A",
         tagIds: [],
         accountId: "a1",
       },
@@ -111,7 +111,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-02",
         amount: -20,
-        originalDescription: "B",
+        description: "B",
         tagIds: [],
         accountId: "a1",
       },
@@ -119,7 +119,7 @@ describe("Transactions", () => {
         id: uuid(),
         date: "2024-01-03",
         amount: -30,
-        originalDescription: "C",
+        description: "C",
         tagIds: [],
         accountId: "a2",
       },
@@ -133,8 +133,8 @@ describe("Transactions", () => {
 
   it("should bulk add transactions", async () => {
     await Transactions.bulkAdd([
-      { date: "2024-01-01", amount: -10, originalDescription: "A", tagIds: [] },
-      { date: "2024-01-02", amount: -20, originalDescription: "B", tagIds: [] },
+      { date: "2024-01-01", amount: -10, description: "A", tagIds: [] },
+      { date: "2024-01-02", amount: -20, description: "B", tagIds: [] },
     ]);
     const all = await db.transactions.all();
     expect(all).toHaveLength(2);

@@ -36,14 +36,14 @@ describe("budgee-dashboard", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -50,
-        originalDescription: "Groceries",
+        description: "Groceries",
         tagIds: [],
       },
       {
         id: uuid(),
         date: "2024-01-02",
         amount: -25,
-        originalDescription: "Restaurant",
+        description: "Restaurant",
         tagIds: [],
       },
     ]);
@@ -65,7 +65,7 @@ describe("budgee-dashboard", () => {
         id: uuid(),
         date: "2024-01-01",
         amount: -50,
-        originalDescription: "Groceries",
+        description: "Groceries",
         tagIds: [],
       },
     ]);

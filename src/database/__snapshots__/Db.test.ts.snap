@@ -314,6 +314,9 @@ exports[`schema snapshots > transactions schema should match snapshot 1`] = `
       "maxLength": 10,
       "type": "string",
     },
+    "description": {
+      "type": "string",
+    },
     "id": {
       "maxLength": 100,
       "type": "string",
@@ -323,9 +326,6 @@ exports[`schema snapshots > transactions schema should match snapshot 1`] = `
     },
     "merchantId": {
       "maxLength": 100,
-      "type": "string",
-    },
-    "originalDescription": {
       "type": "string",
     },
     "tagIds": {
@@ -339,9 +339,9 @@ exports[`schema snapshots > transactions schema should match snapshot 1`] = `
     "id",
     "date",
     "amount",
-    "originalDescription",
+    "description",
     "tagIds",
   ],
-  "version": 0,
+  "version": 1,
 }
 `;

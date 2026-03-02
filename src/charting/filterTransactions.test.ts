@@ -7,7 +7,7 @@ const transactions: Transaction[] = [
     id: "t1",
     date: "2024-01-05",
     amount: -50,
-    originalDescription: "Groceries",
+    description: "Groceries",
     tagIds: ["tag1"],
     merchantId: "m10",
   },
@@ -15,7 +15,7 @@ const transactions: Transaction[] = [
     id: "t2",
     date: "2024-01-15",
     amount: -25,
-    originalDescription: "Coffee",
+    description: "Coffee",
     tagIds: ["tag2"],
     merchantId: "m20",
   },
@@ -23,7 +23,7 @@ const transactions: Transaction[] = [
     id: "t3",
     date: "2024-02-01",
     amount: -30,
-    originalDescription: "Groceries",
+    description: "Groceries",
     tagIds: ["tag1"],
     merchantId: "m10",
   },
@@ -31,14 +31,14 @@ const transactions: Transaction[] = [
     id: "t4",
     date: "2024-02-10",
     amount: 2500,
-    originalDescription: "Payroll",
+    description: "Payroll",
     tagIds: ["tag3"],
   },
   {
     id: "t5",
     date: "2025-01-01",
     amount: -60,
-    originalDescription: "Groceries",
+    description: "Groceries",
     tagIds: ["tag1"],
     merchantId: "m10",
   },
@@ -87,7 +87,7 @@ describe("filterTransactions", () => {
   it("should filter amount > 0", () => {
     const result = filterTransactions(transactions, { amountFilter: { operator: "gt", value: 0 } });
     expect(result).toHaveLength(1);
-    expect(result[0].originalDescription).toBe("Payroll");
+    expect(result[0].description).toBe("Payroll");
   });
 
   it("should filter amount >= -30", () => {
@@ -110,7 +110,7 @@ describe("filterTransactions", () => {
       descriptionFilterMode: "exclude",
     });
     expect(result).toHaveLength(2);
-    expect(result.every((t) => !t.originalDescription.includes("Groceries"))).toBe(true);
+    expect(result.every((t) => !t.description.includes("Groceries"))).toBe(true);
   });
 
   it("should include by description", () => {
@@ -119,7 +119,7 @@ describe("filterTransactions", () => {
       descriptionFilterMode: "include",
     });
     expect(result).toHaveLength(3);
-    expect(result.every((t) => t.originalDescription.includes("Groceries"))).toBe(true);
+    expect(result.every((t) => t.description.includes("Groceries"))).toBe(true);
   });
 
   it("should be case-insensitive for description filter", () => {
