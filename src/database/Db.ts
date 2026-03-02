@@ -334,6 +334,7 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
       merchant_rules: {
         schema: merchantRuleSchema,
         migrationStrategies: {
+          // accountId field was added; no data migration needed
           1: (doc: MerchantRule) => doc,
         },
       },
