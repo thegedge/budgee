@@ -36,35 +36,6 @@ describe("chart-configurator", () => {
     el.remove();
   });
 
-  it("should save relative date expressions", async () => {
-    const el = document.createElement("chart-configurator") as ChartConfigurator;
-    document.body.appendChild(el);
-    await el.updateComplete;
-
-    const inputs = el.shadowRoot!.querySelectorAll('input[type="text"]');
-    const titleInput = inputs[0] as HTMLInputElement;
-    const startInput = inputs[1] as HTMLInputElement;
-
-    titleInput.value = "Relative Chart";
-    titleInput.dispatchEvent(new Event("input"));
-    startInput.value = "3 months ago";
-    startInput.dispatchEvent(new Event("input"));
-    await el.updateComplete;
-
-    const handler = vi.fn();
-    el.addEventListener("chart-saved", handler);
-
-    const saveBtn = Array.from(el.shadowRoot!.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Save to Dashboard",
-    )!;
-    saveBtn.click();
-
-    expect(handler).toHaveBeenCalledOnce();
-    expect(handler.mock.calls[0][0].detail.startDate).toBe("3 months ago");
-
-    el.remove();
-  });
-
   it("should migrate legacy fields to filters on save", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.editingChart = {

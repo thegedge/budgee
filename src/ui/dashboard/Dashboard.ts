@@ -1,3 +1,4 @@
+import { Temporal } from "@js-temporal/polyfill";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
@@ -13,6 +14,8 @@ import "../charts/ChartConfigurator";
 import "../charts/ChartWrapper";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
+import "../shared/TimeRangePicker";
+import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import { tableStyles } from "../tableStyles";
 import "./DashboardChartCard";
 import "./DashboardTableCard";
@@ -43,6 +46,9 @@ export class Dashboard extends LitElement {
 
   @state()
   private _tables: DashboardTable[] = [];
+
+  @state()
+  private _timeRange: TimeRange = null;
 
   @state()
   private _showChartConfigurator = false;
@@ -113,6 +119,12 @@ export class Dashboard extends LitElement {
       button {
         padding: 0.5rem 1rem;
         margin-bottom: 1rem;
+      }
+      .dashboard-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: space-between;
       }
       .button-bar {
         display: flex;
@@ -229,7 +241,6 @@ export class Dashboard extends LitElement {
         title: detail.title,
         chartType: detail.chartType,
         granularity: detail.granularity,
-        startDate: detail.startDate,
         excludedTagIds: detail.excludedTagIds,
         excludedMerchantIds: detail.excludedMerchantIds,
         legendPosition: detail.legendPosition,
@@ -245,6 +256,17 @@ export class Dashboard extends LitElement {
     this._showChartConfigurator = false;
     this._editingChart = undefined;
     await this.#refresh();
+  }
+
+  get #filteredTransactions(): Transaction[] | null {
+    if (this._transactions === null) return null;
+    if (this._timeRange === null) return this._transactions;
+    const cutoff = Temporal.Now.plainDateISO().subtract(this._timeRange).toString();
+    return this._transactions.filter((t) => t.date >= cutoff);
+  }
+
+  #onTimeRangeChange(e: TimeRangeChangeEvent) {
+    this._timeRange = e.timeRange;
   }
 
   #onChartEdit(e: CustomEvent) {
@@ -322,7 +344,10 @@ export class Dashboard extends LitElement {
     }
 
     return html`
-      <h3>Dashboard</h3>
+      <div class="dashboard-header">
+        <h3>Dashboard</h3>
+        <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
+      </div>
 
       ${
         this._charts.length > 0
@@ -334,7 +359,7 @@ export class Dashboard extends LitElement {
                   data-chart-id=${chart.id}
                   style="grid-column: span ${chart.colSpan ?? 1}; grid-row: span ${chart.rowSpan ?? 1}"
                   .config=${chart}
-                  .transactions=${this._transactions}
+                  .transactions=${this.#filteredTransactions}
                   .tags=${this._tags}
                   .merchants=${this._merchants}
                   @chart-edit=${this.#onChartEdit}

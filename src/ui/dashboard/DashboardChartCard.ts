@@ -16,7 +16,6 @@ import type { DashboardChart } from "../../models/DashboardChart";
 import type { Merchant } from "../../models/Merchant";
 import type { Tag } from "../../models/Tag";
 import type { Transaction } from "../../models/Transaction";
-import { parseRelativeDate } from "../../models/parseRelativeDate";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { cssVar } from "../cssVar";
@@ -177,7 +176,6 @@ export class DashboardChartCard extends LitElement {
   ];
 
   get #chartData(): ChartData {
-    const startDate = this.config.startDate ? parseRelativeDate(this.config.startDate) : undefined;
     const filterOptions = this.config.filters
       ? chartFiltersToFilterOptions(this.config.filters)
       : {
@@ -192,7 +190,7 @@ export class DashboardChartCard extends LitElement {
           descriptionFilter: this.config.descriptionFilter,
           descriptionFilterMode: this.config.descriptionFilterMode,
         };
-    const filtered = filterTransactions(this.transactions, { ...filterOptions, startDate });
+    const filtered = filterTransactions(this.transactions, filterOptions);
 
     const { granularity } = this.config;
     const aggregated =
@@ -266,11 +264,13 @@ export class DashboardChartCard extends LitElement {
   }
 
   get #chartOptions(): ChartOptions {
+    const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";
     const pos = this.config.legendPosition ?? "top";
-    if (pos === "hidden") {
-      return { plugins: { legend: { display: false } } };
-    }
-    return { plugins: { legend: { position: pos } } };
+    const legend = pos === "hidden" ? { display: false as const } : { position: pos };
+    return {
+      ...(isPie && { interaction: { mode: "nearest" as const, intersect: true } }),
+      plugins: { legend },
+    };
   }
 
   #excludeEntities(entities: { id: string; name: string }[], excludedIds?: string[]) {

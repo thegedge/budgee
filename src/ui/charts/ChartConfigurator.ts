@@ -43,9 +43,6 @@ export class ChartConfigurator extends LitElement {
   private _granularity: Granularity = "month";
 
   @state()
-  private _startDate = "";
-
-  @state()
   private _filters: ChartFilterCondition[] = [];
 
   @state()
@@ -126,7 +123,6 @@ export class ChartConfigurator extends LitElement {
       this._title = this.editingChart.title;
       this._chartType = this.editingChart.chartType;
       this._granularity = this.editingChart.granularity;
-      this._startDate = this.editingChart.startDate ?? "";
       this._filters = this.editingChart.filters ?? this.#migrateToFilters(this.editingChart);
       this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
       this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
@@ -180,7 +176,6 @@ export class ChartConfigurator extends LitElement {
           title,
           chartType: this._chartType,
           granularity: this._granularity,
-          startDate: this._startDate || undefined,
           excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
           excludedMerchantIds:
             this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
@@ -284,15 +279,6 @@ export class ChartConfigurator extends LitElement {
             `
           }
         </select>
-        <label>Start date:</label>
-        <input
-          type="text"
-          placeholder="e.g. 3 months ago"
-          .value=${this._startDate}
-          @input=${(e: Event) => {
-            this._startDate = (e.target as HTMLInputElement).value;
-          }}
-        />
       </div>
       <div class="filters">
         ${this._filters.map(
