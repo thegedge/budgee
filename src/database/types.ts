@@ -44,7 +44,7 @@ export interface AccountRecord {
 export type RuleOperator = "contains" | "startsWith" | "equals" | "regex";
 
 export interface RuleCondition {
-  field: "description";
+  field: "description" | "account";
   operator: RuleOperator;
   value: string;
 }
