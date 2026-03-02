@@ -1,12 +1,13 @@
-import type { MerchantRuleRecord, TransactionRecord } from "../database/types";
+import type { AccountRecord, MerchantRuleRecord, TransactionRecord } from "../database/types";
 import { matchesRule } from "./matchesRule";
 
 export function applyRules(
   transaction: Omit<TransactionRecord, "id">,
   rules: MerchantRuleRecord[],
+  accounts: Record<string, AccountRecord> = {},
 ): Omit<TransactionRecord, "id"> {
   for (const rule of rules) {
-    if (!matchesRule(transaction, rule)) {
+    if (!matchesRule(transaction, rule, accounts)) {
       continue;
     }
 

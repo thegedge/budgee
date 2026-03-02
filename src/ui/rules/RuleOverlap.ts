@@ -1,5 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import type { AccountRecord } from "../../database/types";
+import { Account } from "../../models/Account";
 import { MerchantRule } from "../../models/MerchantRule";
 import { matchesRule } from "../../import/matchesRule";
 import { Merchant } from "../../models/Merchant";
@@ -70,17 +72,23 @@ export class RuleOverlap extends BusyMixin(LitElement) {
 
   async #analyze() {
     await this.withBusy(async () => {
-      const [rules, transactions, merchants] = await Promise.all([
+      const [rules, transactions, merchants, allAccounts] = await Promise.all([
         MerchantRule.all(),
         Transaction.all(),
         Merchant.all(),
+        Account.all(),
       ]);
+
+      const accountMap: Record<string, AccountRecord> = {};
+      for (const a of allAccounts) {
+        accountMap[a.id] = a;
+      }
 
       this._merchants = new Map(merchants.map((m) => [m.id, m.name]));
       const pairCounts = new Map<string, OverlapPair>();
 
       for (const tx of transactions) {
-        const matching = rules.filter((r) => matchesRule(tx, r));
+        const matching = rules.filter((r) => matchesRule(tx, r, accountMap));
         if (matching.length < 2) continue;
 
         for (let i = 0; i < matching.length; i++) {

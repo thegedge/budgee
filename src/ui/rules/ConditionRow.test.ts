@@ -16,8 +16,9 @@ describe("condition-row", () => {
     const input = el.shadowRoot!.querySelector("input")!;
     expect(input.value).toBe("star");
 
-    const select = el.shadowRoot!.querySelector("select")!;
-    expect(select.value).toBe("startsWith");
+    const selects = el.shadowRoot!.querySelectorAll("select");
+    expect(selects[0].value).toBe("description");
+    expect(selects[1].value).toBe("startsWith");
 
     el.remove();
   });

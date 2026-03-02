@@ -4,6 +4,8 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import type { AccountRecord } from "../../database/types";
+import { Account } from "../../models/Account";
 import { Merchant } from "../../models/Merchant";
 import { MerchantRule } from "../../models/MerchantRule";
 import { Tag } from "../../models/Tag";
@@ -165,12 +167,17 @@ export class RuleManager extends BusyMixin(LitElement) {
     this._rules = await MerchantRule.all();
     this._tags = await Tag.all();
     this._merchants = await Merchant.all();
+    const allAccounts = await Account.all();
+    const accountMap: Record<string, AccountRecord> = {};
+    for (const a of allAccounts) {
+      accountMap[a.id] = a;
+    }
     const allTx = await Transaction.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
     const unmatched = new Set<string>();
     for (const rule of this._rules) {
-      if (!allTx.some((t) => matchesRule(t, rule))) {
+      if (!allTx.some((t) => matchesRule(t, rule, accountMap))) {
         unmatched.add(rule.id);
       }
     }

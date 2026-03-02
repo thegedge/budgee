@@ -1,5 +1,5 @@
 import { waitForDb } from "../database/Db";
-import type { MerchantRuleRecord, RuleCondition, TransactionRecord } from "../database/types";
+import type { AccountRecord, MerchantRuleRecord, RuleCondition, TransactionRecord } from "../database/types";
 import { matchesRule } from "../import/matchesRule";
 import { uuid } from "../uuid";
 
@@ -60,9 +60,14 @@ export class MerchantRule {
   static async applyToTransactions(rule: MerchantRuleRecord): Promise<number> {
     const db = await waitForDb();
     const allTx = await db.transactions.all();
+    const allAccounts = await db.accounts.all();
+    const accounts: Record<string, AccountRecord> = {};
+    for (const a of allAccounts) {
+      accounts[a.id] = a;
+    }
     const updates: TransactionRecord[] = [];
     for (const tx of allTx) {
-      if (matchesRule(tx, rule)) {
+      if (matchesRule(tx, rule, accounts)) {
         updates.push({
           ...tx,
           merchantId: rule.merchantId ?? tx.merchantId,
