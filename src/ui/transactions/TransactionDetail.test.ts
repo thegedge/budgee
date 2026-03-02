@@ -1,7 +1,7 @@
-import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../database/clearDb";
+import { clearDb } from "../../test/clearDb";
+import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./TransactionDetail";
 import { TransactionDetail } from "./TransactionDetail";

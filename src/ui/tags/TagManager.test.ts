@@ -1,8 +1,7 @@
-import { uuid } from "../../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { allDocs } from "../../database/allDocs";
-import { clearDb } from "../../database/clearDb";
+import { clearDb } from "../../test/clearDb";
+import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./TagManager";
 import { TagManager } from "./TagManager";
@@ -30,7 +29,7 @@ describe("tag-manager", () => {
     addBtn.click();
 
     await waitFor(async () => {
-      const tags = await allDocs(db.tags);
+      const tags = await db.tags.all();
       expect(tags).toHaveLength(1);
       expect(tags[0].name).toBe("Food");
     });
@@ -81,7 +80,7 @@ describe("tag-manager", () => {
     deleteBtn.click();
 
     await waitFor(async () => {
-      const tags = await allDocs(db.tags);
+      const tags = await db.tags.all();
       expect(tags).toHaveLength(0);
     });
 

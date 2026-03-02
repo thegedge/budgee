@@ -1,7 +1,7 @@
-import { Accounts } from "../data/Accounts";
-import { MerchantRules } from "../data/MerchantRules";
-import { Transactions } from "../data/Transactions";
 import type { Transaction } from "../database/types";
+import { Accounts } from "../models/Accounts";
+import { MerchantRules } from "../models/MerchantRules";
+import { Transactions } from "../models/Transactions";
 import { applyRules } from "./applyRules";
 import type { ColumnMapping } from "./parseCsv";
 

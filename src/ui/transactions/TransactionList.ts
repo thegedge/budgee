@@ -1,10 +1,10 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Merchants } from "../../data/Merchants";
-import { Tags } from "../../data/Tags";
-import { Transactions } from "../../data/Transactions";
 import type { Merchant, Tag, Transaction } from "../../database/types";
 import { debounce } from "../../debounce";
+import { Merchants } from "../../models/Merchants";
+import { Tags } from "../../models/Tags";
+import { Transactions } from "../../models/Transactions";
 import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";

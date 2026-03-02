@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { allDocs } from "../../database/allDocs";
-import { clearDb } from "../../database/clearDb";
 import { db } from "../../database/Db";
+import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./RuleManager";
@@ -54,7 +53,7 @@ describe("rule-manager", () => {
     );
 
     await waitFor(async () => {
-      const rules = await allDocs(db.merchantRules);
+      const rules = await db.merchantRules.all();
       expect(rules).toHaveLength(1);
       expect(rules[0].conditions[0].value).toBe("starbucks");
     });
@@ -84,7 +83,7 @@ describe("rule-manager", () => {
     deleteBtn!.click();
 
     await waitFor(async () => {
-      const rules = await allDocs(db.merchantRules);
+      const rules = await db.merchantRules.all();
       expect(rules).toHaveLength(0);
     });
 

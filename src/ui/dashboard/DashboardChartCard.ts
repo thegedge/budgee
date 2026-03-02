@@ -4,14 +4,13 @@ import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
-import { parseRelativeDate } from "../../data/parseRelativeDate";
 import {
   type PeriodGranularity,
   aggregateBy,
   aggregateByPeriod,
   mapKeys,
-} from "../../database/aggregateBy";
-import { type FilterOptions, filterTransactions } from "../../database/filterTransactions";
+} from "../../charting/aggregateBy";
+import { type FilterOptions, filterTransactions } from "../../charting/filterTransactions";
 import type {
   ChartFilterCondition,
   DashboardChart,
@@ -19,6 +18,7 @@ import type {
   Tag,
   Transaction,
 } from "../../database/types";
+import { parseRelativeDate } from "../../models/parseRelativeDate";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { cssVar } from "../cssVar";

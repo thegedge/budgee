@@ -1,4 +1,4 @@
-import type { Transaction } from "./types";
+import type { Transaction } from "../database/types";
 
 export interface FilterOptions {
   tagId?: string;

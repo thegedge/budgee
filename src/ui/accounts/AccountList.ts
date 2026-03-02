@@ -1,9 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Accounts } from "../../data/Accounts";
-import { Transactions } from "../../data/Transactions";
 import { type Account, type Transaction, accountTypeLabel } from "../../database/types";
 import { debounce } from "../../debounce";
+import { Accounts } from "../../models/Accounts";
+import { Transactions } from "../../models/Transactions";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";

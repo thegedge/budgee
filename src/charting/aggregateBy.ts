@@ -1,4 +1,4 @@
-import type { Transaction } from "./types";
+import type { Transaction } from "../database/types";
 
 export type PeriodGranularity = "day" | "month" | "year";
 

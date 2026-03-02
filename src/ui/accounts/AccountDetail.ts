@@ -1,8 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
-import { cardNetworkFromPrefix } from "../../cardNetwork";
 import { customElement, property, state } from "lit/decorators.js";
-import { Accounts } from "../../data/Accounts";
-import { Transactions } from "../../data/Transactions";
+import { cardNetworkFromPrefix } from "../../cardNetwork";
 import {
   ACCOUNT_TYPES,
   type Account,
@@ -11,6 +9,8 @@ import {
   accountTypeLabel,
 } from "../../database/types";
 import { debounce } from "../../debounce";
+import { Accounts } from "../../models/Accounts";
+import { Transactions } from "../../models/Transactions";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -25,8 +25,8 @@ declare global {
 }
 
 import { Temporal } from "@js-temporal/polyfill";
-import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import "../shared/TimeRangePicker";
+import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 
 @customElement("account-detail")
 export class AccountDetail extends BusyMixin(LitElement) {

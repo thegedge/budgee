@@ -1,9 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { Merchants } from "../../data/Merchants";
-import { Transactions } from "../../data/Transactions";
 import type { Merchant, Transaction } from "../../database/types";
 import { debounce } from "../../debounce";
+import { Merchants } from "../../models/Merchants";
+import { Transactions } from "../../models/Transactions";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import "../shared/PaginatedTable";
@@ -17,8 +17,8 @@ declare global {
 }
 
 import { Temporal } from "@js-temporal/polyfill";
-import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import "../shared/TimeRangePicker";
+import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 
 @customElement("merchant-detail")
 export class MerchantDetail extends LitElement {

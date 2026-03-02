@@ -1,7 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { buttonStyles } from "../buttonStyles";
-import type { Granularity } from "../../database/aggregations";
+import type { Granularity } from "../../charting/aggregations";
 import type {
   ChartFilterCondition,
   DashboardChart,
@@ -9,6 +8,7 @@ import type {
   Tag,
   Transaction,
 } from "../../database/types";
+import { buttonStyles } from "../buttonStyles";
 import "./ChartFilterRow";
 
 declare global {

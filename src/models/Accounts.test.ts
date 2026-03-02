@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDb } from "../database/clearDb";
 import { db } from "../database/Db";
+import { clearDb } from "../test/clearDb";
 import { uuid } from "../uuid";
 import { Accounts } from "./Accounts";
 

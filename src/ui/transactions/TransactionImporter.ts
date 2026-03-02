@@ -1,9 +1,9 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { Accounts } from "../../data/Accounts";
 import type { Account } from "../../database/types";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
+import { Accounts } from "../../models/Accounts";
 import { buttonStyles } from "../buttonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";

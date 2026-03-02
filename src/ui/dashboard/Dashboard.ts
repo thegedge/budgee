@@ -1,13 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
-import { buttonStyles } from "../buttonStyles";
-import { Accounts } from "../../data/Accounts";
-import { DashboardCharts } from "../../data/DashboardCharts";
-import { DashboardTables } from "../../data/DashboardTables";
-import { Merchants } from "../../data/Merchants";
-import { Tags } from "../../data/Tags";
-import { Transactions } from "../../data/Transactions";
 import type {
   Account,
   DashboardChart,
@@ -17,6 +10,13 @@ import type {
   Transaction,
 } from "../../database/types";
 import { debounce } from "../../debounce";
+import { Accounts } from "../../models/Accounts";
+import { DashboardCharts } from "../../models/DashboardCharts";
+import { DashboardTables } from "../../models/DashboardTables";
+import { Merchants } from "../../models/Merchants";
+import { Tags } from "../../models/Tags";
+import { Transactions } from "../../models/Transactions";
+import { buttonStyles } from "../buttonStyles";
 import "../charts/ChartConfigurator";
 import "../charts/ChartWrapper";
 import "../shared/Modal";

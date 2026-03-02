@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { Transaction } from "../database/types";
 import { aggregateBy, aggregateByPeriod, mapKeys } from "./aggregateBy";
-import type { Transaction } from "./types";
 
 const transactions: Transaction[] = [
   {

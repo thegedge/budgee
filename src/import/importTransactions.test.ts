@@ -1,10 +1,9 @@
-import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
-import { allDocs } from "../database/allDocs";
-import { clearDb } from "../database/clearDb";
-import type { ColumnMapping } from "./parseCsv";
+import { clearDb } from "../test/clearDb";
+import { uuid } from "../uuid";
 import { importTransactions } from "./importTransactions";
+import type { ColumnMapping } from "./parseCsv";
 
 describe("importTransactions", () => {
   const accountId = uuid();
@@ -42,7 +41,7 @@ describe("importTransactions", () => {
     const count = await importTransactions(rows, simpleMapping, defaultOptions);
     expect(count).toBe(2);
 
-    const stored = await allDocs(db.transactions);
+    const stored = await db.transactions.all();
     expect(stored).toHaveLength(2);
     const sorted = stored.sort((a, b) => a.date.localeCompare(b.date));
     expect(sorted[0].date).toBe("2024-01-01");
@@ -85,7 +84,7 @@ describe("importTransactions", () => {
     const count = await importTransactions(splitRows, splitMapping, defaultOptions);
     expect(count).toBe(2);
 
-    const stored = (await allDocs(db.transactions)).sort((a, b) => a.date.localeCompare(b.date));
+    const stored = (await db.transactions.all()).sort((a, b) => a.date.localeCompare(b.date));
     expect(stored[0].amount).toBe(-50);
     expect(stored[1].amount).toBe(2500);
   });
@@ -111,7 +110,7 @@ describe("importTransactions", () => {
     const count = await importTransactions(csvRows, debitMapping, defaultOptions);
     expect(count).toBe(1);
 
-    const stored = await allDocs(db.transactions);
+    const stored = await db.transactions.all();
     expect(stored[0].amount).toBe(-3.94);
   });
 
@@ -126,7 +125,7 @@ describe("importTransactions", () => {
     const count = await importTransactions(rows, mapping, defaultOptions);
     expect(count).toBe(2);
 
-    const stored = (await allDocs(db.transactions)).sort((a, b) => a.date.localeCompare(b.date));
+    const stored = (await db.transactions.all()).sort((a, b) => a.date.localeCompare(b.date));
     expect(stored[0].tagIds).toEqual(["tag42"]);
     expect(stored[1].tagIds).toEqual([]);
   });
@@ -135,20 +134,20 @@ describe("importTransactions", () => {
     await importTransactions(rows.slice(0, 1), mapping, defaultOptions);
     await importTransactions(rows.slice(1), mapping, defaultOptions);
 
-    const stored = await allDocs(db.transactions);
+    const stored = await db.transactions.all();
     expect(stored).toHaveLength(2);
   });
 
   it("should replace existing transactions in replace mode", async () => {
     await importTransactions(rows, mapping, defaultOptions);
-    const initial = await allDocs(db.transactions);
+    const initial = await db.transactions.all();
     expect(initial).toHaveLength(2);
 
     const newRows = [{ Date: "2024-02-01", Amount: "-10.00", Description: "Coffee" }];
     const count = await importTransactions(newRows, mapping, { accountId, importMode: "replace" });
     expect(count).toBe(1);
 
-    const stored = await allDocs(db.transactions);
+    const stored = await db.transactions.all();
     expect(stored).toHaveLength(1);
     expect(stored[0].originalDescription).toBe("Coffee");
   });
@@ -157,13 +156,13 @@ describe("importTransactions", () => {
     const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
     expect(count).toBe(2);
 
-    const accounts = await allDocs(db.accounts);
+    const accounts = await db.accounts.all();
     const visaAccount = accounts.find((a) => a.name === "Visa");
     const checkingAccount = accounts.find((a) => a.name === "Checking");
     expect(visaAccount).toBeDefined();
     expect(checkingAccount).toBeDefined();
 
-    const stored = (await allDocs(db.transactions)).sort((a, b) => a.date.localeCompare(b.date));
+    const stored = (await db.transactions.all()).sort((a, b) => a.date.localeCompare(b.date));
     expect(stored[0].accountId).toBe(visaAccount!.id);
     expect(stored[1].accountId).toBe(checkingAccount!.id);
   });
@@ -175,10 +174,10 @@ describe("importTransactions", () => {
     const count = await importTransactions(rows, mappingWithAccount, { importMode: "append" });
     expect(count).toBe(2);
 
-    const accounts = (await allDocs(db.accounts)).filter((a) => a.name === "Visa");
+    const accounts = (await db.accounts.all()).filter((a) => a.name === "Visa");
     expect(accounts).toHaveLength(1);
 
-    const stored = (await allDocs(db.transactions)).sort((a, b) => a.date.localeCompare(b.date));
+    const stored = (await db.transactions.all()).sort((a, b) => a.date.localeCompare(b.date));
     expect(stored[0].accountId).toBe(existingId);
   });
 
@@ -188,12 +187,12 @@ describe("importTransactions", () => {
 
     await importTransactions(rows, mapping, defaultOptions);
     await importTransactions(rows, mapping, { accountId: otherAccountId, importMode: "append" });
-    expect(await allDocs(db.transactions)).toHaveLength(4);
+    expect(await db.transactions.all()).toHaveLength(4);
 
     const newRows = [{ Date: "2024-02-01", Amount: "-10.00", Description: "Coffee" }];
     await importTransactions(newRows, mapping, { accountId, importMode: "replace" });
 
-    const stored = await allDocs(db.transactions);
+    const stored = await db.transactions.all();
     expect(stored).toHaveLength(1);
     expect(stored[0].originalDescription).toBe("Coffee");
   });
