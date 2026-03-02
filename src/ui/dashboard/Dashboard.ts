@@ -99,7 +99,7 @@ export class Dashboard extends LitElement {
       @media (min-width: 700px) {
         .chart-grid,
         .table-grid {
-          grid-template-columns: repeat(var(--grid-columns-md), 1fr);
+          grid-template-columns: repeat(calc(var(--grid-columns) / 2), 1fr);
         }
       }
       @media (min-width: 1200px) {
@@ -130,7 +130,6 @@ export class Dashboard extends LitElement {
 
   willUpdate() {
     this.style.setProperty("--grid-columns", String(this.columns));
-    this.style.setProperty("--grid-columns-md", String(Math.floor(this.columns / 2)));
   }
 
   connectedCallback() {
