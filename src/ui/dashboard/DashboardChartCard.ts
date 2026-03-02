@@ -403,7 +403,7 @@ export class DashboardChartCard extends LitElement {
       handle.removeEventListener("pointerup", onPointerUp);
 
       this.#onResize({
-        ...(horizontal && { colSpan: Math.max(1, Math.min(6, currentColSpan)) as ColSpan }),
+        ...(horizontal && { colSpan: Math.max(1, Math.min(12, currentColSpan)) as ColSpan }),
         ...(vertical && { rowSpan: Math.max(1, Math.min(4, currentRowSpan)) as RowSpan }),
       });
     };

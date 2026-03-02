@@ -12,7 +12,7 @@ export class DashboardChart {
   readonly tagId?: string;
   readonly merchantId?: string;
   readonly position: number;
-  readonly colSpan?: 1 | 2 | 3 | 4 | 5 | 6;
+  readonly colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   readonly rowSpan?: 1 | 2 | 3 | 4;
   readonly excludedTagIds?: string[];
   readonly excludedMerchantIds?: string[];

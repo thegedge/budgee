@@ -91,12 +91,12 @@ export class Dashboard extends LitElement {
       }
       @media (min-width: 700px) {
         .chart-grid {
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(12, 1fr);
         }
       }
       @media (min-width: 1200px) {
         .chart-grid {
-          grid-template-columns: repeat(6, 1fr);
+          grid-template-columns: repeat(12, 1fr);
         }
       }
       .table-grid {
@@ -108,12 +108,12 @@ export class Dashboard extends LitElement {
       }
       @media (min-width: 700px) {
         .table-grid {
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(12, 1fr);
         }
       }
       @media (min-width: 1200px) {
         .table-grid {
-          grid-template-columns: repeat(6, 1fr);
+          grid-template-columns: repeat(12, 1fr);
         }
       }
       button {
@@ -182,7 +182,7 @@ export class Dashboard extends LitElement {
         title: "Monthly Overview",
         chartType: "bar",
         granularity: "month",
-        colSpan: 6,
+        colSpan: 12,
         position: 0,
       });
       this._charts = await DashboardChart.all();

@@ -85,7 +85,7 @@ export interface DashboardChartRecord {
   tagId?: string;
   merchantId?: string;
   position: number;
-  colSpan?: 1 | 2 | 3 | 4 | 5 | 6;
+  colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   rowSpan?: 1 | 2 | 3 | 4;
   excludedTagIds?: string[];
   excludedMerchantIds?: string[];
@@ -110,6 +110,6 @@ export interface DashboardTableRecord {
   model: DashboardTableModel;
   columns: DashboardTableColumn[];
   position: number;
-  colSpan?: 1 | 2 | 3 | 4 | 5 | 6;
+  colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   rowSpan?: 1 | 2 | 3 | 4;
 }
