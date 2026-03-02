@@ -83,7 +83,9 @@ export class ChartWrapper extends LitElement {
             },
           },
           tooltip: {
-            animation: false,
+            animation: {
+              duration: 0,
+            },
           },
         },
         ...this.options,
