@@ -243,6 +243,11 @@ export class DashboardChartCard extends LitElement {
       : isBar
         ? rawValues.map((v) => (v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive")))
         : cssVar("--budgee-primary");
+    const hoverBgColors = isBar
+      ? rawValues.map((v) =>
+          v < 0 ? cssVar("--budgee-negative", 0.75) : cssVar("--budgee-positive", 0.75),
+        )
+      : undefined;
 
     return {
       labels: entries.map(([key]) => formatPeriodLabel(key)),
@@ -251,6 +256,7 @@ export class DashboardChartCard extends LitElement {
           label: this.config.title,
           data: values,
           backgroundColor: bgColors,
+          hoverBackgroundColor: hoverBgColors,
           borderColor: borderColors,
           borderWidth: 1,
           maxBarThickness: 50,

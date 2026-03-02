@@ -35,6 +35,9 @@ export function barChartData(options: {
       backgroundColor: rawValues.map((v) =>
         v < 0 ? cssVar("--budgee-negative", 0.5) : cssVar("--budgee-positive", 0.5),
       ),
+      hoverBackgroundColor: rawValues.map((v) =>
+        v < 0 ? cssVar("--budgee-negative", 0.75) : cssVar("--budgee-positive", 0.75),
+      ),
       borderColor: rawValues.map((v) =>
         v < 0 ? cssVar("--budgee-negative") : cssVar("--budgee-positive"),
       ),
