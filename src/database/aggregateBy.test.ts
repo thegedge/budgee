@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { aggregateBy, aggregateByPeriod, mapKeys } from "./aggregateBy";
 import type { Transaction } from "./types";
-import { aggregate } from "./aggregate";
 
 const transactions: Transaction[] = [
   {
@@ -55,9 +55,13 @@ const merchants = [
   { id: "m20", name: "Coffee Shop" },
 ];
 
-describe("aggregate", () => {
+describe("aggregateBy", () => {
   describe("by tag", () => {
-    const byTag = (txs: Transaction[], t = tags) => aggregate(txs, t, (tx) => tx.tagIds);
+    const byTag = (txs: Transaction[], t = tags) =>
+      mapKeys(
+        aggregateBy(txs, (tx) => tx.tagIds),
+        t,
+      );
 
     it("should aggregate amounts by tag", () => {
       const result = byTag(transactions);
@@ -80,7 +84,10 @@ describe("aggregate", () => {
 
   describe("by merchant", () => {
     const byMerchant = (txs: Transaction[], m = merchants) =>
-      aggregate(txs, m, (tx) => (tx.merchantId ? [tx.merchantId] : []));
+      mapKeys(
+        aggregateBy(txs, (tx) => (tx.merchantId ? [tx.merchantId] : [])),
+        m,
+      );
 
     it("should aggregate amounts by merchant", () => {
       const result = byMerchant(transactions);
@@ -98,5 +105,29 @@ describe("aggregate", () => {
       expect(result.has("Coffee Shop")).toBe(false);
       expect(result.get("Grocery Store")).toBe(-140);
     });
+  });
+});
+
+describe("aggregateByPeriod", () => {
+  it("should aggregate by day", () => {
+    const result = aggregateByPeriod(transactions, "day");
+    expect(result.get("2024-01-05")).toBe(-50);
+    expect(result.get("2024-01-15")).toBe(-25);
+    expect(result.size).toBe(5);
+  });
+
+  it("should aggregate by month", () => {
+    const result = aggregateByPeriod(transactions, "month");
+    expect(result.get("2024-01")).toBe(-75);
+    expect(result.get("2024-02")).toBe(2470);
+    expect(result.get("2025-01")).toBe(-60);
+    expect(result.size).toBe(3);
+  });
+
+  it("should aggregate by year", () => {
+    const result = aggregateByPeriod(transactions, "year");
+    expect(result.get("2024")).toBe(2395);
+    expect(result.get("2025")).toBe(-60);
+    expect(result.size).toBe(2);
   });
 });

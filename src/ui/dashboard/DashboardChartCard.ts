@@ -5,8 +5,12 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
-import { aggregate } from "../../database/aggregate";
-import { type PeriodGranularity, aggregateByPeriod } from "../../database/aggregateByPeriod";
+import {
+  type PeriodGranularity,
+  aggregateBy,
+  aggregateByPeriod,
+  mapKeys,
+} from "../../database/aggregateBy";
 import { type FilterOptions, filterTransactions } from "../../database/filterTransactions";
 import type {
   ChartFilterCondition,
@@ -195,16 +199,14 @@ export class DashboardChartCard extends LitElement {
     const { granularity } = this.config;
     const aggregated =
       granularity === "byTag"
-        ? aggregate(
-            filtered,
+        ? mapKeys(
+            aggregateBy(filtered, (tx) => tx.tagIds),
             this.#excludeEntities(this.tags, this.config.excludedTagIds),
-            (tx) => tx.tagIds,
           )
         : granularity === "byMerchant"
-          ? aggregate(
-              filtered,
+          ? mapKeys(
+              aggregateBy(filtered, (tx) => (tx.merchantId ? [tx.merchantId] : [])),
               this.#excludeEntities(this.merchants, this.config.excludedMerchantIds),
-              (tx) => (tx.merchantId ? [tx.merchantId] : []),
             )
           : aggregateByPeriod(filtered, granularity);
     const isByDimension = granularity === "byTag" || granularity === "byMerchant";
