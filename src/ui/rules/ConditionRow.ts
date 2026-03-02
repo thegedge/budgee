@@ -3,6 +3,13 @@ import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import type { RuleCondition, RuleOperator } from "../../database/types";
+
+type RuleField = RuleCondition["field"];
+
+const FIELDS: { value: RuleField; label: string }[] = [
+  { value: "description", label: "description" },
+  { value: "account", label: "account" },
+];
 import { iconButtonStyles } from "../iconButtonStyles";
 
 declare global {
@@ -39,6 +46,15 @@ export class ConditionRow extends LitElement {
     `,
   ];
 
+  #onFieldChange(e: Event) {
+    const field = (e.target as HTMLSelectElement).value as RuleField;
+    this.dispatchEvent(
+      new CustomEvent("condition-changed", {
+        detail: { index: this.index, condition: { ...this.condition, field } },
+      }),
+    );
+  }
+
   #onOperatorChange(e: Event) {
     const operator = (e.target as HTMLSelectElement).value as RuleOperator;
     this.dispatchEvent(
@@ -63,7 +79,15 @@ export class ConditionRow extends LitElement {
 
   render() {
     return html`
-      <span>description</span>
+      <select @change=${this.#onFieldChange}>
+        ${FIELDS.map(
+          (f) => html`
+          <option value=${f.value} ?selected=${this.condition.field === f.value}>
+            ${f.label}
+          </option>
+        `,
+        )}
+      </select>
       <select @change=${this.#onOperatorChange}>
         ${OPERATORS.map(
           (op) => html`
