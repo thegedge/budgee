@@ -21,9 +21,6 @@ declare global {
   }
 }
 
-type ColSpan = NonNullable<DashboardTable["colSpan"]>;
-type RowSpan = NonNullable<DashboardTable["rowSpan"]>;
-
 interface MerchantRow {
   merchant: Merchant;
   transactionCount: number;
@@ -52,6 +49,12 @@ export class DashboardTableCard extends LitElement {
 
   @property({ type: Array })
   accounts: Account[] = [];
+
+  @property({ type: Number })
+  maxColumns = 12;
+
+  @property({ type: Number })
+  maxRows = 4;
 
   @state()
   private _page = 1;
@@ -139,7 +142,7 @@ export class DashboardTableCard extends LitElement {
     this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config.id } }));
   }
 
-  #onResize(update: { colSpan?: ColSpan; rowSpan?: RowSpan }) {
+  #onResize(update: { colSpan?: number; rowSpan?: number }) {
     this.dispatchEvent(
       new CustomEvent("table-resized", { detail: { id: this.config.id, ...update } }),
     );
@@ -196,7 +199,7 @@ export class DashboardTableCard extends LitElement {
         currentColSpan = Math.max(
           1,
           Math.min(gridColumns - startCol, rawSpan - startCol),
-        ) as ColSpan;
+        );
         this.style.gridColumn = `span ${currentColSpan}`;
       }
       if (vertical) {
@@ -214,8 +217,8 @@ export class DashboardTableCard extends LitElement {
       handle.removeEventListener("pointerup", onPointerUp);
 
       this.#onResize({
-        ...(horizontal && { colSpan: Math.max(1, Math.min(12, currentColSpan)) as ColSpan }),
-        ...(vertical && { rowSpan: Math.max(1, Math.min(4, currentRowSpan)) as RowSpan }),
+        ...(horizontal && { colSpan: Math.max(1, Math.min(this.maxColumns, currentColSpan)) }),
+        ...(vertical && { rowSpan: Math.max(1, Math.min(this.maxRows, currentRowSpan)) }),
       });
     };
 

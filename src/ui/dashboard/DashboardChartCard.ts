@@ -50,9 +50,6 @@ function formatPeriodLabel(key: string): string {
   return key;
 }
 
-type ColSpan = NonNullable<DashboardChart["colSpan"]>;
-type RowSpan = NonNullable<DashboardChart["rowSpan"]>;
-
 function chartFiltersToFilterOptions(filters: ChartFilterCondition[]): FilterOptions {
   const options: FilterOptions = {};
   for (const f of filters) {
@@ -99,6 +96,12 @@ export class DashboardChartCard extends LitElement {
 
   @property({ type: Array })
   merchants: Merchant[] = [];
+
+  @property({ type: Number })
+  maxColumns = 12;
+
+  @property({ type: Number })
+  maxRows = 4;
 
   static styles = [
     iconButtonStyles,
@@ -328,7 +331,7 @@ export class DashboardChartCard extends LitElement {
     this.dispatchEvent(new CustomEvent("chart-deleted", { detail: { id: this.config.id } }));
   }
 
-  #onResize(update: { colSpan?: ColSpan; rowSpan?: RowSpan }) {
+  #onResize(update: { colSpan?: number; rowSpan?: number }) {
     this.dispatchEvent(
       new CustomEvent("chart-resized", { detail: { id: this.config.id, ...update } }),
     );
@@ -385,7 +388,7 @@ export class DashboardChartCard extends LitElement {
         currentColSpan = Math.max(
           1,
           Math.min(gridColumns - startCol, rawSpan - startCol),
-        ) as ColSpan;
+        );
         this.style.gridColumn = `span ${currentColSpan}`;
       }
       if (vertical) {
@@ -403,8 +406,8 @@ export class DashboardChartCard extends LitElement {
       handle.removeEventListener("pointerup", onPointerUp);
 
       this.#onResize({
-        ...(horizontal && { colSpan: Math.max(1, Math.min(12, currentColSpan)) as ColSpan }),
-        ...(vertical && { rowSpan: Math.max(1, Math.min(4, currentRowSpan)) as RowSpan }),
+        ...(horizontal && { colSpan: Math.max(1, Math.min(this.maxColumns, currentColSpan)) }),
+        ...(vertical && { rowSpan: Math.max(1, Math.min(this.maxRows, currentRowSpan)) }),
       });
     };
 

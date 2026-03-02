@@ -12,8 +12,8 @@ export class DashboardChart {
   readonly tagId?: string;
   readonly merchantId?: string;
   readonly position: number;
-  readonly colSpan?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-  readonly rowSpan?: 1 | 2 | 3 | 4;
+  readonly colSpan?: number;
+  readonly rowSpan?: number;
   readonly excludedTagIds?: string[];
   readonly excludedMerchantIds?: string[];
   readonly direction?: "debit" | "credit";

@@ -1,14 +1,14 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { LitElement, css, html, nothing } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
+import { debounce } from "../../debounce";
 import { Account } from "../../models/Account";
 import { DashboardChart } from "../../models/DashboardChart";
 import { DashboardTable } from "../../models/DashboardTable";
 import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
-import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
 import "../charts/ChartConfigurator";
 import "../charts/ChartWrapper";
@@ -50,6 +50,12 @@ export class Dashboard extends LitElement {
   @state()
   private _timeRange: TimeRange = null;
 
+  @property({ type: Number })
+  columns = 12;
+
+  @property({ type: Number })
+  rows = 4;
+
   @state()
   private _showChartConfigurator = false;
 
@@ -82,23 +88,7 @@ export class Dashboard extends LitElement {
       .card h3 {
         margin-top: 0;
       }
-      .chart-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-auto-rows: 200px;
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-      @media (min-width: 700px) {
-        .chart-grid {
-          grid-template-columns: repeat(12, 1fr);
-        }
-      }
-      @media (min-width: 1200px) {
-        .chart-grid {
-          grid-template-columns: repeat(12, 1fr);
-        }
-      }
+      .chart-grid,
       .table-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -107,13 +97,15 @@ export class Dashboard extends LitElement {
         margin-bottom: 1rem;
       }
       @media (min-width: 700px) {
+        .chart-grid,
         .table-grid {
-          grid-template-columns: repeat(12, 1fr);
+          grid-template-columns: repeat(var(--grid-columns-md), 1fr);
         }
       }
       @media (min-width: 1200px) {
+        .chart-grid,
         .table-grid {
-          grid-template-columns: repeat(12, 1fr);
+          grid-template-columns: repeat(var(--grid-columns), 1fr);
         }
       }
       button {
@@ -135,6 +127,11 @@ export class Dashboard extends LitElement {
   ];
 
   #subscriptions: { unsubscribe: () => void }[] = [];
+
+  willUpdate() {
+    this.style.setProperty("--grid-columns", String(this.columns));
+    this.style.setProperty("--grid-columns-md", String(Math.floor(this.columns / 2)));
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -182,7 +179,7 @@ export class Dashboard extends LitElement {
         title: "Monthly Overview",
         chartType: "bar",
         granularity: "month",
-        colSpan: 12,
+        colSpan: this.columns,
         position: 0,
       });
       this._charts = await DashboardChart.all();
@@ -249,7 +246,7 @@ export class Dashboard extends LitElement {
     } else {
       await DashboardChart.create({
         ...detail,
-        colSpan: 6,
+        colSpan: this.columns,
         position: this._charts.length,
       });
     }
@@ -359,6 +356,8 @@ export class Dashboard extends LitElement {
                   data-chart-id=${chart.id}
                   style="grid-column: span ${chart.colSpan ?? 1}; grid-row: span ${chart.rowSpan ?? 1}"
                   .config=${chart}
+                  .maxColumns=${this.columns}
+                  .maxRows=${this.rows}
                   .transactions=${this.#filteredTransactions}
                   .tags=${this._tags}
                   .merchants=${this._merchants}
@@ -383,6 +382,8 @@ export class Dashboard extends LitElement {
                   data-table-id=${table.id}
                   style="grid-column: span ${table.colSpan ?? 1}; grid-row: span ${table.rowSpan ?? 1}"
                   .config=${table}
+                  .maxColumns=${this.columns}
+                  .maxRows=${this.rows}
                   .transactions=${this._transactions!}
                   .tags=${this._tags}
                   .merchants=${this._merchants}
