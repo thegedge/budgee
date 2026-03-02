@@ -5,9 +5,8 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import { parseRelativeDate } from "../../data/parseRelativeDate";
-import { aggregateByMerchant } from "../../database/aggregateByMerchant";
+import { aggregate } from "../../database/aggregate";
 import { type PeriodGranularity, aggregateByPeriod } from "../../database/aggregateByPeriod";
-import { aggregateByTag } from "../../database/aggregateByTag";
 import { type FilterOptions, filterTransactions } from "../../database/filterTransactions";
 import type {
   ChartFilterCondition,
@@ -196,9 +195,17 @@ export class DashboardChartCard extends LitElement {
     const { granularity } = this.config;
     const aggregated =
       granularity === "byTag"
-        ? aggregateByTag(filtered, this.tags, this.config.excludedTagIds)
+        ? aggregate(
+            filtered,
+            this.#excludeEntities(this.tags, this.config.excludedTagIds),
+            (tx) => tx.tagIds,
+          )
         : granularity === "byMerchant"
-          ? aggregateByMerchant(filtered, this.merchants, this.config.excludedMerchantIds)
+          ? aggregate(
+              filtered,
+              this.#excludeEntities(this.merchants, this.config.excludedMerchantIds),
+              (tx) => (tx.merchantId ? [tx.merchantId] : []),
+            )
           : aggregateByPeriod(filtered, granularity);
     const isByDimension = granularity === "byTag" || granularity === "byMerchant";
     const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";
@@ -258,6 +265,12 @@ export class DashboardChartCard extends LitElement {
       return { plugins: { legend: { display: false } } };
     }
     return { plugins: { legend: { position: pos } } };
+  }
+
+  #excludeEntities(entities: { id: string; name: string }[], excludedIds?: string[]) {
+    if (!excludedIds?.length) return entities;
+    const excluded = new Set(excludedIds);
+    return entities.filter((e) => !excluded.has(e.id));
   }
 
   #groupSmallSlices(entries: [string, number][]): [string, number][] {
