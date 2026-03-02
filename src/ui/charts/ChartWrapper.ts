@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { Chart, type ChartData, type ChartOptions, type ChartType, registerables } from "chart.js";
 
 Chart.register(...registerables);
+Chart.defaults.plugins.tooltip.animation = { duration: 0 };
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -80,11 +81,6 @@ export class ChartWrapper extends LitElement {
           legend: {
             labels: {
               sort: (a, b) => (a.text ?? "").localeCompare(b.text ?? ""),
-            },
-          },
-          tooltip: {
-            animation: {
-              duration: 0,
             },
           },
         },
