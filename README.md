@@ -6,12 +6,14 @@ A single-page app for transaction management and budgeting.
 >
 > This application was coded primarily by LLMs. I generally like to build everything myself, but
 > this was one of those little things that I never found the time to work on and thought it would be
-> a great option for a mostly "vibe-coded" app.
+> a great option for a mostly vibe-coded app. When I say "vibe-coded" here, I should call out that
+> I still gave heavy guidance, did some review of the code and tried to at least give it some
+> semblance of architecture, but a lot of commits I just let go through as-is, without review.
 >
 > If you're curious: I didn't particularly _enjoy_ the experience, but am happy with the end result.
 > I've written about this on [Bluesky](https://bsky.app/profile/gedge.ca/post/3meyghorz7c22), where
 > there's joy in writing code. Not only that, there's a massive amount of value and utility in
-> writing code too.
+> writing code too, which I don't think you'll get from _just_ code review. To each their own!
 
 ## Features
 
