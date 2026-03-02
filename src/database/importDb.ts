@@ -1,24 +1,24 @@
 import { waitForDb } from "./Db";
 import { uuid } from "../uuid";
 import type {
-  Account,
-  DashboardChart,
-  DashboardTable,
-  Merchant,
-  MerchantRule,
-  Tag,
-  Transaction,
+  AccountRecord,
+  DashboardChartRecord,
+  DashboardTableRecord,
+  MerchantRecord,
+  MerchantRuleRecord,
+  TagRecord,
+  TransactionRecord,
 } from "./types";
 
 export interface DatabaseExport {
   version?: number;
-  transactions?: Transaction[];
-  tags?: Tag[];
-  merchants?: Merchant[];
-  accounts?: Account[];
-  merchantRules?: MerchantRule[];
-  dashboardCharts?: DashboardChart[];
-  dashboardTables?: DashboardTable[];
+  transactions?: TransactionRecord[];
+  tags?: TagRecord[];
+  merchants?: MerchantRecord[];
+  accounts?: AccountRecord[];
+  merchantRules?: MerchantRuleRecord[];
+  dashboardCharts?: DashboardChartRecord[];
+  dashboardTables?: DashboardTableRecord[];
 }
 
 /**

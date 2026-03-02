@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { MerchantRule, Transaction } from "../database/types";
+import type { MerchantRuleRecord, TransactionRecord } from "../database/types";
 import { applyRules } from "./applyRules";
 
 describe("applyRules", () => {
-  const baseTransaction: Omit<Transaction, "id"> = {
+  const baseTransaction: Omit<TransactionRecord, "id"> = {
     date: "2024-01-01",
     amount: -5.75,
     description: "Starbucks Coffee #123",
     tagIds: [],
   };
 
-  function containsRule(value: string, tagIds: string[]): MerchantRule {
+  function containsRule(value: string, tagIds: string[]): MerchantRuleRecord {
     return {
       id: "rule-1",
       logic: "and",
@@ -51,7 +51,7 @@ describe("applyRules", () => {
   });
 
   it("should set merchantId from matching rule", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "and",
@@ -65,7 +65,7 @@ describe("applyRules", () => {
   });
 
   it("should support startsWith operator", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "and",
@@ -78,7 +78,7 @@ describe("applyRules", () => {
   });
 
   it("should support equals operator", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "and",
@@ -91,7 +91,7 @@ describe("applyRules", () => {
   });
 
   it("should support regex operator", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "and",
@@ -104,7 +104,7 @@ describe("applyRules", () => {
   });
 
   it("should support OR logic across conditions", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "or",
@@ -120,7 +120,7 @@ describe("applyRules", () => {
   });
 
   it("should require all conditions for AND logic", () => {
-    const rules: MerchantRule[] = [
+    const rules: MerchantRuleRecord[] = [
       {
         id: "r1",
         logic: "and",

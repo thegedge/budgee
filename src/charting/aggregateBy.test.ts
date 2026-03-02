@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { Transaction } from "../database/types";
+import type { TransactionRecord } from "../database/types";
 import { aggregateBy, aggregateByPeriod, mapKeys } from "./aggregateBy";
 
-const transactions: Transaction[] = [
+const transactions: TransactionRecord[] = [
   {
     id: "t1",
     date: "2024-01-05",
@@ -57,7 +57,7 @@ const merchants = [
 
 describe("aggregateBy", () => {
   describe("by tag", () => {
-    const byTag = (txs: Transaction[], t = tags) =>
+    const byTag = (txs: TransactionRecord[], t = tags) =>
       mapKeys(
         aggregateBy(txs, (tx) => tx.tagIds),
         t,
@@ -83,7 +83,7 @@ describe("aggregateBy", () => {
   });
 
   describe("by merchant", () => {
-    const byMerchant = (txs: Transaction[], m = merchants) =>
+    const byMerchant = (txs: TransactionRecord[], m = merchants) =>
       mapKeys(
         aggregateBy(txs, (tx) => (tx.merchantId ? [tx.merchantId] : [])),
         m,

@@ -1,13 +1,13 @@
 import { uuid } from "../uuid";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
-import { Transactions } from "./Transactions";
+import { Transaction } from "./Transaction";
 
 beforeEach(async () => {
   await db.transactions.clear();
 });
 
-describe("Transactions", () => {
+describe("Transaction", () => {
   it("should return all transactions", async () => {
     await db.transactions.bulkDocs([
       {
@@ -25,7 +25,7 @@ describe("Transactions", () => {
         tagIds: [],
       },
     ]);
-    const all = await Transactions.all();
+    const all = await Transaction.all();
     expect(all).toHaveLength(2);
   });
 
@@ -38,7 +38,7 @@ describe("Transactions", () => {
       description: "Test",
       tagIds: [],
     });
-    const tx = await Transactions.get(id);
+    const tx = await Transaction.get(id);
     expect(tx?.description).toBe("Test");
   });
 
@@ -51,7 +51,7 @@ describe("Transactions", () => {
       description: "Test",
       tagIds: [],
     });
-    await Transactions.update(id, { amount: -20 });
+    await Transaction.update(id, { amount: -20 });
     const tx = await db.transactions.get(id);
     expect(tx?.amount).toBe(-20);
   });
@@ -92,7 +92,7 @@ describe("Transactions", () => {
         merchantId: "m2",
       },
     ]);
-    const results = await Transactions.forMerchant(merchantId);
+    const results = await Transaction.forMerchant(merchantId);
     expect(results).toHaveLength(3);
     expect(results[0].date).toBe("2024-01-03");
   });
@@ -124,7 +124,7 @@ describe("Transactions", () => {
         accountId: "a2",
       },
     ]);
-    const deleted = await Transactions.deleteForAccount("a1");
+    const deleted = await Transaction.deleteForAccount("a1");
     expect(deleted).toBe(2);
     const remaining = await db.transactions.all();
     expect(remaining).toHaveLength(1);
@@ -132,7 +132,7 @@ describe("Transactions", () => {
   });
 
   it("should bulk add transactions", async () => {
-    await Transactions.bulkAdd([
+    await Transaction.bulkAdd([
       { date: "2024-01-01", amount: -10, description: "A", tagIds: [] },
       { date: "2024-01-02", amount: -20, description: "B", tagIds: [] },
     ]);

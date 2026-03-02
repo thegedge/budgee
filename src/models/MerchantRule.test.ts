@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
 import { clearDb } from "../test/clearDb";
 import { uuid } from "../uuid";
-import { MerchantRules } from "./MerchantRules";
+import { MerchantRule } from "./MerchantRule";
 
 beforeEach(async () => {
   await clearDb(db.merchantRules);
   await clearDb(db.transactions);
 });
 
-describe("MerchantRules", () => {
+describe("MerchantRule", () => {
   it("should return all rules", async () => {
     await db.merchantRules.put({
       id: uuid(),
@@ -17,17 +17,17 @@ describe("MerchantRules", () => {
       conditions: [{ field: "description", operator: "contains", value: "test" }],
       tagIds: [],
     });
-    const all = await MerchantRules.all();
+    const all = await MerchantRule.all();
     expect(all).toHaveLength(1);
   });
 
   it("should create a rule", async () => {
-    const id = await MerchantRules.create({
+    const created = await MerchantRule.create({
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "coffee" }],
       tagIds: [],
     });
-    const rule = await db.merchantRules.get(id);
+    const rule = await db.merchantRules.get(created.id);
     expect(rule?.conditions[0].value).toBe("coffee");
   });
 
@@ -38,7 +38,7 @@ describe("MerchantRules", () => {
       conditions: [{ field: "description", operator: "contains", value: "x" }],
       tagIds: [],
     });
-    await MerchantRules.remove(resp.id);
+    await MerchantRule.remove(resp.id);
     expect(await db.merchantRules.get(resp.id).catch(() => undefined)).toBeUndefined();
   });
 
@@ -74,7 +74,7 @@ describe("MerchantRules", () => {
       tagIds: [tagId],
     };
 
-    const count = await MerchantRules.applyToTransactions(rule);
+    const count = await MerchantRule.applyToTransactions(rule);
     expect(count).toBe(1);
 
     const txs = await db.transactions.all();

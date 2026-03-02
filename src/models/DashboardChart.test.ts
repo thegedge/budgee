@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
 import { clearDb } from "../test/clearDb";
 import { uuid } from "../uuid";
-import { DashboardCharts } from "./DashboardCharts";
+import { DashboardChart } from "./DashboardChart";
 
 beforeEach(async () => {
   await clearDb(db.dashboardCharts);
 });
 
-describe("DashboardCharts", () => {
+describe("DashboardChart", () => {
   it("should return all charts sorted by position", async () => {
     await db.dashboardCharts.bulkDocs([
       { id: uuid(), title: "B", chartType: "bar", granularity: "month", position: 1 },
@@ -20,20 +20,20 @@ describe("DashboardCharts", () => {
         position: 0,
       },
     ]);
-    const all = await DashboardCharts.all();
+    const all = await DashboardChart.all();
     expect(all).toHaveLength(2);
     expect(all[0].title).toBe("A");
     expect(all[1].title).toBe("B");
   });
 
   it("should create a chart", async () => {
-    const id = await DashboardCharts.create({
+    const created = await DashboardChart.create({
       title: "Test",
       chartType: "bar",
       granularity: "month",
       position: 0,
     });
-    const chart = await db.dashboardCharts.get(id);
+    const chart = await db.dashboardCharts.get(created.id);
     expect(chart?.title).toBe("Test");
   });
 
@@ -45,7 +45,7 @@ describe("DashboardCharts", () => {
       granularity: "byTag",
       position: 0,
     });
-    await DashboardCharts.remove(resp.id);
+    await DashboardChart.remove(resp.id);
     expect(await db.dashboardCharts.get(resp.id).catch(() => undefined)).toBeUndefined();
   });
 
@@ -65,7 +65,7 @@ describe("DashboardCharts", () => {
       position: 1,
     });
 
-    await DashboardCharts.reorder([resp2.id, resp1.id]);
+    await DashboardChart.reorder([resp2.id, resp1.id]);
 
     const a = await db.dashboardCharts.get(resp1.id);
     const b = await db.dashboardCharts.get(resp2.id);

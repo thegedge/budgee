@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { MerchantRule } from "../database/types";
+import type { MerchantRuleRecord } from "../database/types";
 import { matchesRule } from "./matchesRule";
 
 describe("matchesRule", () => {
-  const rule: MerchantRule = {
+  const rule: MerchantRuleRecord = {
     id: "r1",
     logic: "and",
     conditions: [{ field: "description", operator: "contains", value: "coffee" }],
