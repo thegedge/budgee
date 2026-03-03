@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { transactionStats } from "../../charting/transactionStats";
 import { accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
@@ -84,19 +85,12 @@ export class AccountList extends LitElement {
 
   async #loadTransactionStats() {
     const transactions = await Transaction.all();
-    const countMap = new Map<string, number>();
-    const balanceMap = new Map<string, number>();
-    for (const tx of transactions as Transaction[]) {
-      if (tx.accountId == null) continue;
-      countMap.set(tx.accountId, (countMap.get(tx.accountId) ?? 0) + 1);
-      balanceMap.set(tx.accountId, (balanceMap.get(tx.accountId) ?? 0) + tx.amount);
-    }
+    const stats = transactionStats(transactions, (tx) => [(tx as Transaction).accountId]);
 
-    this._rows = this._rows!.map((row) => ({
-      ...row,
-      transactionCount: countMap.get(row.account.id) ?? 0,
-      balance: balanceMap.get(row.account.id) ?? 0,
-    }));
+    this._rows = this._rows!.map((row) => {
+      const s = stats.get(row.account.id);
+      return { ...row, transactionCount: s?.count ?? 0, balance: s?.total ?? 0 };
+    });
   }
 
   #onPageChange(e: CustomEvent<PageChangeDetail>) {

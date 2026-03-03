@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { transactionStats } from "../../charting/transactionStats";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
@@ -83,19 +84,12 @@ export class MerchantList extends LitElement {
 
   async #loadTransactionStats() {
     const transactions = await Transaction.all();
-    const countMap = new Map<string, number>();
-    const spendMap = new Map<string, number>();
-    for (const tx of transactions as Transaction[]) {
-      if (tx.merchantId == null) continue;
-      countMap.set(tx.merchantId, (countMap.get(tx.merchantId) ?? 0) + 1);
-      spendMap.set(tx.merchantId, (spendMap.get(tx.merchantId) ?? 0) + tx.amount);
-    }
+    const stats = transactionStats(transactions, (tx) => [(tx as Transaction).merchantId]);
 
-    this._rows = this._rows!.map((row) => ({
-      ...row,
-      transactionCount: countMap.get(row.merchant.id) ?? 0,
-      totalSpend: spendMap.get(row.merchant.id) ?? 0,
-    }));
+    this._rows = this._rows!.map((row) => {
+      const s = stats.get(row.merchant.id);
+      return { ...row, transactionCount: s?.count ?? 0, totalSpend: s?.total ?? 0 };
+    });
   }
 
   #onPageChange(e: CustomEvent<PageChangeDetail>) {

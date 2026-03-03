@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import { transactionStats } from "../../charting/transactionStats";
 import type { DashboardTableColumn } from "../../database/types";
 import type { Account } from "../../models/Account";
 import type { DashboardTable } from "../../models/DashboardTable";
@@ -319,18 +320,11 @@ export class DashboardTableCard extends LitElement {
   }
 
   #buildMerchantRows(): MerchantRow[] {
-    const countMap = new Map<string, number>();
-    const amountMap = new Map<string, number>();
-    for (const tx of this.transactions) {
-      if (tx.merchantId == null) continue;
-      countMap.set(tx.merchantId, (countMap.get(tx.merchantId) ?? 0) + 1);
-      amountMap.set(tx.merchantId, (amountMap.get(tx.merchantId) ?? 0) + tx.amount);
-    }
-    return this.merchants.map((m) => ({
-      merchant: m,
-      transactionCount: countMap.get(m.id) ?? 0,
-      totalAmount: amountMap.get(m.id) ?? 0,
-    }));
+    const stats = transactionStats(this.transactions, (tx) => [(tx as Transaction).merchantId]);
+    return this.merchants.map((m) => {
+      const s = stats.get(m.id);
+      return { merchant: m, transactionCount: s?.count ?? 0, totalAmount: s?.total ?? 0 };
+    });
   }
 
   #renderMerchantsTable() {
@@ -386,19 +380,11 @@ export class DashboardTableCard extends LitElement {
   }
 
   #buildTagRows(): TagRow[] {
-    const countMap = new Map<string, number>();
-    const amountMap = new Map<string, number>();
-    for (const tx of this.transactions) {
-      for (const tagId of tx.tagIds) {
-        countMap.set(tagId, (countMap.get(tagId) ?? 0) + 1);
-        amountMap.set(tagId, (amountMap.get(tagId) ?? 0) + tx.amount);
-      }
-    }
-    return this.tags.map((t) => ({
-      tag: t,
-      transactionCount: countMap.get(t.id) ?? 0,
-      totalAmount: amountMap.get(t.id) ?? 0,
-    }));
+    const stats = transactionStats(this.transactions, (tx) => (tx as Transaction).tagIds);
+    return this.tags.map((t) => {
+      const s = stats.get(t.id);
+      return { tag: t, transactionCount: s?.count ?? 0, totalAmount: s?.total ?? 0 };
+    });
   }
 
   #renderTagsTable() {
