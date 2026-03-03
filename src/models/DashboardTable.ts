@@ -7,22 +7,16 @@ import type {
 import { uuid } from "../uuid";
 
 export class DashboardTable {
-  readonly id: string;
-  readonly title: string;
-  readonly model: DashboardTableModel;
-  readonly columns: DashboardTableColumn[];
-  readonly position: number;
+  readonly id!: string;
+  readonly title!: string;
+  readonly model!: DashboardTableModel;
+  readonly columns!: DashboardTableColumn[];
+  readonly position!: number;
   readonly colSpan?: number;
   readonly rowSpan?: number;
 
   constructor(data: DashboardTableRecord) {
-    this.id = data.id;
-    this.title = data.title;
-    this.model = data.model;
-    this.columns = data.columns;
-    this.position = data.position;
-    this.colSpan = data.colSpan;
-    this.rowSpan = data.rowSpan;
+    Object.assign(this, data);
   }
 
   static async subscribe(callback: () => void) {

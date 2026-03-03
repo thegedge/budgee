@@ -3,15 +3,15 @@ import type { ChartFilterCondition, DashboardChartRecord } from "../database/typ
 import { uuid } from "../uuid";
 
 export class DashboardChart {
-  readonly id: string;
-  readonly title: string;
-  readonly chartType: "bar" | "line" | "pie" | "doughnut";
-  readonly granularity: "day" | "month" | "year" | "byTag" | "byMerchant";
+  readonly id!: string;
+  readonly title!: string;
+  readonly chartType!: "bar" | "line" | "pie" | "doughnut";
+  readonly granularity!: "day" | "month" | "year" | "byTag" | "byMerchant";
   readonly startDate?: string;
   readonly endDate?: string;
   readonly tagId?: string;
   readonly merchantId?: string;
-  readonly position: number;
+  readonly position!: number;
   readonly colSpan?: number;
   readonly rowSpan?: number;
   readonly excludedTagIds?: string[];
@@ -23,24 +23,7 @@ export class DashboardChart {
   readonly filters?: ChartFilterCondition[];
 
   constructor(data: DashboardChartRecord) {
-    this.id = data.id;
-    this.title = data.title;
-    this.chartType = data.chartType;
-    this.granularity = data.granularity;
-    this.startDate = data.startDate;
-    this.endDate = data.endDate;
-    this.tagId = data.tagId;
-    this.merchantId = data.merchantId;
-    this.position = data.position;
-    this.colSpan = data.colSpan;
-    this.rowSpan = data.rowSpan;
-    this.excludedTagIds = data.excludedTagIds;
-    this.excludedMerchantIds = data.excludedMerchantIds;
-    this.direction = data.direction;
-    this.descriptionFilter = data.descriptionFilter;
-    this.descriptionFilterMode = data.descriptionFilterMode;
-    this.legendPosition = data.legendPosition;
-    this.filters = data.filters;
+    Object.assign(this, data);
   }
 
   static async subscribe(callback: () => void) {

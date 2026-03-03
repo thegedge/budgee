@@ -5,20 +5,15 @@ import { uuid } from "../uuid";
 import { Account } from "./Account";
 
 export class MerchantRule {
-  readonly id: string;
-  readonly logic: "and" | "or";
-  readonly conditions: RuleCondition[];
+  readonly id!: string;
+  readonly logic!: "and" | "or";
+  readonly conditions!: RuleCondition[];
   readonly merchantId?: string;
   readonly accountId?: string;
-  readonly tagIds: string[];
+  readonly tagIds!: string[];
 
   constructor(data: MerchantRuleRecord) {
-    this.id = data.id;
-    this.logic = data.logic;
-    this.conditions = data.conditions;
-    this.merchantId = data.merchantId;
-    this.accountId = data.accountId;
-    this.tagIds = data.tagIds;
+    Object.assign(this, data);
   }
 
   static async subscribe(callback: () => void) {
