@@ -5,6 +5,7 @@ import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
+import { navigate } from "../navigate";
 import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/Modal";
@@ -307,13 +308,11 @@ export class TransactionList extends BusyMixin(LitElement) {
   }
 
   #navigateToMerchant(id: string) {
-    window.history.pushState({}, "", `/merchants/${id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/merchants/${id}`);
   }
 
   #navigateToTransaction(id: string) {
-    window.history.pushState({}, "", `/transactions/${id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/transactions/${id}`);
   }
 
   #toggleSelection(id: string) {

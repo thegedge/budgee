@@ -5,6 +5,7 @@ import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../databas
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
+import { navigate } from "../navigate";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -202,13 +203,11 @@ export class AccountDetail extends BusyMixin(LitElement) {
   }
 
   #navigateBack() {
-    window.history.pushState({}, "", "/accounts");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate("/accounts");
   }
 
   #navigateToTransaction(id: string) {
-    window.history.pushState({}, "", `/transactions/${id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/transactions/${id}`);
   }
 
   async #saveName(e: KeyboardEvent) {

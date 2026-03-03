@@ -11,6 +11,7 @@ import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
 import { showDatabaseErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
+import { navigate } from "./navigate";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
 import birdIcon from "lucide-static/icons/bird.svg?raw";
@@ -338,8 +339,7 @@ export class Application extends LitElement {
     if (!file) return;
 
     if (file.name.endsWith(".csv")) {
-      window.history.pushState({}, "", "/transactions");
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      navigate("/transactions");
       await this.updateComplete;
       document.dispatchEvent(new CustomEvent("budgee-import-csv", { detail: { file } }));
     } else if (file.name.endsWith(".json")) {

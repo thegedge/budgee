@@ -3,6 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
+import { navigate } from "../navigate";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -148,8 +149,7 @@ export class MerchantList extends LitElement {
   }
 
   #navigateToMerchant(id: string) {
-    window.history.pushState({}, "", `/merchants/${id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/merchants/${id}`);
   }
 
   render() {

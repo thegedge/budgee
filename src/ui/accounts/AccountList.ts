@@ -4,6 +4,7 @@ import { accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
+import { navigate } from "../navigate";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -152,8 +153,7 @@ export class AccountList extends LitElement {
   }
 
   #navigateToAccount(id: string) {
-    window.history.pushState({}, "", `/accounts/${id}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/accounts/${id}`);
   }
 
   render() {

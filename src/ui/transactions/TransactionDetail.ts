@@ -8,6 +8,7 @@ import { debounce } from "../../debounce";
 import { movingMedian } from "../../models/movingMedian";
 import { movingWindowSize } from "../../models/movingWindowSize";
 import { buttonStyles } from "../buttonStyles";
+import { navigate } from "../navigate";
 import "../charts/ChartWrapper";
 import { cssVar } from "../cssVar";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -266,13 +267,11 @@ export class TransactionDetail extends BusyMixin(LitElement) {
 
   #createRule(tx: Transaction) {
     const params = new URLSearchParams({ description: tx.description });
-    window.history.pushState({}, "", `/rules?${params}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate(`/rules?${params}`);
   }
 
   #navigateBack() {
-    window.history.pushState({}, "", "/transactions");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigate("/transactions");
   }
 
   render() {
