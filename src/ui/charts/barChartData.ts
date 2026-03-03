@@ -1,6 +1,6 @@
 import type { ChartData } from "chart.js";
-import { movingMedian } from "../../models/movingMedian";
-import { movingWindowSize } from "../../models/movingWindowSize";
+import { movingMedian } from "../../charting/movingMedian";
+import { movingWindowSize } from "../../charting/movingWindowSize";
 import { cssVar } from "../cssVar";
 
 export function barChartData(options: {

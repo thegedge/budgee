@@ -1,7 +1,7 @@
 import { waitForDb } from "../database/Db";
 import type { TagRecord } from "../database/types";
 import { uuid } from "../uuid";
-import { randomTagColor } from "./randomTagColor";
+import { randomTagColor } from "../color/randomTagColor";
 
 export class Tag {
   readonly id: string;

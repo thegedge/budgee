@@ -2,7 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { Tag } from "../../models/Tag";
-import { contrastTextColor } from "../../models/contrastTextColor";
+import { contrastTextColor } from "../../color/contrastTextColor";
 import { ICON_MAP } from "../shared/IconPicker";
 
 declare global {

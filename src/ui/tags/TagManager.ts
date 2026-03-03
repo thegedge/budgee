@@ -4,7 +4,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { Tag } from "../../models/Tag";
 import { debounce } from "../../debounce";
-import { colorToHex } from "../../models/colorToHex";
+import { colorToHex } from "../../color/colorToHex";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
