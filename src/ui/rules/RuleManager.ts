@@ -441,9 +441,7 @@ export class RuleManager extends BusyMixin(LitElement) {
               ${(() => {
                 const lower = this._unmerchantedFilter.toLowerCase();
                 const filtered = lower
-                  ? this._unmerchanted.filter((tx) =>
-                      tx.description.toLowerCase().includes(lower),
-                    )
+                  ? this._unmerchanted.filter((tx) => tx.description.toLowerCase().includes(lower))
                   : this._unmerchanted;
                 return html`
                   <paginated-table

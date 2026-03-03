@@ -1,4 +1,9 @@
-import type { AccountRecord, MerchantRuleRecord, RuleCondition, TransactionRecord } from "../database/types";
+import type {
+  AccountRecord,
+  MerchantRuleRecord,
+  RuleCondition,
+  TransactionRecord,
+} from "../database/types";
 
 function fieldValue(
   transaction: Pick<TransactionRecord, "description" | "accountId">,
@@ -41,7 +46,9 @@ export function matchesRule(
 
   switch (rule.logic) {
     case "and":
-      return rule.conditions.every((c) => matchesCondition(fieldValue(transaction, c, accounts), c));
+      return rule.conditions.every((c) =>
+        matchesCondition(fieldValue(transaction, c, accounts), c),
+      );
     case "or":
       return rule.conditions.some((c) => matchesCondition(fieldValue(transaction, c, accounts), c));
   }

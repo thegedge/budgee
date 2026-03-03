@@ -46,15 +46,21 @@ describe("matchesRule", () => {
     });
 
     it("should match account name with contains", () => {
-      expect(matchesRule(tx("coffee", "acc1"), accountRule("contains", "chequing"), accounts)).toBe(true);
+      expect(matchesRule(tx("coffee", "acc1"), accountRule("contains", "chequing"), accounts)).toBe(
+        true,
+      );
     });
 
     it("should match account name with equals", () => {
-      expect(matchesRule(tx("coffee", "acc1"), accountRule("equals", "my chequing"), accounts)).toBe(true);
+      expect(
+        matchesRule(tx("coffee", "acc1"), accountRule("equals", "my chequing"), accounts),
+      ).toBe(true);
     });
 
     it("should not match when account name differs", () => {
-      expect(matchesRule(tx("coffee", "acc2"), accountRule("equals", "my chequing"), accounts)).toBe(false);
+      expect(
+        matchesRule(tx("coffee", "acc2"), accountRule("equals", "my chequing"), accounts),
+      ).toBe(false);
     });
 
     it("should not match when transaction has no accountId", () => {
@@ -62,7 +68,9 @@ describe("matchesRule", () => {
     });
 
     it("should be case-insensitive", () => {
-      expect(matchesRule(tx("coffee", "acc1"), accountRule("contains", "CHEQUING"), accounts)).toBe(true);
+      expect(matchesRule(tx("coffee", "acc1"), accountRule("contains", "CHEQUING"), accounts)).toBe(
+        true,
+      );
     });
 
     it("should fall back to accountId when account not in lookup", () => {

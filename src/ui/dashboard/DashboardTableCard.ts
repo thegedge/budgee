@@ -197,10 +197,7 @@ export class DashboardTableCard extends LitElement {
         const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
         const hostLeft = this.getBoundingClientRect().left - gridRect.left;
         const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
-        currentColSpan = Math.max(
-          1,
-          Math.min(gridColumns - startCol, rawSpan - startCol),
-        );
+        currentColSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol));
         this.style.gridColumn = `span ${currentColSpan}`;
       }
       if (vertical) {

@@ -48,7 +48,6 @@ export class Merchant {
     await db.merchants.remove(id);
   }
 
-
   static async byName(name: string): Promise<Merchant | undefined> {
     const db = await waitForDb();
     const all = await db.merchants.all();
