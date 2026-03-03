@@ -1,6 +1,6 @@
 import type { ChartData, ChartOptions } from "chart.js";
 import { LitElement, css, html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
@@ -102,6 +102,9 @@ export class DashboardChartCard extends LitElement {
 
   @property({ type: Number })
   maxRows = 4;
+
+  @state()
+  private _liveColSpan?: number;
 
   static styles = [
     iconButtonStyles,
@@ -270,8 +273,20 @@ export class DashboardChartCard extends LitElement {
     const isPie = this.config.chartType === "pie" || this.config.chartType === "doughnut";
     const pos = this.config.legendPosition ?? "top";
     const legend = pos === "hidden" ? { display: false as const } : { position: pos };
+    const colSpan = this._liveColSpan ?? this.config.colSpan ?? 1;
+    const maxTicksLimit = Math.max(2, Math.round((colSpan / this.maxColumns) * 12));
     return {
       ...(isPie && { interaction: { mode: "nearest" as const, intersect: true } }),
+      ...(!isPie && {
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit,
+            },
+          },
+        },
+      }),
       plugins: { legend },
     };
   }
@@ -390,6 +405,7 @@ export class DashboardChartCard extends LitElement {
           Math.min(gridColumns - startCol, rawSpan - startCol),
         );
         this.style.gridColumn = `span ${currentColSpan}`;
+        this._liveColSpan = currentColSpan;
       }
       if (vertical) {
         const hostTop = this.getBoundingClientRect().top - gridRect.top;
@@ -402,6 +418,7 @@ export class DashboardChartCard extends LitElement {
 
     const onPointerUp = () => {
       this.removeAttribute(attr);
+      this._liveColSpan = undefined;
       handle.removeEventListener("pointermove", onPointerMove);
       handle.removeEventListener("pointerup", onPointerUp);
 
