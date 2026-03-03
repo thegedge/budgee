@@ -95,7 +95,7 @@ function rowToTransaction(
   return {
     date: dateStr,
     amount: total,
-    description: description,
+    description,
     tagIds: [],
     accountId,
   };
