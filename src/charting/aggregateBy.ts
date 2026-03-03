@@ -2,6 +2,8 @@ import type { TransactionRecord } from "../database/types";
 
 export type PeriodGranularity = "day" | "month" | "year";
 
+export type Granularity = PeriodGranularity | "byTag" | "byMerchant";
+
 export function aggregateBy(
   transactions: TransactionRecord[],
   keysFn: (tx: TransactionRecord) => string[],

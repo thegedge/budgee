@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Granularity } from "../../charting/aggregations";
+import type { Granularity } from "../../charting/aggregateBy";
 import type { ChartFilterCondition } from "../../database/types";
 import type { DashboardChart } from "../../models/DashboardChart";
 import type { Merchant } from "../../models/Merchant";
