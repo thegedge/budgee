@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { cardNetworkFromPrefix } from "../../cardNetwork";
+import { aggregateByPeriod } from "../../charting/aggregateBy";
 import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
@@ -175,21 +176,15 @@ export class AccountDetail extends BusyMixin(LitElement) {
   }
 
   get #allMonthlyTotals(): [string, number][] {
-    const byMonth = new Map<string, number>();
-    for (const tx of this._transactions ?? []) {
-      const month = tx.date.slice(0, 7);
-      byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
-    }
-    return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return [...aggregateByPeriod(this._transactions ?? [], "month").entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
   }
 
   get #monthlyTotals(): [string, number][] {
-    const byMonth = new Map<string, number>();
-    for (const tx of this.#filteredTransactions ?? []) {
-      const month = tx.date.slice(0, 7);
-      byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
-    }
-    return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return [...aggregateByPeriod(this.#filteredTransactions ?? [], "month").entries()].sort(
+      ([a], [b]) => a.localeCompare(b),
+    );
   }
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {

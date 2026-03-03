@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { aggregateByPeriod } from "../../charting/aggregateBy";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
@@ -172,12 +173,9 @@ export class MerchantDetail extends LitElement {
   }
 
   get #monthlySpend(): [string, number][] {
-    const byMonth = new Map<string, number>();
-    for (const tx of this.#filteredTransactions) {
-      const month = tx.date.slice(0, 7);
-      byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
-    }
-    return [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return [...aggregateByPeriod(this.#filteredTransactions, "month").entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
   }
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {
