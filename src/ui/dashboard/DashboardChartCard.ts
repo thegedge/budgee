@@ -221,8 +221,7 @@ export class DashboardChartCard extends LitElement {
     }
 
     if (!isByDimension && this.config.chartType === "bar") {
-      const allFiltered = filterTransactions(this.transactions, filterOptions);
-      const allAggregated = aggregateByPeriod(allFiltered, granularity as PeriodGranularity);
+      const allAggregated = aggregateByPeriod(filtered, granularity as PeriodGranularity);
       const allEntries = [...allAggregated.entries()].sort(([a], [b]) => a.localeCompare(b));
       return barChartData({
         allEntries,
