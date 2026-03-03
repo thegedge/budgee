@@ -11,6 +11,7 @@ import type { Merchant } from "../../models/Merchant";
 import type { Tag } from "../../models/Tag";
 import type { Transaction } from "../../models/Transaction";
 import { iconButtonStyles } from "../iconButtonStyles";
+import { ResizableMixin, renderResizeHandles, resizableStyles } from "../shared/ResizableMixin";
 import "../shared/PaginatedTable";
 import type { PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
@@ -35,7 +36,7 @@ interface TagRow {
 }
 
 @customElement("dashboard-table-card")
-export class DashboardTableCard extends LitElement {
+export class DashboardTableCard extends ResizableMixin(LitElement) {
   @property({ type: Object })
   config!: DashboardTable;
 
@@ -51,11 +52,15 @@ export class DashboardTableCard extends LitElement {
   @property({ type: Array })
   accounts: Account[] = [];
 
-  @property({ type: Number })
-  maxColumns = 12;
+  protected get _resizableConfig() {
+    return this.config;
+  }
 
-  @property({ type: Number })
-  maxRows = 4;
+  protected _onResized(update: { colSpan?: number; rowSpan?: number }) {
+    this.dispatchEvent(
+      new CustomEvent("table-resized", { detail: { id: this.config.id, ...update } }),
+    );
+  }
 
   @state()
   private _page = 1;
@@ -66,6 +71,7 @@ export class DashboardTableCard extends LitElement {
   static styles = [
     tableStyles,
     iconButtonStyles,
+    resizableStyles,
     css`
       :host {
         display: flex;
@@ -90,48 +96,6 @@ export class DashboardTableCard extends LitElement {
         display: flex;
         gap: 0.25rem;
       }
-      .resize-handle {
-        position: absolute;
-        right: 0;
-        top: 0;
-        width: 6px;
-        height: 100%;
-        cursor: col-resize;
-        background: transparent;
-        transition: background 0.15s;
-      }
-      .resize-handle:hover,
-      :host([data-resizing]) .resize-handle {
-        background: var(--budgee-primary);
-      }
-      .resize-handle-bottom {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 6px;
-        cursor: row-resize;
-        background: transparent;
-        transition: background 0.15s;
-      }
-      .resize-handle-bottom:hover,
-      :host([data-resizing-vertical]) .resize-handle-bottom {
-        background: var(--budgee-primary);
-      }
-      .resize-handle-corner {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 12px;
-        height: 12px;
-        cursor: nwse-resize;
-        background: transparent;
-        z-index: 1;
-      }
-      .resize-handle-corner:hover,
-      :host([data-resizing-corner]) .resize-handle-corner {
-        background: var(--budgee-primary);
-      }
     `,
   ];
 
@@ -141,87 +105,6 @@ export class DashboardTableCard extends LitElement {
 
   #onDelete() {
     this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config.id } }));
-  }
-
-  #onResize(update: { colSpan?: number; rowSpan?: number }) {
-    this.dispatchEvent(
-      new CustomEvent("table-resized", { detail: { id: this.config.id, ...update } }),
-    );
-  }
-
-  #onResizeHandlePointerDown(e: PointerEvent) {
-    this.#startResize(e, { horizontal: true });
-  }
-
-  #onVerticalResizePointerDown(e: PointerEvent) {
-    this.#startResize(e, { vertical: true });
-  }
-
-  #onCornerResizePointerDown(e: PointerEvent) {
-    this.#startResize(e, { horizontal: true, vertical: true });
-  }
-
-  #startResize(
-    e: PointerEvent,
-    { horizontal, vertical }: { horizontal?: boolean; vertical?: boolean },
-  ) {
-    e.preventDefault();
-    e.stopPropagation();
-    const handle = e.currentTarget as HTMLElement;
-    handle.setPointerCapture(e.pointerId);
-
-    const grid = this.closest(".table-grid") ?? this.parentElement;
-    if (!grid) return;
-
-    const gridRect = grid.getBoundingClientRect();
-    const gridStyle = getComputedStyle(grid);
-    const gridColumns = horizontal ? gridStyle.gridTemplateColumns.split(" ").length : 0;
-    const rowHeight = vertical ? parseFloat(gridStyle.gridTemplateRows.split(" ")[0]) || 200 : 0;
-    const gap = vertical ? parseFloat(gridStyle.rowGap) || 0 : 0;
-
-    let currentColSpan = this.config.colSpan ?? 1;
-    let currentRowSpan: number = this.config.rowSpan ?? 1;
-
-    const attr =
-      horizontal && vertical
-        ? "data-resizing-corner"
-        : horizontal
-          ? "data-resizing"
-          : "data-resizing-vertical";
-    this.setAttribute(attr, "");
-
-    const onPointerMove = (ev: PointerEvent) => {
-      if (horizontal) {
-        const relativeX = ev.clientX - gridRect.left;
-        const fractionAcrossGrid = relativeX / gridRect.width;
-        const rawSpan = Math.round(fractionAcrossGrid * gridColumns);
-        const hostLeft = this.getBoundingClientRect().left - gridRect.left;
-        const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
-        currentColSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol));
-        this.style.gridColumn = `span ${currentColSpan}`;
-      }
-      if (vertical) {
-        const hostTop = this.getBoundingClientRect().top - gridRect.top;
-        const bottomEdge = ev.clientY - gridRect.top;
-        const spannedHeight = bottomEdge - hostTop;
-        currentRowSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
-        this.style.gridRow = `span ${currentRowSpan}`;
-      }
-    };
-
-    const onPointerUp = () => {
-      this.removeAttribute(attr);
-      handle.removeEventListener("pointermove", onPointerMove);
-      handle.removeEventListener("pointerup", onPointerUp);
-
-      this.#onResize({
-        ...(horizontal && { colSpan: Math.max(1, Math.min(this.maxColumns, currentColSpan)) }),
-        ...(vertical && { rowSpan: Math.max(1, Math.min(this.maxRows, currentRowSpan)) }),
-      });
-    };
-
-    handle.addEventListener("pointermove", onPointerMove);
-    handle.addEventListener("pointerup", onPointerUp);
   }
 
   #onPageChange(e: CustomEvent<PageChangeDetail>) {
@@ -451,9 +334,7 @@ export class DashboardTableCard extends LitElement {
 
   render() {
     return html`
-      <div class="resize-handle" @pointerdown=${this.#onResizeHandlePointerDown}></div>
-      <div class="resize-handle-bottom" @pointerdown=${this.#onVerticalResizePointerDown}></div>
-      <div class="resize-handle-corner" @pointerdown=${this.#onCornerResizePointerDown}></div>
+      ${renderResizeHandles(this)}
       <div class="header">
         <h4>${this.config.title}</h4>
         <div class="actions">
