@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { movingMedian } from "./movingAverage";
+import { movingMedian } from "./movingMedian";
 
 describe("movingMedian", () => {
   it("returns all values when window is 1", () => {

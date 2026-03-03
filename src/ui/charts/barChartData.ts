@@ -1,5 +1,5 @@
 import type { ChartData } from "chart.js";
-import { movingMedian } from "../../models/movingAverage";
+import { movingMedian } from "../../models/movingMedian";
 import { movingWindowSize } from "../../models/movingWindowSize";
 import { cssVar } from "../cssVar";
 

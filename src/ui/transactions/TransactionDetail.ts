@@ -5,7 +5,7 @@ import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { movingMedian } from "../../models/movingAverage";
+import { movingMedian } from "../../models/movingMedian";
 import { movingWindowSize } from "../../models/movingWindowSize";
 import { buttonStyles } from "../buttonStyles";
 import "../charts/ChartWrapper";
