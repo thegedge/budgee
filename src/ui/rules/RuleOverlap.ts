@@ -1,6 +1,5 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { AccountRecord } from "../../database/types";
 import { Account } from "../../models/Account";
 import { MerchantRule } from "../../models/MerchantRule";
 import { matchesRule } from "../../import/matchesRule";
@@ -79,10 +78,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
         Account.all(),
       ]);
 
-      const accountMap: Record<string, AccountRecord> = {};
-      for (const a of allAccounts) {
-        accountMap[a.id] = a;
-      }
+      const accountMap = Account.toLookup(allAccounts);
 
       this._merchants = new Map(merchants.map((m) => [m.id, m.name]));
       const pairCounts = new Map<string, OverlapPair>();

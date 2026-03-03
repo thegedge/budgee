@@ -49,4 +49,12 @@ export class Account {
     const db = await waitForDb();
     await db.accounts.remove(id);
   }
+
+  static toLookup(accounts: AccountRecord[]): Record<string, AccountRecord> {
+    const map: Record<string, AccountRecord> = {};
+    for (const a of accounts) {
+      map[a.id] = a;
+    }
+    return map;
+  }
 }

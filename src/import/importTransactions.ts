@@ -1,4 +1,4 @@
-import type { AccountRecord, TransactionRecord } from "../database/types";
+import type { TransactionRecord } from "../database/types";
 import { Account } from "../models/Account";
 import { MerchantRule } from "../models/MerchantRule";
 import { Transaction } from "../models/Transaction";
@@ -13,11 +13,7 @@ export async function importTransactions(
   options: { accountId?: string; importMode: ImportMode },
 ): Promise<number> {
   const rules = await MerchantRule.all();
-  const allAccounts = await Account.all();
-  const accountMap: Record<string, AccountRecord> = {};
-  for (const a of allAccounts) {
-    accountMap[a.id] = a;
-  }
+  const accountMap = Account.toLookup(await Account.all());
 
   const accountIdsByName = mapping.account
     ? await resolveAccountIds(rows, mapping.account)
