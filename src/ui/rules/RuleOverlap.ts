@@ -1,11 +1,6 @@
 import { LitElement, css, html } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { Account } from "../../models/Account";
-import { MerchantRule } from "../../models/MerchantRule";
-import { matchesRule } from "../../import/matchesRule";
-import { Merchant } from "../../models/Merchant";
-import { Transaction } from "../../models/Transaction";
-import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import { customElement, property } from "lit/decorators.js";
+import type { MerchantRule } from "../../models/MerchantRule";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -14,7 +9,7 @@ declare global {
   }
 }
 
-interface OverlapPair {
+export interface OverlapPair {
   ruleA: MerchantRule;
   ruleB: MerchantRule;
   count: number;
@@ -22,21 +17,14 @@ interface OverlapPair {
 }
 
 @customElement("rule-overlap")
-export class RuleOverlap extends BusyMixin(LitElement) {
-  @property({ type: Number })
-  refreshTrigger = 0;
+export class RuleOverlap extends LitElement {
+  @property({ attribute: false })
+  overlaps: OverlapPair[] = [];
 
-  @state()
-  private _overlaps: OverlapPair[] = [];
-
-  @state()
-  private _merchants = new Map<string, string>();
-
-  @state()
-  private _loading = true;
+  @property({ attribute: false })
+  merchants = new Map<string, string>();
 
   static styles = [
-    busyStyles,
     tableStyles,
     css`
       :host {
@@ -55,64 +43,8 @@ export class RuleOverlap extends BusyMixin(LitElement) {
     `,
   ];
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.#analyze();
-  }
-
-  willUpdate(changedProperties: Map<string, unknown>) {
-    if (
-      changedProperties.has("refreshTrigger") &&
-      changedProperties.get("refreshTrigger") !== undefined
-    ) {
-      this.#analyze();
-    }
-  }
-
-  async #analyze() {
-    await this.withBusy(async () => {
-      const [rules, transactions, merchants, allAccounts] = await Promise.all([
-        MerchantRule.all(),
-        Transaction.all(),
-        Merchant.all(),
-        Account.all(),
-      ]);
-
-      const accountMap = Account.toLookup(allAccounts);
-
-      this._merchants = new Map(merchants.map((m) => [m.id, m.name]));
-      const pairCounts = new Map<string, OverlapPair>();
-
-      for (const tx of transactions) {
-        const matching = rules.filter((r) => matchesRule(tx, r, accountMap));
-        if (matching.length < 2) continue;
-
-        for (let i = 0; i < matching.length; i++) {
-          for (let j = i + 1; j < matching.length; j++) {
-            const key = [matching[i].id, matching[j].id].sort().join("-");
-            const existing = pairCounts.get(key);
-            if (existing) {
-              existing.count++;
-              existing.samples.add(tx.description);
-            } else {
-              pairCounts.set(key, {
-                ruleA: matching[i],
-                ruleB: matching[j],
-                count: 1,
-                samples: new Set([tx.description]),
-              });
-            }
-          }
-        }
-      }
-
-      this._overlaps = [...pairCounts.values()].sort((a, b) => b.count - a.count);
-      this._loading = false;
-    });
-  }
-
   #formatRule(rule: MerchantRule): string {
-    const merchant = rule.merchantId ? (this._merchants.get(rule.merchantId) ?? "") : "";
+    const merchant = rule.merchantId ? (this.merchants.get(rule.merchantId) ?? "") : "";
     const conditions = rule.conditions
       .map((c) => `${c.operator} "${c.value}"`)
       .join(rule.logic === "and" ? " AND " : " OR ");
@@ -120,13 +52,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
   }
 
   render() {
-    if (this._loading) {
-      return html`
-        <p>Analyzing rules...</p>
-      `;
-    }
-
-    if (this._overlaps.length === 0) {
+    if (this.overlaps.length === 0) {
       return html`
         <h2>Rule Overlap</h2>
         <p>No overlapping rules found.</p>
@@ -135,7 +61,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
 
     return html`
       <h2>Rule Overlap</h2>
-      <p>${this._overlaps.length} overlapping rule pair${this._overlaps.length === 1 ? "" : "s"} found.</p>
+      <p>${this.overlaps.length} overlapping rule pair${this.overlaps.length === 1 ? "" : "s"} found.</p>
       <table>
         <thead>
           <tr>
@@ -146,7 +72,7 @@ export class RuleOverlap extends BusyMixin(LitElement) {
           </tr>
         </thead>
         <tbody>
-          ${this._overlaps.map(
+          ${this.overlaps.map(
             (o) => html`
             <tr>
               <td class="condition-summary">${this.#formatRule(o.ruleA)}</td>

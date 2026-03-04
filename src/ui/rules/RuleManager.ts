@@ -10,7 +10,7 @@ import { MerchantRule } from "../../models/MerchantRule";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { matchesRule } from "../../import/matchesRule";
+import { type PreparedTransaction, matchesPrepared, prepareTransaction } from "../../import/matchesRule";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -20,6 +20,7 @@ import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTa
 import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
 import "./RuleEditor";
+import type { OverlapPair } from "./RuleOverlap";
 import "./RuleOverlap";
 
 declare global {
@@ -88,7 +89,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _unmatchedRuleIds = new Set<string>();
 
   @state()
-  private _overlapRefresh = 0;
+  private _overlapData: OverlapPair[] = [];
 
   static styles = [
     buttonStyles,
@@ -170,15 +171,51 @@ export class RuleManager extends BusyMixin(LitElement) {
     const allTx = await Transaction.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
-    const unmatched = new Set<string>();
-    for (const rule of this._rules) {
-      if (!allTx.some((t) => matchesRule(t, rule, accountMap))) {
-        unmatched.add(rule.id);
+    // Single pass: compute unmatched rules + overlap pairs
+    const rules = this._rules;
+    const matchedRuleIds = new Set<string>();
+    const pairCounts = new Map<string, OverlapPair>();
+    const preparedTxs: PreparedTransaction[] = allTx.map((t) => prepareTransaction(t, accountMap));
+
+    for (let ti = 0; ti < allTx.length; ti++) {
+      const tx = allTx[ti];
+      const ptx = preparedTxs[ti];
+      const matching: MerchantRule[] = [];
+      for (const rule of rules) {
+        if (rule.accountId && rule.accountId !== tx.accountId) continue;
+        const conds = rule.preparedConditions;
+        const match =
+          rule.logic === "and"
+            ? conds.every((c) => matchesPrepared(ptx, c))
+            : conds.some((c) => matchesPrepared(ptx, c));
+        if (match) {
+          matchedRuleIds.add(rule.id);
+          matching.push(rule);
+        }
+      }
+      if (matching.length >= 2) {
+        for (let i = 0; i < matching.length; i++) {
+          for (let j = i + 1; j < matching.length; j++) {
+            const key = [matching[i].id, matching[j].id].sort().join("-");
+            const existing = pairCounts.get(key);
+            if (existing) {
+              existing.count++;
+              existing.samples.add(tx.description);
+            } else {
+              pairCounts.set(key, {
+                ruleA: matching[i],
+                ruleB: matching[j],
+                count: 1,
+                samples: new Set([tx.description]),
+              });
+            }
+          }
+        }
       }
     }
-    this._unmatchedRuleIds = unmatched;
 
-    this._overlapRefresh++;
+    this._unmatchedRuleIds = new Set(rules.filter((r) => !matchedRuleIds.has(r.id)).map((r) => r.id));
+    this._overlapData = [...pairCounts.values()].sort((a, b) => b.count - a.count);
   }
 
   async #onRuleSaved(e: CustomEvent) {
@@ -516,7 +553,7 @@ export class RuleManager extends BusyMixin(LitElement) {
           : nothing
       }
 
-      <rule-overlap .refreshTrigger=${this._overlapRefresh}></rule-overlap>
+      <rule-overlap .overlaps=${this._overlapData} .merchants=${new Map(this._merchants.map((m) => [m.id, m.name]))}></rule-overlap>
     `;
   }
 }
