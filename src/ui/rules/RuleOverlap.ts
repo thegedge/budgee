@@ -30,6 +30,16 @@ export class RuleOverlap extends LitElement {
       :host {
         display: block;
       }
+      .section {
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      .section h3 {
+        margin-top: 0;
+      }
       .condition-summary {
         font-size: 0.85rem;
         color: var(--budgee-text-muted);
@@ -54,13 +64,16 @@ export class RuleOverlap extends LitElement {
   render() {
     if (this.overlaps.length === 0) {
       return html`
-        <h2>Rule Overlap</h2>
-        <p>No overlapping rules found.</p>
+        <div class="section">
+          <h3>Rule Overlap</h3>
+          <p>No overlapping rules found.</p>
+        </div>
       `;
     }
 
     return html`
-      <h2>Rule Overlap</h2>
+      <div class="section">
+      <h3>Rule Overlap</h3>
       <p>${this.overlaps.length} overlapping rule pair${this.overlaps.length === 1 ? "" : "s"} found.</p>
       <table>
         <thead>
@@ -84,6 +97,7 @@ export class RuleOverlap extends LitElement {
           )}
         </tbody>
       </table>
+      </div>
     `;
   }
 }
