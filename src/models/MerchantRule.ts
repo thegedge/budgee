@@ -1,10 +1,10 @@
 import { waitForDb } from "../database/Db";
-import type { MerchantRuleRecord, RuleCondition, TransactionRecord } from "../database/types";
-import {
-  type PreparedCondition,
-  matchesRule,
-  prepareConditions,
-} from "../import/matchesRule";
+import type {
+  AccountRecord,
+  MerchantRuleRecord,
+  RuleCondition,
+  TransactionRecord,
+} from "../database/types";
 import { uuid } from "../uuid";
 import { Account } from "./Account";
 
@@ -25,6 +25,45 @@ async function getCache(): Promise<MerchantRule[]> {
   return cached;
 }
 
+interface PreparedCondition {
+  field: RuleCondition["field"];
+  operator: RuleCondition["operator"];
+  value: string;
+  regex?: RegExp;
+}
+
+export interface PreparedTransaction {
+  description: string;
+  account?: string;
+  accountId?: string;
+}
+
+export function prepareTransaction(
+  transaction: Pick<TransactionRecord, "description" | "accountId">,
+  accounts: Record<string, AccountRecord> = {},
+): PreparedTransaction {
+  const acct = transaction.accountId ? accounts[transaction.accountId] : undefined;
+  return {
+    description: transaction.description.toLowerCase(),
+    accountId: transaction.accountId,
+    account: acct?.name.toLowerCase() ?? transaction.accountId?.toLowerCase(),
+  };
+}
+
+function matchesCondition(value: string | undefined, c: PreparedCondition): boolean {
+  if (value === undefined) return false;
+  switch (c.operator) {
+    case "contains":
+      return value.includes(c.value);
+    case "startsWith":
+      return value.startsWith(c.value);
+    case "equals":
+      return value === c.value;
+    case "regex":
+      return c.regex!.test(value);
+  }
+}
+
 export class MerchantRule {
   readonly id!: string;
   readonly logic!: "and" | "or";
@@ -32,11 +71,23 @@ export class MerchantRule {
   readonly merchantId?: string;
   readonly accountId?: string;
   readonly tagIds!: string[];
-  readonly preparedConditions: PreparedCondition[];
+
+  readonly #prepared: PreparedCondition[];
 
   constructor(data: MerchantRuleRecord) {
     Object.assign(this, data);
-    this.preparedConditions = prepareConditions(this.conditions);
+    this.#prepared = this.conditions.map((c) => ({
+      field: c.field,
+      operator: c.operator,
+      value: c.value.toLowerCase(),
+      regex: c.operator === "regex" ? new RegExp(c.value, "i") : undefined,
+    }));
+  }
+
+  matches(tx: PreparedTransaction): boolean {
+    if (this.accountId && this.accountId !== tx.accountId) return false;
+    const test = (c: PreparedCondition) => matchesCondition(tx[c.field], c);
+    return this.logic === "and" ? this.#prepared.every(test) : this.#prepared.some(test);
   }
 
   static async subscribe(callback: () => void) {
@@ -79,10 +130,10 @@ export class MerchantRule {
     const db = await waitForDb();
     const allTx = await db.transactions.all();
     const accounts = Account.toLookup(await db.accounts.all());
-    const prepared = prepareConditions(rule.conditions);
+    const prepared = new MerchantRule(rule);
     const updates: TransactionRecord[] = [];
     for (const tx of allTx) {
-      if (matchesRule(tx, rule, accounts, prepared)) {
+      if (prepared.matches(prepareTransaction(tx, accounts))) {
         updates.push({
           ...tx,
           merchantId: rule.merchantId ?? tx.merchantId,
