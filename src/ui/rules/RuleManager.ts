@@ -4,13 +4,12 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import { debounce } from "../../debounce";
 import { Account } from "../../models/Account";
 import { Merchant } from "../../models/Merchant";
-import { MerchantRule } from "../../models/MerchantRule";
+import { MerchantRule, prepareTransaction } from "../../models/MerchantRule";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
-import { debounce } from "../../debounce";
-import { prepareTransaction } from "../../models/MerchantRule";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -20,8 +19,8 @@ import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTa
 import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
 import "./RuleEditor";
-import type { OverlapPair } from "./RuleOverlap";
 import "./RuleOverlap";
+import type { OverlapPair } from "./RuleOverlap";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -134,6 +133,9 @@ export class RuleManager extends BusyMixin(LitElement) {
         gap: 1rem;
       }
       @media (min-width: 1600px) {
+        .section {
+          margin-bottom: 0;
+        }
         .sections-grid {
           grid-template-columns: 1fr 1fr;
         }
