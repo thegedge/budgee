@@ -556,6 +556,8 @@ export class RuleManager extends BusyMixin(LitElement) {
           : nothing
       }
 
+      <rule-overlap .overlaps=${this._overlapData} .merchants=${new Map(this._merchants.map((m) => [m.id, m.name]))}></rule-overlap>
+
       </div>
 
       ${
@@ -587,7 +589,6 @@ export class RuleManager extends BusyMixin(LitElement) {
           : nothing
       }
 
-      <rule-overlap .overlaps=${this._overlapData} .merchants=${new Map(this._merchants.map((m) => [m.id, m.name]))}></rule-overlap>
     `;
   }
 }
