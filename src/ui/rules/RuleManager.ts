@@ -208,7 +208,9 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
     }
 
-    this._unmatchedRuleIds = new Set(rules.filter((r) => !matchedRuleIds.has(r.id)).map((r) => r.id));
+    this._unmatchedRuleIds = new Set(
+      rules.filter((r) => !matchedRuleIds.has(r.id)).map((r) => r.id),
+    );
     this._overlapData = [...pairCounts.values()].sort((a, b) => b.count - a.count);
   }
 
@@ -463,6 +465,44 @@ export class RuleManager extends BusyMixin(LitElement) {
               <p>No rules defined.</p>
             `
       }
+
+      ${(() => {
+        const unmatchedRules = this._rules.filter((r) => this._unmatchedRuleIds.has(r.id));
+        if (unmatchedRules.length === 0) return nothing;
+        return html`
+          <div class="section">
+            <h3>Unmatched Rules</h3>
+            <p>${unmatchedRules.length} rule${unmatchedRules.length === 1 ? "" : "s"} matching no transactions.</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Conditions</th>
+                  <th>Merchant</th>
+                  <th>Tags</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${unmatchedRules.map(
+                  (rule) => html`
+                    <tr>
+                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
+                      <td>${this.#merchantName(rule.merchantId)}</td>
+                      <td>
+                        ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
+                      </td>
+                      <td class="actions">
+                        <button class="icon-btn" title="Edit rule" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
+                        <button class="icon-btn icon-btn--danger" title="Delete rule" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
+                      </td>
+                    </tr>
+                  `,
+                )}
+              </tbody>
+            </table>
+          </div>
+        `;
+      })()}
 
       ${
         this._unmerchanted.length > 0
