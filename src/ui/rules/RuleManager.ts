@@ -10,7 +10,7 @@ import { MerchantRule } from "../../models/MerchantRule";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
-import { type PreparedTransaction, matchesPrepared, prepareTransaction } from "../../import/matchesRule";
+import { prepareTransaction } from "../../models/MerchantRule";
 import { buttonStyles } from "../buttonStyles";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -175,20 +175,14 @@ export class RuleManager extends BusyMixin(LitElement) {
     const rules = this._rules;
     const matchedRuleIds = new Set<string>();
     const pairCounts = new Map<string, OverlapPair>();
-    const preparedTxs: PreparedTransaction[] = allTx.map((t) => prepareTransaction(t, accountMap));
+    const preparedTxs = allTx.map((t) => prepareTransaction(t, accountMap));
 
     for (let ti = 0; ti < allTx.length; ti++) {
       const tx = allTx[ti];
       const ptx = preparedTxs[ti];
       const matching: MerchantRule[] = [];
       for (const rule of rules) {
-        if (rule.accountId && rule.accountId !== tx.accountId) continue;
-        const conds = rule.preparedConditions;
-        const match =
-          rule.logic === "and"
-            ? conds.every((c) => matchesPrepared(ptx, c))
-            : conds.some((c) => matchesPrepared(ptx, c));
-        if (match) {
+        if (rule.matches(ptx)) {
           matchedRuleIds.add(rule.id);
           matching.push(rule);
         }

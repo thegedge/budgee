@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { MerchantRuleRecord, TransactionRecord } from "../database/types";
+import type { TransactionRecord } from "../database/types";
+import { MerchantRule } from "../models/MerchantRule";
 import { applyRules } from "./applyRules";
 
 describe("applyRules", () => {
@@ -10,13 +11,13 @@ describe("applyRules", () => {
     tagIds: [],
   };
 
-  function containsRule(value: string, tagIds: string[]): MerchantRuleRecord {
-    return {
+  function containsRule(value: string, tagIds: string[]): MerchantRule {
+    return new MerchantRule({
       id: "rule-1",
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value }],
       tagIds,
-    };
+    });
   }
 
   it("should add tags from a matching rule", () => {
@@ -51,61 +52,61 @@ describe("applyRules", () => {
   });
 
   it("should set merchantId from matching rule", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
         merchantId: "m42",
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.merchantId).toBe("m42");
   });
 
   it("should support startsWith operator", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "startsWith", value: "starbucks" }],
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support equals operator", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "equals", value: "starbucks coffee #123" }],
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support regex operator", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "and",
         conditions: [{ field: "description", operator: "regex", value: "starbucks.*#\\d+" }],
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should support OR logic across conditions", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "or",
         conditions: [
@@ -113,15 +114,15 @@ describe("applyRules", () => {
           { field: "description", operator: "contains", value: "coffee" },
         ],
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual(["t1"]);
   });
 
   it("should require all conditions for AND logic", () => {
-    const rules: MerchantRuleRecord[] = [
-      {
+    const rules = [
+      new MerchantRule({
         id: "r1",
         logic: "and",
         conditions: [
@@ -129,7 +130,7 @@ describe("applyRules", () => {
           { field: "description", operator: "contains", value: "walmart" },
         ],
         tagIds: ["t1"],
-      },
+      }),
     ];
     const result = applyRules(baseTransaction, rules);
     expect(result.tagIds).toEqual([]);
