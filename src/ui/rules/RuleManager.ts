@@ -395,202 +395,193 @@ export class RuleManager extends BusyMixin(LitElement) {
     this._showEditor = true;
   }
 
+  #renderRuleRow(rule: MerchantRule) {
+    return html`
+      <tr>
+        <td class="condition-summary">
+          ${this.#formatConditions(rule)}
+          ${this._unmatchedRuleIds.has(rule.id) ? html`<span class="unmatched-warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</span>` : nothing}
+        </td>
+        <td>${this.#merchantName(rule.merchantId)}</td>
+        <td>
+          ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
+        </td>
+        <td class="actions">
+          <button class="icon-btn" title="Edit rule" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
+          <button class="icon-btn icon-btn--danger" title="Delete rule" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  #renderRuleTable(rules: MerchantRule[]) {
+    return html`
+      <table>
+        <thead>
+          <tr>
+            <th>Conditions</th>
+            <th>Merchant</th>
+            <th>Tags</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rules.map((rule) => this.#renderRuleRow(rule))}
+        </tbody>
+      </table>
+    `;
+  }
+
+  #renderExistingRules() {
+    if (this._rules.length === 0)
+      return html`
+        <p>No rules defined.</p>
+      `;
+
+    const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));
+    const sortedRules = this.#sortedRules(filteredRules);
+    const pageStart = (this._rulesPage - 1) * this._rulesPageSize;
+    const pageRules = sortedRules.slice(pageStart, pageStart + this._rulesPageSize);
+
+    return html`
+      <div class="section">
+        <h3>Existing Rules</h3>
+        <paginated-table
+          .totalItems=${filteredRules.length}
+          .defaultPageSize=${10}
+          storageKey="rules"
+          ?filterable=${true}
+          @page-change=${this.#onRulesPageChange}
+          @filter-change=${this.#onRulesFilterChange}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
+                  Conditions${this.#rulesSortIndicator("conditions")}
+                </th>
+                <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
+                  Merchant${this.#rulesSortIndicator("merchant")}
+                </th>
+                <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
+                  Tags${this.#rulesSortIndicator("tags")}
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pageRules.map((rule) => this.#renderRuleRow(rule))}
+            </tbody>
+          </table>
+        </paginated-table>
+      </div>
+    `;
+  }
+
+  #renderUnmatchedRules() {
+    const unmatchedRules = this._rules.filter((r) => this._unmatchedRuleIds.has(r.id));
+    if (unmatchedRules.length === 0) return nothing;
+
+    const count = unmatchedRules.length;
+    return html`
+      <div class="section">
+        <h3>Unmatched Rules</h3>
+        <p>${count} rule${count === 1 ? "" : "s"} matching no transactions.</p>
+        ${this.#renderRuleTable(unmatchedRules)}
+      </div>
+    `;
+  }
+
+  #renderUnmerchanted() {
+    if (this._unmerchanted.length === 0) return nothing;
+
+    const lower = this._unmerchantedFilter.toLowerCase();
+    const filtered = lower
+      ? this._unmerchanted.filter((tx) => tx.description.toLowerCase().includes(lower))
+      : this._unmerchanted;
+    const pageStart = (this._unmerchantedPage - 1) * this._unmerchantedPageSize;
+    const pageTxs = filtered.slice(pageStart, pageStart + this._unmerchantedPageSize);
+
+    return html`
+      <div class="section">
+        <h3>Unmerchanted Transactions</h3>
+        <paginated-table
+          .totalItems=${filtered.length}
+          .defaultPageSize=${20}
+          storageKey="unmerchanted"
+          ?filterable=${true}
+          @page-change=${this.#onUnmerchantedPageChange}
+          @filter-change=${this.#onUnmerchantedFilterChange}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pageTxs.map(
+                (tx) => html`
+                  <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+                    <td>${tx.date}</td>
+                    <td>${tx.description}</td>
+                    <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
+                  </tr>
+                `,
+              )}
+            </tbody>
+          </table>
+        </paginated-table>
+      </div>
+    `;
+  }
+
+  #renderEditor() {
+    if (!this._showEditor) return nothing;
+
+    const heading = this._editingRule ? "Edit Rule" : "Create Rule";
+    return html`
+      <budgee-modal
+        heading=${heading}
+        @modal-close=${() => {
+          this._showEditor = false;
+          this._editingRule = null;
+          this._editingMerchantName = "";
+          this._prefillDescription = "";
+          this._prefillAccountId = "";
+        }}
+      >
+        <rule-editor
+          .tags=${this._tags}
+          .merchants=${this._merchants}
+          .rules=${this._rules}
+          .prefillDescription=${this._prefillDescription}
+          .prefillAccountId=${this._prefillAccountId}
+          .editingRule=${this._editingRule}
+          .editingMerchantName=${this._editingMerchantName}
+          @rule-saved=${this.#onRuleSaved}
+          @rule-merge=${this.#onRuleMerge}
+        ></rule-editor>
+      </budgee-modal>
+    `;
+  }
+
   render() {
+    const merchantLookup = new Map(this._merchants.map((m) => [m.id, m.name]));
+
     return html`
       <h2>Merchant Rules</h2>
 
       <div class="sections-grid">
-      ${
-        this._rules.length > 0
-          ? html`
-            <div class="section">
-              <h3>Existing Rules</h3>
-              ${(() => {
-                const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));
-                const sortedRules = this.#sortedRules(filteredRules);
-                return html`
-                  <paginated-table
-                    .totalItems=${filteredRules.length}
-                    .defaultPageSize=${10}
-                    storageKey="rules"
-                    ?filterable=${true}
-                    @page-change=${this.#onRulesPageChange}
-                    @filter-change=${this.#onRulesFilterChange}
-                  >
-                    <table>
-                      <thead>
-                        <tr>
-                          <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
-                            Conditions${this.#rulesSortIndicator("conditions")}
-                          </th>
-                          <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
-                            Merchant${this.#rulesSortIndicator("merchant")}
-                          </th>
-                          <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
-                            Tags${this.#rulesSortIndicator("tags")}
-                          </th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${sortedRules
-                          .slice(
-                            (this._rulesPage - 1) * this._rulesPageSize,
-                            this._rulesPage * this._rulesPageSize,
-                          )
-                          .map(
-                            (rule) => html`
-                              <tr>
-                                <td class="condition-summary">
-                                  ${this.#formatConditions(rule)}
-                                  ${this._unmatchedRuleIds.has(rule.id) ? html`<span class="unmatched-warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</span>` : nothing}
-                                </td>
-                                <td>${this.#merchantName(rule.merchantId)}</td>
-                                <td>
-                                  ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
-                                </td>
-                                <td class="actions">
-                                  <button class="icon-btn" title="Edit rule" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
-                                  <button class="icon-btn icon-btn--danger" title="Delete rule" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
-                                </td>
-                              </tr>
-                            `,
-                          )}
-                      </tbody>
-                    </table>
-                  </paginated-table>
-                `;
-              })()}
-            </div>
-          `
-          : html`
-              <p>No rules defined.</p>
-            `
-      }
-
-      ${(() => {
-        const unmatchedRules = this._rules.filter((r) => this._unmatchedRuleIds.has(r.id));
-        if (unmatchedRules.length === 0) return nothing;
-        return html`
-          <div class="section">
-            <h3>Unmatched Rules</h3>
-            <p>${unmatchedRules.length} rule${unmatchedRules.length === 1 ? "" : "s"} matching no transactions.</p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Conditions</th>
-                  <th>Merchant</th>
-                  <th>Tags</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${unmatchedRules.map(
-                  (rule) => html`
-                    <tr>
-                      <td class="condition-summary">${this.#formatConditions(rule)}</td>
-                      <td>${this.#merchantName(rule.merchantId)}</td>
-                      <td>
-                        ${rule.tagIds.length > 0 ? html`<tag-pills .tags=${this._tags} .tagIds=${rule.tagIds}></tag-pills>` : "None"}
-                      </td>
-                      <td class="actions">
-                        <button class="icon-btn" title="Edit rule" aria-label="Edit rule" @click=${() => this.#editRule(rule)}>${unsafeSVG(wrenchIcon)}</button>
-                        <button class="icon-btn icon-btn--danger" title="Delete rule" aria-label="Delete rule" @click=${() => this.#deleteRule(rule.id)}>${unsafeSVG(trash2Icon)}</button>
-                      </td>
-                    </tr>
-                  `,
-                )}
-              </tbody>
-            </table>
-          </div>
-        `;
-      })()}
-
-      ${
-        this._unmerchanted.length > 0
-          ? html`
-            <div class="section">
-              <h3>Unmerchanted Transactions</h3>
-              ${(() => {
-                const lower = this._unmerchantedFilter.toLowerCase();
-                const filtered = lower
-                  ? this._unmerchanted.filter((tx) => tx.description.toLowerCase().includes(lower))
-                  : this._unmerchanted;
-                return html`
-                  <paginated-table
-                    .totalItems=${filtered.length}
-                    .defaultPageSize=${20}
-                    storageKey="unmerchanted"
-                    ?filterable=${true}
-                    @page-change=${this.#onUnmerchantedPageChange}
-                    @filter-change=${this.#onUnmerchantedFilterChange}
-                  >
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Description</th>
-                          <th>Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${filtered
-                          .slice(
-                            (this._unmerchantedPage - 1) * this._unmerchantedPageSize,
-                            this._unmerchantedPage * this._unmerchantedPageSize,
-                          )
-                          .map(
-                            (tx) => html`
-                          <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
-                            <td>${tx.date}</td>
-                            <td>${tx.description}</td>
-                            <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
-                          </tr>
-                        `,
-                          )}
-                      </tbody>
-                    </table>
-                  </paginated-table>
-                `;
-              })()}
-            </div>
-          `
-          : nothing
-      }
-
-      <rule-overlap .overlaps=${this._overlapData} .merchants=${new Map(this._merchants.map((m) => [m.id, m.name]))}></rule-overlap>
-
+        ${this.#renderUnmerchanted()}
+        ${this.#renderUnmatchedRules()}
+        <rule-overlap .overlaps=${this._overlapData} .merchants=${merchantLookup}></rule-overlap>
+        ${this.#renderExistingRules()}
       </div>
 
-      ${
-        this._showEditor
-          ? html`
-            <budgee-modal
-              heading=${this._editingRule ? "Edit Rule" : "Create Rule"}
-              @modal-close=${() => {
-                this._showEditor = false;
-                this._editingRule = null;
-                this._editingMerchantName = "";
-                this._prefillDescription = "";
-                this._prefillAccountId = "";
-              }}
-            >
-              <rule-editor
-                .tags=${this._tags}
-                .merchants=${this._merchants}
-                .rules=${this._rules}
-                .prefillDescription=${this._prefillDescription}
-                .prefillAccountId=${this._prefillAccountId}
-                .editingRule=${this._editingRule}
-                .editingMerchantName=${this._editingMerchantName}
-                @rule-saved=${this.#onRuleSaved}
-                @rule-merge=${this.#onRuleMerge}
-              ></rule-editor>
-            </budgee-modal>
-          `
-          : nothing
-      }
-
+      ${this.#renderEditor()}
     `;
   }
 }
