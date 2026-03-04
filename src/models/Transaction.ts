@@ -2,6 +2,23 @@ import { waitForDb } from "../database/Db";
 import type { TransactionRecord } from "../database/types";
 import { uuid } from "../uuid";
 
+let cached: Transaction[] | null = null;
+let cacheSubscribed = false;
+
+async function getCache(): Promise<Transaction[]> {
+  if (cached) return cached;
+  const db = await waitForDb();
+  const docs = await db.transactions.all();
+  cached = docs.map((d) => new Transaction(d));
+  if (!cacheSubscribed) {
+    cacheSubscribed = true;
+    db.transactions.subscribe(() => {
+      cached = null;
+    });
+  }
+  return cached;
+}
+
 export class Transaction {
   readonly id!: string;
   readonly date!: string;
@@ -22,8 +39,7 @@ export class Transaction {
   }
 
   static async all(): Promise<Transaction[]> {
-    const db = await waitForDb();
-    return (await db.transactions.all()).map((d) => new Transaction(d));
+    return getCache();
   }
 
   static async get(id: string): Promise<Transaction | undefined> {
@@ -52,21 +68,17 @@ export class Transaction {
   }
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {
-    const db = await waitForDb();
-    const all = await db.transactions.all();
+    const all = await getCache();
     return all
       .filter((t) => t.merchantId === merchantId)
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .map((d) => new Transaction(d));
+      .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async forAccount(accountId: string): Promise<Transaction[]> {
-    const db = await waitForDb();
-    const all = await db.transactions.all();
+    const all = await getCache();
     return all
       .filter((t) => t.accountId === accountId)
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .map((d) => new Transaction(d));
+      .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async deleteAll(): Promise<number> {
