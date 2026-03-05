@@ -28,36 +28,36 @@ export class AutocompleteInput extends LitElement {
   static styles = [
     inputStyles,
     css`
-    :host {
-      display: inline-block;
-      position: relative;
-    }
-    input {
-      padding: 4px 8px;
-    }
-    .suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: var(--budgee-surface);
-      border: 1px solid var(--budgee-border);
-      border-radius: 0 0 4px 4px;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 10;
-      min-width: 180px;
-    }
-    .suggestion {
-      padding: 4px 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .suggestion:hover,
-    .suggestion.highlighted {
-      background: var(--budgee-bg);
-    }
-  `,
+      :host {
+        display: inline-block;
+        position: relative;
+      }
+      input {
+        padding: 4px 8px;
+      }
+      .suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--budgee-surface);
+        border: 1px solid var(--budgee-border);
+        border-radius: 0 0 4px 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 10;
+        min-width: 180px;
+      }
+      .suggestion {
+        padding: 4px 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .suggestion:hover,
+      .suggestion.highlighted {
+        background: var(--budgee-bg);
+      }
+    `,
   ];
 
   get #filtered(): string[] {

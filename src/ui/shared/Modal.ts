@@ -84,8 +84,7 @@ export class Modal extends LitElement {
     popover.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
 
-      const selector =
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
       const focusable = [
         ...Array.from(popover.querySelectorAll<HTMLElement>(selector)),
         ...Array.from(this.querySelectorAll<HTMLElement>(selector)),
