@@ -3,6 +3,8 @@ import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import type { RuleCondition, RuleOperator } from "../../database/types";
+import type { Account } from "../../models/Account";
+import "../shared/AutocompleteInput";
 
 type RuleField = RuleCondition["field"];
 
@@ -32,6 +34,9 @@ export class ConditionRow extends LitElement {
 
   @property({ type: Number })
   index = 0;
+
+  @property({ type: Array })
+  accounts: Account[] = [];
 
   static styles = [
     iconButtonStyles,
@@ -73,6 +78,23 @@ export class ConditionRow extends LitElement {
     );
   }
 
+  #onAutocompleteValueChanged(e: CustomEvent) {
+    const value = e.detail.value as string;
+    this.dispatchEvent(
+      new CustomEvent("condition-changed", {
+        detail: { index: this.index, condition: { ...this.condition, value } },
+      }),
+    );
+  }
+
+  get #useAccountAutocomplete(): boolean {
+    return this.condition.field === "account" && this.condition.operator === "equals";
+  }
+
+  get #accountNames(): string[] {
+    return this.accounts.map((a) => a.name);
+  }
+
   #onRemove() {
     this.dispatchEvent(new CustomEvent("condition-removed", { detail: { index: this.index } }));
   }
@@ -97,12 +119,19 @@ export class ConditionRow extends LitElement {
         `,
         )}
       </select>
-      <input
-        type="text"
-        placeholder="value"
-        .value=${this.condition.value}
-        @input=${this.#onValueInput}
-      />
+      ${this.#useAccountAutocomplete
+        ? html`<autocomplete-input
+            .items=${this.#accountNames}
+            .value=${this.condition.value}
+            placeholder="account name"
+            @value-changed=${this.#onAutocompleteValueChanged}
+          ></autocomplete-input>`
+        : html`<input
+            type="text"
+            placeholder="value"
+            .value=${this.condition.value}
+            @input=${this.#onValueInput}
+          />`}
       <button class="icon-btn icon-btn--danger" title="Remove condition" aria-label="Remove condition" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
     `;
   }
