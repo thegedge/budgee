@@ -190,7 +190,6 @@ export class TagManager extends BusyMixin(LitElement) {
 
   render() {
     return html`
-      <h3>Tags</h3>
       <div class="tag-form">
         <input
           type="text"

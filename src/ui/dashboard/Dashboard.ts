@@ -342,7 +342,6 @@ export class Dashboard extends LitElement {
 
     return html`
       <div class="dashboard-header">
-        <h3>Dashboard</h3>
         <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
       </div>
 

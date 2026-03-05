@@ -581,8 +581,6 @@ export class RuleManager extends BusyMixin(LitElement) {
     const merchantLookup = new Map(this._merchants.map((m) => [m.id, m.name]));
 
     return html`
-      <h2>Merchant Rules</h2>
-
       <div class="sections-grid">
         ${this.#renderUnmerchanted()}
         ${this.#renderUnmatchedRules()}
