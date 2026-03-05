@@ -20,6 +20,7 @@ export class Settings extends LitElement {
   @state() private _testResult: "success" | "error" | "testing" | null = null;
   @state() private _testError = "";
   @state() private _testedUrl = "";
+  @state() private _theme: "system" | "light" | "dark" = "system";
 
   static styles = [
     buttonStyles,
@@ -48,6 +49,15 @@ export class Settings extends LitElement {
         display: block;
         font-weight: 600;
         margin-bottom: 0.25rem;
+      }
+
+      select {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        color: var(--budgee-text);
+        font-size: 0.9rem;
       }
 
       input[type="url"] {
@@ -89,6 +99,20 @@ export class Settings extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._url = localStorage.getItem("budgee-sync-url") ?? "";
+    const theme = localStorage.getItem("budgee-theme");
+    this._theme = theme === "light" || theme === "dark" ? theme : "system";
+  }
+
+  #onThemeChange(e: Event) {
+    const value = (e.target as HTMLSelectElement).value as "system" | "light" | "dark";
+    this._theme = value;
+    if (value === "system") {
+      localStorage.removeItem("budgee-theme");
+      delete document.documentElement.dataset.theme;
+    } else {
+      localStorage.setItem("budgee-theme", value);
+      document.documentElement.dataset.theme = value;
+    }
   }
 
   #onUrlChange(e: Event) {
@@ -159,6 +183,18 @@ export class Settings extends LitElement {
 
   render() {
     return html`
+      <section>
+        <h2>Appearance</h2>
+        <div class="field">
+          <label for="theme-select">Theme</label>
+          <select id="theme-select" @change=${this.#onThemeChange}>
+            <option value="system" ?selected=${this._theme === "system"}>System</option>
+            <option value="light" ?selected=${this._theme === "light"}>Light</option>
+            <option value="dark" ?selected=${this._theme === "dark"}>Dark</option>
+          </select>
+        </div>
+      </section>
+
       <section>
         <h2>Import / Export</h2>
         <h3>Import Database</h3>

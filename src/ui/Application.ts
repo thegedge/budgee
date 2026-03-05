@@ -218,7 +218,7 @@ export class Application extends LitElement {
     .drop-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: var(--budgee-overlay);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -272,6 +272,7 @@ export class Application extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.#initTheme();
     this.addEventListener("dragover", this.#onDragOver);
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
@@ -318,6 +319,19 @@ export class Application extends LitElement {
       } catch (e) {
         console.error("Failed to start replication:", e);
       }
+    }
+  }
+
+  #initTheme() {
+    try {
+      const theme = localStorage.getItem("budgee-theme");
+      if (theme === "light" || theme === "dark") {
+        document.documentElement.dataset.theme = theme;
+      } else {
+        delete document.documentElement.dataset.theme;
+      }
+    } catch {
+      // localStorage unavailable
     }
   }
 
