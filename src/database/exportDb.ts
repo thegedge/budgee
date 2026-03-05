@@ -22,4 +22,7 @@ export async function exportDatabase() {
   a.download = `budgee-export-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+
+  const { showToast } = await import("../ui/shared/toast");
+  showToast({ message: "Database exported", type: "success" });
 }

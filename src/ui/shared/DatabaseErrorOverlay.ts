@@ -1,5 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -82,7 +83,7 @@ class ErrorOverlay extends LitElement {
     }
 
     .delete-btn {
-      background: #dc2626;
+      background: var(--budgee-danger);
       color: white;
     }
 
@@ -141,7 +142,13 @@ class ErrorOverlay extends LitElement {
   }
 
   async #deleteAndReload() {
-    if (!confirm("This will permanently delete all local data. Are you sure?")) return;
+    const confirmed = await ConfirmDialog.show({
+      heading: "Delete Database",
+      message: "This will permanently delete all local data. Are you sure?",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
     this._deleting = true;
     try {
       const allDbs = await indexedDB.databases();

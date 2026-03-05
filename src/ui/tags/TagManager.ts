@@ -6,6 +6,7 @@ import { Tag } from "../../models/Tag";
 import { debounce } from "../../debounce";
 import { colorToHex } from "../../color/colorToHex";
 import { buttonStyles } from "../buttonStyles";
+import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/IconPicker";
@@ -125,6 +126,7 @@ export class TagManager extends BusyMixin(LitElement) {
     await this.withBusy(async () => {
       await Tag.create(name);
       this._newTagName = "";
+      showToast({ message: "Tag created", type: "success" });
       await this.#refreshTags();
     });
   }
@@ -132,6 +134,7 @@ export class TagManager extends BusyMixin(LitElement) {
   async #deleteTag(id: string) {
     await this.withBusy(async () => {
       await Tag.remove(id);
+      showToast({ message: "Tag deleted", type: "success" });
       await this.#refreshTags();
     });
   }

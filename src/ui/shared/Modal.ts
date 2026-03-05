@@ -73,6 +73,37 @@ export class Modal extends LitElement {
           this.dispatchEvent(new CustomEvent("modal-close"));
         }
       });
+      this.#trapFocus();
+    });
+  }
+
+  #trapFocus() {
+    const popover = this.shadowRoot?.getElementById("popover");
+    if (!popover) return;
+
+    popover.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      const focusable = [
+        ...popover.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+        ...Array.from(this.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        )),
+      ];
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     });
   }
 
@@ -82,7 +113,7 @@ export class Modal extends LitElement {
 
   render() {
     return html`
-      <div id="popover" popover="auto">
+      <div id="popover" popover="auto" role="dialog" aria-modal="true" aria-label=${this.heading}>
         <div class="header">
           <h3>${this.heading}</h3>
           <button class="close" aria-label="Close" @click=${this.#onClose}>${unsafeSVG(xIcon)}</button>

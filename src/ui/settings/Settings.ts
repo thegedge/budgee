@@ -4,7 +4,9 @@ import { buttonStyles } from "../buttonStyles";
 import { exportDatabase } from "../../database/exportDb";
 import { importDatabase } from "../../database/importDb";
 import { testConnection } from "../../database/replication";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
+import { showToast } from "../shared/toast";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -103,9 +105,11 @@ export class Settings extends LitElement {
       await testConnection(this._url);
       this._testResult = "success";
       this._testedUrl = this._url;
+      showToast({ message: "Connection successful", type: "success" });
     } catch (e) {
       this._testResult = "error";
       this._testError = e instanceof Error ? e.message : String(e);
+      showToast({ message: "Connection failed", type: "error" });
       this._testedUrl = "";
     }
   }
@@ -124,6 +128,7 @@ export class Settings extends LitElement {
     this.dispatchEvent(
       new CustomEvent("budgee-sync-settings-changed", { bubbles: true, composed: true }),
     );
+    showToast({ message: "Sync settings saved", type: "success" });
     this.requestUpdate();
   }
 
@@ -131,7 +136,13 @@ export class Settings extends LitElement {
     const input = e.target as HTMLInputElement;
     if (!input.files?.length) return;
 
-    if (!confirm("This will replace all existing data. Are you sure?")) {
+    const confirmed = await ConfirmDialog.show({
+      heading: "Import Database",
+      message: "This will replace all existing data. Are you sure?",
+      confirmLabel: "Import",
+      danger: true,
+    });
+    if (!confirmed) {
       input.value = "";
       return;
     }
