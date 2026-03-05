@@ -127,7 +127,7 @@ export class RuleEditor extends LitElement {
         margin-top: 0.75rem;
         margin-bottom: 0.75rem;
         padding: 0.5rem;
-        background: var(--budgee-background, #f5f5f5);
+        background: var(--budgee-bg);
         border-radius: 4px;
         font-size: 0.85rem;
       }
