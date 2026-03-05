@@ -81,6 +81,11 @@ export class Transaction {
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
+  static async bulkRemove(ids: string[]): Promise<void> {
+    const db = await waitForDb();
+    await Promise.all(ids.map((id) => db.transactions.remove(id)));
+  }
+
   static async deleteAll(): Promise<number> {
     const db = await waitForDb();
     const docs = await db.transactions.all();

@@ -1,10 +1,12 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { RuleCondition } from "../../database/types";
-import type { Account } from "../../models/Account";
+import { Account } from "../../models/Account";
 import type { Merchant } from "../../models/Merchant";
-import type { MerchantRule } from "../../models/MerchantRule";
+import { MerchantRule, prepareTransaction } from "../../models/MerchantRule";
 import type { Tag } from "../../models/Tag";
+import { Transaction } from "../../models/Transaction";
+import { debounce } from "../../debounce";
 import { extractMerchant } from "../../import/extractMerchant";
 import { buttonStyles } from "../buttonStyles";
 import "../merchants/MerchantAutocomplete";
@@ -58,6 +60,9 @@ export class RuleEditor extends LitElement {
 
   @state()
   private _pendingTagNames: string[] = [];
+
+  @state()
+  private _previewCount: number | null = null;
 
   static styles = [
     buttonStyles,
@@ -151,6 +156,11 @@ export class RuleEditor extends LitElement {
         padding: 2px 8px;
         flex-shrink: 0;
       }
+      .preview {
+        font-size: 0.85rem;
+        color: var(--budgee-text-muted);
+        margin-bottom: 0.5rem;
+      }
       .save-row {
         display: flex;
         justify-content: flex-end;
@@ -161,6 +171,24 @@ export class RuleEditor extends LitElement {
       }
     `,
   ];
+
+  #debouncedPreview = debounce(() => this.#computePreview(), 300);
+
+  async #computePreview() {
+    const conditions = this.#validConditions();
+    if (conditions.length === 0) {
+      this._previewCount = null;
+      return;
+    }
+    const rule = new MerchantRule({ id: "", logic: this._logic, conditions, tagIds: [] });
+    const transactions = await Transaction.all();
+    const accountMap = Account.toLookup(this.accounts);
+    let count = 0;
+    for (const tx of transactions) {
+      if (rule.matches(prepareTransaction(tx, accountMap))) count++;
+    }
+    this._previewCount = count;
+  }
 
   updated(changed: Map<string, unknown>) {
     if (changed.has("editingRule") && this.editingRule) {
@@ -193,11 +221,13 @@ export class RuleEditor extends LitElement {
       this._prefillPristine = false;
     }
     this._conditions = this._conditions.map((c, i) => (i === index ? updated : c));
+    this.#debouncedPreview();
   }
 
   #onConditionRemoved(e: CustomEvent) {
     const { index } = e.detail;
     this._conditions = this._conditions.filter((_, i) => i !== index);
+    this.#debouncedPreview();
   }
 
   #addCondition() {
@@ -396,6 +426,7 @@ export class RuleEditor extends LitElement {
         </div>
       </div>
       ${hasExistingRules ? this.#renderExistingRules() : this.#renderExistingRulesPlaceholder()}
+      ${this._previewCount !== null ? html`<p class="preview">${this._previewCount} transaction${this._previewCount === 1 ? "" : "s"} would match</p>` : ""}
       <div class="save-row">
         <button class="secondary" ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(false)}>${this.editingRule ? "Save" : "Create"}</button>
         <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(true)}>${this.editingRule ? "Save" : "Create"} and apply</button>
