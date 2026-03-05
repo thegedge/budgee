@@ -8,6 +8,7 @@ import { colorToHex } from "../../color/colorToHex";
 import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
+import { inputStyles } from "../inputStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/EmptyState";
 import "../shared/IconPicker";
@@ -51,6 +52,7 @@ export class TagManager extends BusyMixin(LitElement) {
     busyStyles,
     tableStyles,
     iconButtonStyles,
+    inputStyles,
     css`
       :host {
         display: block;

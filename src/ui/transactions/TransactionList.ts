@@ -5,6 +5,7 @@ import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { showToast } from "../shared/toast";
 import { navigate } from "../navigate";
@@ -79,6 +80,7 @@ export class TransactionList extends BusyMixin(LitElement) {
   static styles = [
     buttonStyles,
     busyStyles,
+    inputStyles,
     tableStyles,
     css`
       tbody tr {

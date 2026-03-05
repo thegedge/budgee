@@ -9,6 +9,7 @@ import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { extractMerchant } from "../../import/extractMerchant";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 import "../merchants/MerchantAutocomplete";
 import "../tags/TagAutocomplete";
 import "../tags/TagPills";
@@ -66,6 +67,7 @@ export class RuleEditor extends LitElement {
 
   static styles = [
     buttonStyles,
+    inputStyles,
     css`
       :host {
         display: block;

@@ -13,6 +13,7 @@ const FIELDS: { value: RuleField; label: string }[] = [
   { value: "account", label: "account" },
 ];
 import { iconButtonStyles } from "../iconButtonStyles";
+import { inputStyles } from "../inputStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -40,6 +41,7 @@ export class ConditionRow extends LitElement {
 
   static styles = [
     iconButtonStyles,
+    inputStyles,
     css`
       :host {
         display: contents;

@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 
 export interface PageChangeDetail {
   page: number;
@@ -41,6 +42,7 @@ export class PaginatedTable extends LitElement {
 
   static styles = [
     buttonStyles,
+    inputStyles,
     css`
       .pagination-bar {
         display: flex;

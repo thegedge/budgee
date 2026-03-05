@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 import type { DashboardTableColumn, DashboardTableModel } from "../../database/types";
 import type { DashboardTable } from "../../models/DashboardTable";
 
@@ -61,6 +62,7 @@ export class TableConfigurator extends LitElement {
 
   static styles = [
     buttonStyles,
+    inputStyles,
     css`
       :host {
         display: block;

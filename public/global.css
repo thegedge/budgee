@@ -29,9 +29,11 @@
     --budgee-row-hover: lch(28% 0 none);
     --budgee-secondary: lch(50% 0 none);
     --budgee-secondary-hover: lch(60% 0 none);
+    --budgee-primary: lch(52% 20 246.4);
+    --budgee-primary-hover: lch(45% 22 245.6);
     --budgee-surface: lch(18% 0 none);
     --budgee-text-muted: lch(70% 0 none);
-    --budgee-text: lch(92% 0 none);
+    --budgee-text: lch(82% 0 none);
   }
 }
 
@@ -41,13 +43,15 @@
   --budgee-negative: lch(70% 26.2 22);
   --budgee-overlay: lch(0% 0 none / 0.65);
   --budgee-positive: lch(78% 34.3 158);
+  --budgee-primary: lch(52% 20 246.4);
+  --budgee-primary-hover: lch(45% 22 245.6);
   --budgee-row-alt: lch(22% 0 none);
   --budgee-row-hover: lch(28% 0 none);
   --budgee-secondary: lch(50% 0 none);
   --budgee-secondary-hover: lch(60% 0 none);
   --budgee-surface: lch(18% 0 none);
   --budgee-text-muted: lch(70% 0 none);
-  --budgee-text: lch(92% 0 none);
+  --budgee-text: lch(82% 0 none);
 }
 
 body {

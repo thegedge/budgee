@@ -4,6 +4,7 @@ import { Account } from "../../models/Account";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
 import { tableStyles } from "../tableStyles";
@@ -44,6 +45,7 @@ export class TransactionImporter extends BusyMixin(LitElement) {
 
   static styles = [
     buttonStyles,
+    inputStyles,
     busyStyles,
     tableStyles,
     css`
