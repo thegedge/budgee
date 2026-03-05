@@ -21,7 +21,8 @@ export function adaptTagColor(color: string): string {
   const ratio = L > 0 ? target / L : 2;
 
   // Scale RGB towards inverted lightness (rough but effective for tag pills)
-  const scale = (v: number) => Math.min(255, Math.max(0, Math.round(v * ratio + (ratio > 1 ? 30 : 0))));
+  const scale = (v: number) =>
+    Math.min(255, Math.max(0, Math.round(v * ratio + (ratio > 1 ? 30 : 0))));
   return `rgb(${scale(r)}, ${scale(g)}, ${scale(b)})`;
 }
 
@@ -36,7 +37,10 @@ function parseHexToRgb(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace("#", "");
   const full =
     h.length === 3
-      ? h.split("").map((c) => c + c).join("")
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
       : h;
   return {
     r: parseInt(full.slice(0, 2), 16),
