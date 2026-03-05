@@ -9,6 +9,7 @@ import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import "../shared/EmptyState";
 import "../shared/IconPicker";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
@@ -199,7 +200,11 @@ export class TagManager extends BusyMixin(LitElement) {
         <button @click=${this.#addTag}>Add</button>
       </div>
       ${this._error ? html`<p class="error">${this._error}</p>` : ""}
+      ${this._tags.length === 0
+        ? html`<budgee-empty-state heading="No tags yet" description="Create a tag above to get started."></budgee-empty-state>`
+        : ""}
       ${(() => {
+        if (this._tags.length === 0) return "";
         const lower = this._filter.toLowerCase();
         const filtered = lower
           ? this._tags.filter((t) => t.name.toLowerCase().includes(lower))

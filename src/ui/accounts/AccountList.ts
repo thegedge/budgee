@@ -6,7 +6,9 @@ import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { navigate } from "../navigate";
+import "../shared/EmptyState";
 import "../shared/PaginatedTable";
+import "../shared/SkeletonLoader";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
@@ -152,14 +154,15 @@ export class AccountList extends LitElement {
 
   render() {
     if (this._rows === null) {
-      return html`
-        <p>Loading…</p>
-      `;
+      return html`<budgee-skeleton variant="table" rows="5"></budgee-skeleton>`;
     }
 
     if (this._rows.length === 0) {
       return html`
-        <p>No accounts found.</p>
+        <budgee-empty-state
+          heading="No accounts yet"
+          description="Accounts are created when you import transactions from a CSV."
+        ></budgee-empty-state>
       `;
     }
 
