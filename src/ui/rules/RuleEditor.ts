@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { RuleCondition } from "../../database/types";
+import type { Account } from "../../models/Account";
 import type { Merchant } from "../../models/Merchant";
 import type { MerchantRule } from "../../models/MerchantRule";
 import type { Tag } from "../../models/Tag";
@@ -28,11 +29,11 @@ export class RuleEditor extends LitElement {
   @property({ type: Array })
   rules: MerchantRule[] = [];
 
-  @property({ type: String })
-  prefillDescription = "";
+  @property({ type: Array })
+  accounts: Account[] = [];
 
   @property({ type: String })
-  prefillAccountId = "";
+  prefillDescription = "";
 
   @property({ attribute: false })
   editingRule: MerchantRule | null = null;
@@ -169,14 +170,10 @@ export class RuleEditor extends LitElement {
       this._merchantName = this.editingMerchantName;
       this._pendingTagNames = [];
     } else if (changed.has("prefillDescription") && this.prefillDescription) {
-      const conditions: RuleCondition[] = [
+      this._conditions = [
         { field: "description", operator: "equals", value: this.prefillDescription },
       ];
-      if (this.prefillAccountId) {
-        conditions.push({ field: "account", operator: "equals", value: this.prefillAccountId });
-      }
-      this._conditions = conditions;
-      this._logic = conditions.length > 1 ? "and" : "or";
+      this._logic = "or";
       this._merchantName = extractMerchant(this.prefillDescription);
       this._prefillPristine = true;
       this._pendingTagNames = [];
@@ -347,6 +344,7 @@ export class RuleEditor extends LitElement {
           <condition-row
             .condition=${condition}
             .index=${i}
+            .accounts=${this.accounts}
             @condition-changed=${this.#onConditionChanged}
             @condition-removed=${this.#onConditionRemoved}
           ></condition-row>

@@ -46,10 +46,10 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _unmerchanted: Transaction[] = [];
 
   @state()
-  private _prefillDescription = "";
+  private _accounts: Account[] = [];
 
   @state()
-  private _prefillAccountId = "";
+  private _prefillDescription = "";
 
   @state()
   private _showEditor = false;
@@ -169,7 +169,8 @@ export class RuleManager extends BusyMixin(LitElement) {
     this._rules = await MerchantRule.all();
     this._tags = await Tag.all();
     this._merchants = await Merchant.all();
-    const accountMap = Account.toLookup(await Account.all());
+    this._accounts = await Account.all();
+    const accountMap = Account.toLookup(this._accounts);
     const allTx = await Transaction.all();
     this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
@@ -249,7 +250,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._editingRule = null;
       this._editingMerchantName = "";
       this._prefillDescription = "";
-      this._prefillAccountId = "";
 
       if (apply) {
         await MerchantRule.applyToTransactions(savedRule);
@@ -279,7 +279,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._editingRule = null;
       this._editingMerchantName = "";
       this._prefillDescription = "";
-      this._prefillAccountId = "";
 
       if (apply) {
         await MerchantRule.applyToTransactions(mergedData);
@@ -391,7 +390,6 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   #selectTransaction(tx: Transaction) {
     this._prefillDescription = tx.description;
-    this._prefillAccountId = tx.accountId ?? "";
     this._showEditor = true;
   }
 
@@ -550,7 +548,6 @@ export class RuleManager extends BusyMixin(LitElement) {
           this._editingRule = null;
           this._editingMerchantName = "";
           this._prefillDescription = "";
-          this._prefillAccountId = "";
         }}
       >
         <rule-editor
@@ -558,7 +555,7 @@ export class RuleManager extends BusyMixin(LitElement) {
           .merchants=${this._merchants}
           .rules=${this._rules}
           .prefillDescription=${this._prefillDescription}
-          .prefillAccountId=${this._prefillAccountId}
+          .accounts=${this._accounts}
           .editingRule=${this._editingRule}
           .editingMerchantName=${this._editingMerchantName}
           @rule-saved=${this.#onRuleSaved}
