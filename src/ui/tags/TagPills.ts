@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { Tag } from "../../models/Tag";
+import { adaptTagColor } from "../../color/adaptTagColor";
 import { contrastTextColor } from "../../color/contrastTextColor";
 import { ICON_MAP } from "../shared/IconPicker";
 
@@ -56,8 +57,9 @@ export class TagPills extends LitElement {
   render() {
     return html`${this.tagIds.map((tagId) => {
       const tag = this.tags.find((t) => t.id === tagId);
-      const bg = tag?.color ?? "var(--budgee-primary)";
-      const fg = tag?.color ? contrastTextColor(tag.color) : "white";
+      const adapted = tag?.color ? adaptTagColor(tag.color) : null;
+      const bg = adapted ?? "var(--budgee-primary)";
+      const fg = adapted ? contrastTextColor(adapted) : "white";
       return html`<span class="tag-pill" style="background:${bg};color:${fg}">${this.#tagLabel(tagId)}</span>`;
     })}`;
   }

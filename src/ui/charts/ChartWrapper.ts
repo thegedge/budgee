@@ -95,6 +95,9 @@ export class ChartWrapper extends LitElement {
     const canvas = this.shadowRoot!.querySelector("canvas")!;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    Chart.defaults.color = getComputedStyle(document.documentElement)
+      .getPropertyValue("--budgee-text")
+      .trim();
     const isPie = this.chartType === "pie" || this.chartType === "doughnut";
     this._chart = new Chart(ctx, {
       type: this.chartType,

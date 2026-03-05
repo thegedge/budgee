@@ -7,6 +7,7 @@ import type { Merchant } from "../../models/Merchant";
 import type { Tag } from "../../models/Tag";
 import type { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
+import { inputStyles } from "../inputStyles";
 import "./ChartFilterRow";
 
 declare global {
@@ -62,6 +63,7 @@ export class ChartConfigurator extends LitElement {
 
   static styles = [
     buttonStyles,
+    inputStyles,
     css`
       :host {
         display: block;

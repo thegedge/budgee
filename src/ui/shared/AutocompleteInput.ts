@@ -1,4 +1,5 @@
 import { LitElement, css, html, nothing } from "lit";
+import { inputStyles } from "../inputStyles";
 import { customElement, property, state } from "lit/decorators.js";
 
 declare global {
@@ -24,7 +25,9 @@ export class AutocompleteInput extends LitElement {
   @state()
   private _open = false;
 
-  static styles = css`
+  static styles = [
+    inputStyles,
+    css`
     :host {
       display: inline-block;
       position: relative;
@@ -54,7 +57,8 @@ export class AutocompleteInput extends LitElement {
     .suggestion.highlighted {
       background: var(--budgee-bg);
     }
-  `;
+  `,
+  ];
 
   get #filtered(): string[] {
     const q = this.value.toLowerCase().trim();

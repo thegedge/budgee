@@ -10,6 +10,7 @@ import type {
 import type { Merchant } from "../../models/Merchant";
 import type { Tag } from "../../models/Tag";
 import { iconButtonStyles } from "../iconButtonStyles";
+import { inputStyles } from "../inputStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -64,6 +65,7 @@ export class ChartFilterRow extends LitElement {
 
   static styles = [
     iconButtonStyles,
+    inputStyles,
     css`
       :host {
         display: flex;
