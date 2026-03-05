@@ -21,7 +21,9 @@ describe("account-list", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      expect(el.shadowRoot!.querySelector("p")!.textContent).toBe("No accounts found.");
+      const empty = el.shadowRoot!.querySelector("budgee-empty-state");
+      expect(empty).not.toBeNull();
+      expect(empty!.getAttribute("heading")).toBe("No accounts yet");
     });
 
     el.remove();

@@ -14,6 +14,7 @@ import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
@@ -437,7 +438,12 @@ export class RuleManager extends BusyMixin(LitElement) {
   #renderExistingRules() {
     if (this._rules.length === 0)
       return html`
-        <p>No rules defined.</p>
+        <budgee-empty-state
+          heading="No rules yet"
+          description="Create a rule to automatically assign merchants and tags to transactions."
+        >
+          <button @click=${() => { this._showEditor = true; }}>Create Rule</button>
+        </budgee-empty-state>
       `;
 
     const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));

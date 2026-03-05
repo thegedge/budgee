@@ -13,6 +13,9 @@ import "../shared/Modal";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
+import "../shared/EmptyState";
+import "../shared/SkeletonLoader";
+import { highlightMatch } from "../shared/highlightMatch";
 import "../tags/TagAutocomplete";
 import "../tags/TagPills";
 import "./TransactionImporter";
@@ -169,6 +172,12 @@ export class TransactionList extends BusyMixin(LitElement) {
         padding: 0.4rem 0.8rem;
         margin-bottom: 0.5rem;
         font-size: 0.85rem;
+      }
+      mark {
+        background: lch(from var(--budgee-primary) l c h / 0.2);
+        color: inherit;
+        border-radius: 2px;
+        padding: 0 1px;
       }
     `,
   ];
@@ -497,14 +506,22 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   render() {
     if (this._transactions === null) {
-      return html`
-        <p>Loading…</p>
-      `;
+      return html`<budgee-skeleton variant="table" rows="8"></budgee-skeleton>`;
     }
 
     if (this._transactions.length === 0) {
       return html`
-        <p>No transactions found.</p>
+        <budgee-empty-state
+          heading="No transactions yet"
+          description="Import a CSV file to get started."
+        >
+          <button class="import-toggle" @click=${() => { this._showImporter = true; }}>Import CSV</button>
+        </budgee-empty-state>
+        ${this._showImporter
+          ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
+              this._showImporter = false;
+            }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+          : ""}
       `;
     }
 
@@ -585,7 +602,7 @@ export class TransactionList extends BusyMixin(LitElement) {
                       }}>${this._merchants.get(t.merchantId!)}</a>`
                     : ""
                 }</td>
-                <td>${t.description}</td>
+                <td>${this._filter ? highlightMatch(t.description, this._filter) : t.description}</td>
                 <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
                   ${t.amount.toFixed(2)}
                 </td>
