@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { highlightMatch } from "./highlightMatch";
-import { html } from "lit";
 
 describe("highlightMatch", () => {
   it("returns text unchanged when query is empty", () => {
@@ -15,12 +14,12 @@ describe("highlightMatch", () => {
     const result = highlightMatch("hello world", "world");
     // TemplateResult has a strings property
     expect(typeof result).toBe("object");
-    expect((result as { strings: string[] }).strings).toBeDefined();
+    expect((result as unknown as { strings: unknown }).strings).toBeDefined();
   });
 
   it("is case-insensitive", () => {
     const result = highlightMatch("Hello World", "hello");
     expect(typeof result).toBe("object");
-    expect((result as { strings: string[] }).strings).toBeDefined();
+    expect((result as unknown as { strings: unknown }).strings).toBeDefined();
   });
 });

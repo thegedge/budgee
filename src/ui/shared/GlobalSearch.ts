@@ -282,9 +282,13 @@ export class GlobalSearch extends LitElement {
             aria-label="Search"
           />
           <div class="results">
-            ${this._results.length === 0 && this._query.trim()
-              ? html`<div class="empty">No results found</div>`
-              : ""}
+            ${
+              this._results.length === 0 && this._query.trim()
+                ? html`
+                    <div class="empty">No results found</div>
+                  `
+                : ""
+            }
             ${[...groups.entries()].map(
               ([type, items]) => html`
                 <div class="group-label">${this.#typeLabel(type)}</div>
@@ -294,7 +298,9 @@ export class GlobalSearch extends LitElement {
                     <div
                       class=${classMap({ result: true, active: idx === this._activeIndex })}
                       @click=${() => this.#navigate(r)}
-                      @mouseenter=${() => { this._activeIndex = idx; }}
+                      @mouseenter=${() => {
+                        this._activeIndex = idx;
+                      }}
                     >
                       <span class="result-label">${r.label}</span>
                       ${r.detail ? html`<span class="result-detail">${r.detail}</span>` : ""}

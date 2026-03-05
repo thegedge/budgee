@@ -397,7 +397,10 @@ export class TransactionList extends BusyMixin(LitElement) {
       if (toUpdate.length > 0) {
         await Transaction.bulkPut(toUpdate);
       }
-      showToast({ message: `Merchant assigned to ${toUpdate.length} transaction(s)`, type: "success" });
+      showToast({
+        message: `Merchant assigned to ${toUpdate.length} transaction(s)`,
+        type: "success",
+      });
       this.#clearSelection();
       await this.#refresh();
     });
@@ -528,7 +531,9 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   render() {
     if (this._transactions === null) {
-      return html`<budgee-skeleton variant="table" rows="8"></budgee-skeleton>`;
+      return html`
+        <budgee-skeleton variant="table" rows="8"></budgee-skeleton>
+      `;
     }
 
     if (this._transactions.length === 0) {
@@ -537,13 +542,17 @@ export class TransactionList extends BusyMixin(LitElement) {
           heading="No transactions yet"
           description="Import a CSV file to get started."
         >
-          <button class="import-toggle" @click=${() => { this._showImporter = true; }}>Import CSV</button>
+          <button class="import-toggle" @click=${() => {
+            this._showImporter = true;
+          }}>Import CSV</button>
         </budgee-empty-state>
-        ${this._showImporter
-          ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
-              this._showImporter = false;
-            }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
-          : ""}
+        ${
+          this._showImporter
+            ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
+                this._showImporter = false;
+              }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+            : ""
+        }
       `;
     }
 

@@ -7,7 +7,5 @@ export interface ToastOptions {
 }
 
 export function showToast(options: ToastOptions): void {
-  document.dispatchEvent(
-    new CustomEvent("budgee-toast", { detail: options }),
-  );
+  document.dispatchEvent(new CustomEvent("budgee-toast", { detail: options }));
 }

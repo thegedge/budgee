@@ -140,9 +140,7 @@ export class ToastManager extends LitElement {
     if (timer) clearTimeout(timer);
     this.#timers.delete(id);
 
-    this._toasts = this._toasts.map((t) =>
-      t.id === id ? { ...t, dismissing: true } : t,
-    );
+    this._toasts = this._toasts.map((t) => (t.id === id ? { ...t, dismissing: true } : t));
     setTimeout(() => {
       this._toasts = this._toasts.filter((t) => t.id !== id);
     }, 200);
