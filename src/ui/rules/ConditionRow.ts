@@ -119,19 +119,21 @@ export class ConditionRow extends LitElement {
         `,
         )}
       </select>
-      ${this.#useAccountAutocomplete
-        ? html`<autocomplete-input
+      ${
+        this.#useAccountAutocomplete
+          ? html`<autocomplete-input
             .items=${this.#accountNames}
             .value=${this.condition.value}
             placeholder="account name"
             @value-changed=${this.#onAutocompleteValueChanged}
           ></autocomplete-input>`
-        : html`<input
+          : html`<input
             type="text"
             placeholder="value"
             .value=${this.condition.value}
             @input=${this.#onValueInput}
-          />`}
+          />`
+      }
       <button class="icon-btn icon-btn--danger" title="Remove condition" aria-label="Remove condition" @click=${this.#onRemove}>${unsafeSVG(trash2Icon)}</button>
     `;
   }
