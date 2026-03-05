@@ -13,6 +13,7 @@ import { ConfirmDialog } from "./shared/ConfirmDialog";
 import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { setupGlobalErrorHandler } from "./globalErrorHandler";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
+import "./shared/GlobalSearch";
 import "./shared/ToastManager";
 import { navigate } from "./navigate";
 
@@ -44,6 +45,9 @@ declare global {
 export class Application extends LitElement {
   @state()
   private _dragOver = false;
+
+  @state()
+  private _showShortcuts = false;
 
   #dragCounter = 0;
   #cancelReplication?: () => void;
@@ -273,6 +277,7 @@ export class Application extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.#initTheme();
+    document.addEventListener("keydown", this.#onGlobalKeydown);
     this.addEventListener("dragover", this.#onDragOver);
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
@@ -295,6 +300,7 @@ export class Application extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    document.removeEventListener("keydown", this.#onGlobalKeydown);
     this.removeEventListener("dragover", this.#onDragOver);
     this.removeEventListener("dragenter", this.#onDragEnter);
     this.removeEventListener("dragleave", this.#onDragLeave);
@@ -321,6 +327,15 @@ export class Application extends LitElement {
       }
     }
   }
+
+  #onGlobalKeydown = (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable;
+    if (e.key === "?" && !isInput && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      this._showShortcuts = !this._showShortcuts;
+    }
+  };
 
   #initTheme() {
     try {
@@ -403,7 +418,19 @@ export class Application extends LitElement {
         <sync-status-indicator></sync-status-indicator>
       </nav>
       <main>${this._router.outlet()}</main>
+      <budgee-global-search></budgee-global-search>
       <budgee-toast-manager></budgee-toast-manager>
+      ${this._showShortcuts
+        ? html`<budgee-modal heading="Keyboard Shortcuts" @modal-close=${() => { this._showShortcuts = false; }}>
+            <table style="width:100%;border-collapse:collapse">
+              <tbody>
+                <tr><td style="padding:0.4rem 0"><kbd style="background:var(--budgee-bg);border:1px solid var(--budgee-border);border-radius:3px;padding:2px 6px">⌘K</kbd></td><td style="padding:0.4rem 0.5rem">Open search</td></tr>
+                <tr><td style="padding:0.4rem 0"><kbd style="background:var(--budgee-bg);border:1px solid var(--budgee-border);border-radius:3px;padding:2px 6px">?</kbd></td><td style="padding:0.4rem 0.5rem">Show shortcuts</td></tr>
+                <tr><td style="padding:0.4rem 0"><kbd style="background:var(--budgee-bg);border:1px solid var(--budgee-border);border-radius:3px;padding:2px 6px">Esc</kbd></td><td style="padding:0.4rem 0.5rem">Close modal</td></tr>
+              </tbody>
+            </table>
+          </budgee-modal>`
+        : nothing}
       ${
         this._dragOver
           ? html`
