@@ -32,6 +32,10 @@ export class GlobalSearch extends LitElement {
 
   static styles = css`
     :host {
+      display: none;
+    }
+
+    :host([open]) {
       position: fixed;
       inset: 0;
       z-index: 9999;
@@ -145,6 +149,7 @@ export class GlobalSearch extends LitElement {
 
   #open() {
     this._open = true;
+    this.setAttribute("open", "");
     this._query = "";
     this._results = [];
     this._activeIndex = 0;
@@ -155,6 +160,7 @@ export class GlobalSearch extends LitElement {
 
   #close() {
     this._open = false;
+    this.removeAttribute("open");
     this._query = "";
     this._results = [];
   }
