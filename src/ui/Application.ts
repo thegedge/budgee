@@ -9,9 +9,11 @@ import { importDatabase } from "../database/importDb";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
+import { ConfirmDialog } from "./shared/ConfirmDialog";
 import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { setupGlobalErrorHandler } from "./globalErrorHandler";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
+import "./shared/ToastManager";
 import { navigate } from "./navigate";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
@@ -349,7 +351,13 @@ export class Application extends LitElement {
       await this.updateComplete;
       document.dispatchEvent(new CustomEvent("budgee-import-csv", { detail: { file } }));
     } else if (file.name.endsWith(".json")) {
-      if (!confirm("This will replace all existing data. Are you sure?")) return;
+      const confirmed = await ConfirmDialog.show({
+        heading: "Import Database",
+        message: "This will replace all existing data. Are you sure?",
+        confirmLabel: "Import",
+        danger: true,
+      });
+      if (!confirmed) return;
       showLoadingOverlay("Importing database...");
       try {
         await importDatabase(file);
@@ -381,6 +389,7 @@ export class Application extends LitElement {
         <sync-status-indicator></sync-status-indicator>
       </nav>
       <main>${this._router.outlet()}</main>
+      <budgee-toast-manager></budgee-toast-manager>
       ${
         this._dragOver
           ? html`

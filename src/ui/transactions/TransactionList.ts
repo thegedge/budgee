@@ -5,6 +5,7 @@ import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
+import { showToast } from "../shared/toast";
 import { navigate } from "../navigate";
 import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -363,6 +364,7 @@ export class TransactionList extends BusyMixin(LitElement) {
       if (toUpdate.length > 0) {
         await Transaction.bulkPut(toUpdate);
       }
+      showToast({ message: `Tag applied to ${toUpdate.length} transaction(s)`, type: "success" });
       this.#clearSelection();
       await this.#refresh();
     });
@@ -385,6 +387,7 @@ export class TransactionList extends BusyMixin(LitElement) {
       if (toUpdate.length > 0) {
         await Transaction.bulkPut(toUpdate);
       }
+      showToast({ message: `Merchant assigned to ${toUpdate.length} transaction(s)`, type: "success" });
       this.#clearSelection();
       await this.#refresh();
     });

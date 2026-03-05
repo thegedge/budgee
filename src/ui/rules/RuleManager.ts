@@ -11,6 +11,7 @@ import { MerchantRule, prepareTransaction } from "../../models/MerchantRule";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
+import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/Modal";
@@ -255,6 +256,7 @@ export class RuleManager extends BusyMixin(LitElement) {
         await MerchantRule.applyToTransactions(savedRule);
       }
 
+      showToast({ message: id ? "Rule updated" : "Rule created", type: "success" });
       await this.#refresh();
     });
   }
@@ -284,6 +286,7 @@ export class RuleManager extends BusyMixin(LitElement) {
         await MerchantRule.applyToTransactions(mergedData);
       }
 
+      showToast({ message: "Rules merged", type: "success" });
       await this.#refresh();
     });
   }
@@ -291,6 +294,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   async #deleteRule(id: string) {
     await this.withBusy(async () => {
       await MerchantRule.remove(id);
+      showToast({ message: "Rule deleted", type: "success" });
       await this.#refresh();
     });
   }
