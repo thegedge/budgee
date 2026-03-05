@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastManager } from "./ToastManager";
 import { showToast } from "./toast";
-import { waitFor } from "../testing";
 
 describe("ToastManager", () => {
   let el: ToastManager;

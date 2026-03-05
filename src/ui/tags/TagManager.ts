@@ -200,9 +200,16 @@ export class TagManager extends BusyMixin(LitElement) {
         <button @click=${this.#addTag}>Add</button>
       </div>
       ${this._error ? html`<p class="error">${this._error}</p>` : ""}
-      ${this._tags.length === 0
-        ? html`<budgee-empty-state heading="No tags yet" description="Create a tag above to get started."></budgee-empty-state>`
-        : ""}
+      ${
+        this._tags.length === 0
+          ? html`
+              <budgee-empty-state
+                heading="No tags yet"
+                description="Create a tag above to get started."
+              ></budgee-empty-state>
+            `
+          : ""
+      }
       ${(() => {
         if (this._tags.length === 0) return "";
         const lower = this._filter.toLowerCase();

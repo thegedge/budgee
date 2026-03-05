@@ -330,7 +330,11 @@ export class Application extends LitElement {
 
   #onGlobalKeydown = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
-    const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable;
+    const isInput =
+      target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.tagName === "SELECT" ||
+      target.isContentEditable;
     if (e.key === "?" && !isInput && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       this._showShortcuts = !this._showShortcuts;
@@ -420,8 +424,11 @@ export class Application extends LitElement {
       <main>${this._router.outlet()}</main>
       <budgee-global-search></budgee-global-search>
       <budgee-toast-manager></budgee-toast-manager>
-      ${this._showShortcuts
-        ? html`<budgee-modal heading="Keyboard Shortcuts" @modal-close=${() => { this._showShortcuts = false; }}>
+      ${
+        this._showShortcuts
+          ? html`<budgee-modal heading="Keyboard Shortcuts" @modal-close=${() => {
+              this._showShortcuts = false;
+            }}>
             <table style="width:100%;border-collapse:collapse">
               <tbody>
                 <tr><td style="padding:0.4rem 0"><kbd style="background:var(--budgee-bg);border:1px solid var(--budgee-border);border-radius:3px;padding:2px 6px">⌘K</kbd></td><td style="padding:0.4rem 0.5rem">Open search</td></tr>
@@ -430,7 +437,8 @@ export class Application extends LitElement {
               </tbody>
             </table>
           </budgee-modal>`
-        : nothing}
+          : nothing
+      }
       ${
         this._dragOver
           ? html`

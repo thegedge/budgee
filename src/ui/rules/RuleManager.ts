@@ -442,7 +442,9 @@ export class RuleManager extends BusyMixin(LitElement) {
           heading="No rules yet"
           description="Create a rule to automatically assign merchants and tags to transactions."
         >
-          <button @click=${() => { this._showEditor = true; }}>Create Rule</button>
+          <button @click=${() => {
+            this._showEditor = true;
+          }}>Create Rule</button>
         </budgee-empty-state>
       `;
 

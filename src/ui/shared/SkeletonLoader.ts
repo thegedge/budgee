@@ -53,8 +53,13 @@ export class SkeletonLoader extends LitElement {
       width: 70%;
     }
     @keyframes pulse {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 1; }
+      0%,
+      100% {
+        opacity: 0.4;
+      }
+      50% {
+        opacity: 1;
+      }
     }
   `;
 
@@ -80,7 +85,7 @@ export class SkeletonLoader extends LitElement {
     if (this.variant === "card") {
       return html`
         <div class="card" aria-live="polite" aria-label="Loading">
-          <div class="skeleton-line" style="width:40%;height:1.2rem"></div>
+          <div class="skeleton-line" style="width: 40%; height: 1.2rem"></div>
           <div class="skeleton-line"></div>
           <div class="skeleton-line"></div>
         </div>
@@ -89,7 +94,12 @@ export class SkeletonLoader extends LitElement {
 
     return html`
       <div class="text" aria-live="polite" aria-label="Loading">
-        ${rows.map(() => html`<div class="skeleton-line"></div>`)}
+        ${rows.map(
+          () =>
+            html`
+              <div class="skeleton-line"></div>
+            `,
+        )}
       </div>
     `;
   }

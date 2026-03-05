@@ -150,7 +150,9 @@ export class MerchantList extends LitElement {
 
   render() {
     if (this._rows === null) {
-      return html`<budgee-skeleton variant="table" rows="5"></budgee-skeleton>`;
+      return html`
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
+      `;
     }
 
     if (this._rows.length === 0) {
