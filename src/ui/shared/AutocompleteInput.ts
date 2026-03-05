@@ -109,7 +109,9 @@ export class AutocompleteInput extends LitElement {
 
   render() {
     const filtered = this.#filtered;
-    const exactMatch = this.value.trim() && filtered.some((item) => item.toLowerCase() === this.value.trim().toLowerCase());
+    const exactMatch =
+      this.value.trim() &&
+      filtered.some((item) => item.toLowerCase() === this.value.trim().toLowerCase());
     const showSuggestions = this._open && filtered.length > 0 && !exactMatch;
 
     return html`
@@ -122,8 +124,9 @@ export class AutocompleteInput extends LitElement {
         @focus=${this.#onFocus}
         @blur=${this.#onBlur}
       />
-      ${showSuggestions
-        ? html`
+      ${
+        showSuggestions
+          ? html`
           <div class="suggestions">
             ${filtered.map(
               (item, i) => html`
@@ -137,7 +140,8 @@ export class AutocompleteInput extends LitElement {
             )}
           </div>
         `
-        : nothing}
+          : nothing
+      }
     `;
   }
 }

@@ -57,7 +57,9 @@ export class MerchantAutocomplete extends LitElement {
     e.preventDefault();
     const text = e.clipboardData?.getData("text") ?? "";
     const titleCase = text.toLowerCase().replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
-    const input = e.composedPath().find((el) => el instanceof HTMLInputElement) as HTMLInputElement | undefined;
+    const input = e.composedPath().find((el) => el instanceof HTMLInputElement) as
+      | HTMLInputElement
+      | undefined;
     if (input) input.value = titleCase;
     this.dispatchEvent(new CustomEvent("merchant-changed", { detail: { name: titleCase } }));
   }
@@ -75,11 +77,17 @@ export class MerchantAutocomplete extends LitElement {
           @value-changed=${this.#onValueChanged}
           @paste=${this.#onPaste}
         ></autocomplete-input>
-        ${trimmed
-          ? isExisting
-            ? html`<span class="status existing">existing</span>`
-            : html`<span class="status new">new</span>`
-          : nothing}
+        ${
+          trimmed
+            ? isExisting
+              ? html`
+                  <span class="status existing">existing</span>
+                `
+              : html`
+                  <span class="status new">new</span>
+                `
+            : nothing
+        }
       </div>
     `;
   }

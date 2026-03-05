@@ -9,7 +9,8 @@ import { importDatabase } from "../database/importDb";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
-import { showDatabaseErrorOverlay } from "./shared/DatabaseErrorOverlay";
+import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
+import { setupGlobalErrorHandler } from "./globalErrorHandler";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
 import { navigate } from "./navigate";
 
@@ -273,13 +274,18 @@ export class Application extends LitElement {
     this.addEventListener("dragenter", this.#onDragEnter);
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
+    setupGlobalErrorHandler();
     waitForDb()
       .then((dbs) => migrateDatabase(dbs))
       .catch((error) => {
         console.error(error);
-        if (error instanceof SchemaVersionError) {
-          showDatabaseErrorOverlay();
-        }
+        const isDatabaseError = error instanceof SchemaVersionError;
+        const message = isDatabaseError
+          ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
+          : error instanceof Error
+            ? error.message
+            : String(error);
+        showErrorOverlay(message, { isDatabaseError });
       });
     this.#connectReplication();
   }

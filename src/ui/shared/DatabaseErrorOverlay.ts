@@ -1,14 +1,20 @@
 import { LitElement, css, html } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 
 declare global {
   interface HTMLElementTagNameMap {
-    "budgee-database-error-overlay": DatabaseErrorOverlay;
+    "budgee-error-overlay": ErrorOverlay;
   }
 }
 
-@customElement("budgee-database-error-overlay")
-class DatabaseErrorOverlay extends LitElement {
+@customElement("budgee-error-overlay")
+class ErrorOverlay extends LitElement {
+  @property()
+  error = "An unexpected error occurred.";
+
+  @property({ type: Boolean })
+  isDatabaseError = false;
+
   @state()
   private _exporting = false;
 
@@ -79,25 +85,39 @@ class DatabaseErrorOverlay extends LitElement {
       background: #dc2626;
       color: white;
     }
+
+    .reload-btn {
+      background: var(--budgee-primary, #7c3aed);
+      color: white;
+    }
   `;
 
   render() {
     return html`
       <div class="card">
-        <h2>Database Error</h2>
-        <p>
-          The database schema is incompatible with this version of the app and can't be opened. You
-          can export the raw data for safekeeping, then delete the database to get unstuck.
-        </p>
+        <h2>${this.isDatabaseError ? "Database Error" : "Something Went Wrong"}</h2>
+        <p>${this.error}</p>
         <div class="actions">
-          <button class="export-btn" ?disabled=${this._exporting} @click=${this.#exportData}>
-            ${this._exporting ? "Exporting…" : "Export raw data"}
-          </button>
-          <button class="delete-btn" ?disabled=${this._deleting} @click=${this.#deleteAndReload}>
-            ${this._deleting ? "Deleting…" : "Delete database and reload"}
-          </button>
+          ${this.isDatabaseError ? this.#renderDatabaseActions() : this.#renderReloadAction()}
         </div>
       </div>
+    `;
+  }
+
+  #renderDatabaseActions() {
+    return html`
+      <button class="export-btn" ?disabled=${this._exporting} @click=${this.#exportData}>
+        ${this._exporting ? "Exporting…" : "Export raw data"}
+      </button>
+      <button class="delete-btn" ?disabled=${this._deleting} @click=${this.#deleteAndReload}>
+        ${this._deleting ? "Deleting…" : "Delete database and reload"}
+      </button>
+    `;
+  }
+
+  #renderReloadAction() {
+    return html`
+      <button class="reload-btn" @click=${() => window.location.reload()}>Reload</button>
     `;
   }
 
@@ -179,8 +199,11 @@ async function exportAllIndexedDBData(): Promise<Record<string, Record<string, u
   return result;
 }
 
-export function showDatabaseErrorOverlay() {
-  const existing = document.querySelector("budgee-database-error-overlay");
+export function showErrorOverlay(message: string, options?: { isDatabaseError?: boolean }) {
+  const existing = document.querySelector("budgee-error-overlay");
   if (existing) return;
-  document.body.appendChild(document.createElement("budgee-database-error-overlay"));
+  const overlay = document.createElement("budgee-error-overlay");
+  overlay.error = message;
+  overlay.isDatabaseError = options?.isDatabaseError ?? false;
+  document.body.appendChild(overlay);
 }
