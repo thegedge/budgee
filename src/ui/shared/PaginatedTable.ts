@@ -177,6 +177,7 @@ export class PaginatedTable extends LitElement {
                 class="filter-input"
                 type="text"
                 placeholder="Filter..."
+                aria-label="Filter table"
                 @input=${this.#onFilterInput}
               />`
               : ""
@@ -192,8 +193,8 @@ export class PaginatedTable extends LitElement {
         </div>
         <span>Showing ${start}–${end} of ${this.totalItems}</span>
         <div class="pagination-controls">
-          <button class="secondary" ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
-          <button class="secondary" ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
+          <button class="secondary" aria-label="Previous page" ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
+          <button class="secondary" aria-label="Next page" ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
         </div>
       </div>
     `;

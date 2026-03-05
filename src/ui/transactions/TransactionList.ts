@@ -5,6 +5,7 @@ import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
 import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { showToast } from "../shared/toast";
 import { navigate } from "../navigate";
 import "../merchants/MerchantAutocomplete";
@@ -402,6 +403,26 @@ export class TransactionList extends BusyMixin(LitElement) {
     });
   }
 
+  async #bulkDelete() {
+    if (!this._transactions) return;
+    const count = this._selectedIds.size;
+    const confirmed = await ConfirmDialog.show({
+      heading: "Delete Transactions",
+      message: `Delete ${count} selected transaction${count === 1 ? "" : "s"}? This cannot be undone.`,
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    await this.withBusy(async () => {
+      const ids = [...this._selectedIds];
+      await Transaction.bulkRemove(ids);
+      showToast({ message: `${ids.length} transaction(s) deleted`, type: "success" });
+      this.#clearSelection();
+      await this.#refresh();
+    });
+  }
+
   #toggleExcludeTag(tagId: string) {
     const next = new Set(this._excludeTagIds);
     if (next.has(tagId)) {
@@ -499,6 +520,7 @@ export class TransactionList extends BusyMixin(LitElement) {
             Set
           </button>
         </div>
+        <button class="danger" @click=${this.#bulkDelete}>Delete selected</button>
         <button @click=${this.#clearSelection}>Clear selection</button>
       </div>
     `;

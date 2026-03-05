@@ -23,6 +23,9 @@ export class ChartWrapper extends LitElement {
   @property({ type: Object })
   options: ChartOptions = {};
 
+  @property({ type: String, attribute: "aria-chart-label" })
+  ariaChartLabel = "Chart";
+
   private _chart?: Chart;
   private _resizeObserver?: ResizeObserver;
 
@@ -37,7 +40,7 @@ export class ChartWrapper extends LitElement {
 
   render() {
     return html`
-      <canvas></canvas>
+      <canvas aria-label=${this.ariaChartLabel} role="img"></canvas>
     `;
   }
 
