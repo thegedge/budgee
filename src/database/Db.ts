@@ -396,8 +396,14 @@ async function createDefaultDatabase(): Promise<Databases> {
 
 export let db: Databases;
 
-const dbReady = createDefaultDatabase().then((dbs) => {
+const dbReady = createDefaultDatabase().then(async (dbs) => {
   db = dbs;
+  const { migrateDatabase } = await import("./migrations");
+  await migrateDatabase(dbs);
+  if (isDemoMode) {
+    const { seedDemoData } = await import("./demo");
+    await seedDemoData(dbs);
+  }
   return dbs;
 });
 

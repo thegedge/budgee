@@ -18,7 +18,10 @@ describe("tag-manager", () => {
   it("should add a tag when the Add button is clicked", async () => {
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
-    await el.updateComplete;
+
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("input")).toBeTruthy();
+    });
 
     const input = el.shadowRoot!.querySelector("input")!;
     input.value = "Food";
@@ -42,7 +45,10 @@ describe("tag-manager", () => {
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
-    await el.updateComplete;
+
+    await waitFor(() => {
+      expect(el.shadowRoot!.querySelector("input")).toBeTruthy();
+    });
 
     const input = el.shadowRoot!.querySelector("input")!;
     input.value = "Food";

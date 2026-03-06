@@ -8,6 +8,7 @@ import { navigate } from "../navigate";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import "../shared/PaginatedTable";
+import "../shared/SkeletonLoader";
 import type { PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
@@ -228,7 +229,8 @@ export class MerchantDetail extends LitElement {
   render() {
     if (!this._merchant) {
       return html`
-        <p>Loading…</p>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
       `;
     }
 

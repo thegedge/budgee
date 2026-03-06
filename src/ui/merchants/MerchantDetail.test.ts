@@ -16,12 +16,12 @@ describe("merchant-detail", () => {
     expect(customElements.get("merchant-detail")).toBe(MerchantDetail);
   });
 
-  it("should show loading when no merchant loaded", async () => {
+  it("should show loading skeleton when no merchant loaded", async () => {
     const el = document.createElement("merchant-detail") as MerchantDetail;
     document.body.appendChild(el);
     await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("p")!.textContent).toContain("Loading");
+    expect(el.shadowRoot!.querySelector("budgee-skeleton")).toBeTruthy();
     el.remove();
   });
 

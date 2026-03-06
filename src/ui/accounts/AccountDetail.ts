@@ -11,6 +11,7 @@ import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/PaginatedTable";
+import "../shared/SkeletonLoader";
 import type { PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
@@ -227,20 +228,11 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   #renderLoadingState() {
     return html`
-      <div class="summary-grid">
-        ${[0, 1, 2, 3].map(
-          () => html`
-            <div class="summary-card">
-              <div class="label loading">Loading…</div>
-            </div>
-          `,
-        )}
-      </div>
       <div class="top-row">
-        <div class="section"><p class="loading">Loading chart…</p></div>
-        <div class="section"><p class="loading">Loading summary…</p></div>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
       </div>
-      <div class="section-transactions"><p class="loading">Loading transactions…</p></div>
+      <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
     `;
   }
 
@@ -335,7 +327,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
   render() {
     if (!this._account) {
       return html`
-        <p>Loading…</p>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
       `;
     }
 

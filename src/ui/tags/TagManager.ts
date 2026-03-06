@@ -13,6 +13,7 @@ import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/EmptyState";
 import "../shared/IconPicker";
 import "../shared/PaginatedTable";
+import "../shared/SkeletonLoader";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
@@ -27,7 +28,7 @@ type SortDir = "asc" | "desc";
 @customElement("tag-manager")
 export class TagManager extends BusyMixin(LitElement) {
   @state()
-  private _tags: Tag[] = [];
+  private _tags: Tag[] | null = null;
 
   @state()
   private _newTagName = "";
@@ -189,6 +190,12 @@ export class TagManager extends BusyMixin(LitElement) {
   }
 
   render() {
+    if (this._tags === null) {
+      return html`
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
+      `;
+    }
+
     return html`
       <div class="tag-form">
         <input

@@ -16,12 +16,12 @@ describe("account-detail", () => {
     expect(customElements.get("account-detail")).toBe(AccountDetail);
   });
 
-  it("should show loading when no account loaded", async () => {
+  it("should show loading skeleton when no account loaded", async () => {
     const el = document.createElement("account-detail") as AccountDetail;
     document.body.appendChild(el);
     await el.updateComplete;
 
-    expect(el.shadowRoot!.querySelector("p")!.textContent).toContain("Loading");
+    expect(el.shadowRoot!.querySelector("budgee-skeleton")).toBeTruthy();
     el.remove();
   });
 
