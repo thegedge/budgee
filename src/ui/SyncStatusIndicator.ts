@@ -135,7 +135,7 @@ export class SyncStatusIndicator extends LitElement {
     return html`
       <a href="${GITHUB_REPO}/commit/${__COMMIT_SHA__}" target="_blank" rel="noopener">${unsafeHTML(githubIcon)} <span>${__COMMIT_SHA__}</span></a>
       ${unsafeHTML(clockIcon)} <span class="published">published ${timeAgo(__COMMIT_DATE__)}</span>
-      <span class="dot ${this._status}"></span> ${LABELS[this._status]}
+      ${this._status !== "not-configured" ? html`<span class="dot ${this._status}"></span> ${LABELS[this._status]}` : ""}
     `;
   }
 }

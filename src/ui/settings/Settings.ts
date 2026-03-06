@@ -7,6 +7,7 @@ import { testConnection } from "../../database/replication";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
 import { showToast } from "../shared/toast";
+import { isDemoMode } from "../../database/Db";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -206,7 +207,15 @@ export class Settings extends LitElement {
         <button @click=${exportDatabase}>Export</button>
       </section>
 
-      <section>
+      ${
+        isDemoMode
+          ? html`
+              <section>
+                <h2>Sync</h2>
+                <p class="hint">Sync is disabled in demo mode.</p>
+              </section>
+            `
+          : html`<section>
         <h2>Sync</h2>
         <p class="hint">Sync your data across devices using a sync server. Save a valid URL to enable sync; clear it to disable.</p>
         <div class="field">
@@ -238,7 +247,8 @@ export class Settings extends LitElement {
         <div class="field">
           <button ?disabled=${!this.#canSave} @click=${this.#onSave}>Save</button>
         </div>
-      </section>
+      </section>`
+      }
     `;
   }
 }

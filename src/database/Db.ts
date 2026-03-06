@@ -375,12 +375,21 @@ export async function destroyAll(dbs: Databases) {
   await removeRxDatabase(name, storage);
 }
 
+export const isDemoMode =
+  typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1";
+
 async function createDefaultDatabase(): Promise<Databases> {
   if (import.meta.env?.MODE === "test") {
     const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
     const testName = `budgee_test_${Math.random().toString(36).slice(2)}`;
     return createDatabases(getRxStorageMemory(), testName);
   }
+
+  if (isDemoMode) {
+    const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
+    return createDatabases(getRxStorageMemory(), "budgee_demo");
+  }
+
   const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
   return createDatabases(getRxStorageDexie());
 }
