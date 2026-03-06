@@ -52,12 +52,6 @@ export class TableConfigurator extends LitElement {
   private _columns: DashboardTableColumn[] = defaultColumns("transactions");
 
   @state()
-  private _colSpan: NonNullable<DashboardTable["colSpan"]> = 1;
-
-  @state()
-  private _rowSpan: NonNullable<DashboardTable["rowSpan"]> = 1;
-
-  @state()
   private _initialized = false;
 
   static styles = [
@@ -110,8 +104,6 @@ export class TableConfigurator extends LitElement {
       this._title = this.editingTable.title;
       this._model = this.editingTable.model;
       this._columns = [...this.editingTable.columns];
-      this._colSpan = this.editingTable.colSpan ?? 1;
-      this._rowSpan = this.editingTable.rowSpan ?? 1;
       this._initialized = true;
     }
   }
@@ -141,8 +133,6 @@ export class TableConfigurator extends LitElement {
           title,
           model: this._model,
           columns: this._columns,
-          colSpan: this._colSpan,
-          rowSpan: this._rowSpan,
         },
       }),
     );
@@ -172,30 +162,6 @@ export class TableConfigurator extends LitElement {
           <option value="transactions" ?selected=${this._model === "transactions"}>Transactions</option>
           <option value="merchants" ?selected=${this._model === "merchants"}>Merchants</option>
           <option value="tags" ?selected=${this._model === "tags"}>Tags</option>
-        </select>
-        <label>Width:</label>
-        <select @change=${(e: Event) => {
-          this._colSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
-            DashboardTable["colSpan"]
-          >;
-        }}>
-          <option value="1" ?selected=${this._colSpan === 1}>1 col</option>
-          <option value="2" ?selected=${this._colSpan === 2}>2 col</option>
-          <option value="3" ?selected=${this._colSpan === 3}>3 col</option>
-          <option value="4" ?selected=${this._colSpan === 4}>4 col</option>
-          <option value="5" ?selected=${this._colSpan === 5}>5 col</option>
-          <option value="6" ?selected=${this._colSpan === 6}>6 col</option>
-        </select>
-        <label>Height:</label>
-        <select @change=${(e: Event) => {
-          this._rowSpan = Number((e.target as HTMLSelectElement).value) as NonNullable<
-            DashboardTable["rowSpan"]
-          >;
-        }}>
-          <option value="1" ?selected=${this._rowSpan === 1}>1 row</option>
-          <option value="2" ?selected=${this._rowSpan === 2}>2 rows</option>
-          <option value="3" ?selected=${this._rowSpan === 3}>3 rows</option>
-          <option value="4" ?selected=${this._rowSpan === 4}>4 rows</option>
         </select>
       </div>
       <label>Columns:</label>
