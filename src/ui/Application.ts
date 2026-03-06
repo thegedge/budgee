@@ -4,11 +4,12 @@ import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { waitForDb } from "../database/Db";
+import { waitForDb, isDemoMode } from "../database/Db";
 import { importDatabase } from "../database/importDb";
 import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
+import { seedDemoData } from "../database/demo";
 import { ConfirmDialog } from "./shared/ConfirmDialog";
 import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { setupGlobalErrorHandler } from "./globalErrorHandler";
@@ -234,6 +235,29 @@ export class Application extends LitElement {
       font-weight: 600;
     }
 
+    .demo-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9000;
+      background: var(--budgee-warning, #f59e0b);
+      color: #000;
+      text-align: center;
+      padding: 0.35rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+
+      a {
+        color: inherit;
+        margin-left: 0.5rem;
+      }
+    }
+
+    :host(.demo-mode) {
+      padding-top: 2rem;
+    }
+
     @media (max-width: 1024px) {
       :host {
         grid-template-areas:
@@ -276,6 +300,7 @@ export class Application extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    if (isDemoMode) this.classList.add("demo-mode");
     this.#initTheme();
     document.addEventListener("keydown", this.#onGlobalKeydown);
     this.addEventListener("dragover", this.#onDragOver);
@@ -284,7 +309,10 @@ export class Application extends LitElement {
     this.addEventListener("drop", this.#onDrop);
     setupGlobalErrorHandler();
     waitForDb()
-      .then((dbs) => migrateDatabase(dbs))
+      .then(async (dbs) => {
+        await migrateDatabase(dbs);
+        if (isDemoMode) await seedDemoData(dbs);
+      })
       .catch((error) => {
         console.error(error);
         const isDatabaseError = error instanceof SchemaVersionError;
@@ -295,7 +323,7 @@ export class Application extends LitElement {
             : String(error);
         showErrorOverlay(message, { isDatabaseError });
       });
-    this.#connectReplication();
+    if (!isDemoMode) this.#connectReplication();
   }
 
   disconnectedCallback() {
@@ -404,11 +432,24 @@ export class Application extends LitElement {
   private navLink(href: string, label: string, icon: string) {
     const path = window.location.pathname;
     const active = href === "/" ? path === "/" : path.startsWith(href);
-    return html`<a href=${href} class=${classMap({ active })}>${unsafeSVG(icon)} ${label}</a>`;
+    const fullHref = isDemoMode ? `${href}${href.includes("?") ? "&" : "?"}demo=1` : href;
+    return html`<a href=${fullHref} class=${classMap({ active })}>${unsafeSVG(icon)} ${label}</a>`;
+  }
+
+  #demoExitHref() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("demo");
+    return url.pathname + url.search;
+  }
+
+  #onDemoExit(e: Event) {
+    e.preventDefault();
+    window.location.href = this.#demoExitHref();
   }
 
   render() {
     return html`
+      ${isDemoMode ? html`<div class="demo-banner">Demo Mode — changes won't be saved <a href=${this.#demoExitHref()} @click=${this.#onDemoExit}>Exit demo</a></div>` : nothing}
       <h1 class="app-name">${unsafeSVG(birdIcon)} Budgee</h1>
       <nav>
         ${this.navLink("/", "Dashboard", chartBarIcon)}
