@@ -17,6 +17,7 @@ import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
+import "../shared/SkeletonLoader";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
@@ -36,7 +37,7 @@ type SortDir = "asc" | "desc";
 @customElement("rule-manager")
 export class RuleManager extends BusyMixin(LitElement) {
   @state()
-  private _rules: MerchantRule[] = [];
+  private _rules: MerchantRule[] | null = null;
 
   @state()
   private _tags: Tag[] = [];
@@ -265,7 +266,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   async #onRuleMerge(e: CustomEvent) {
     await this.withBusy(async () => {
       const { existingRuleId, conditions, apply } = e.detail;
-      const existingRule = this._rules.find((r) => r.id === existingRuleId);
+      const existingRule = this._rules!.find((r) => r.id === existingRuleId);
       if (!existingRule) return;
 
       const mergedData = {
@@ -436,7 +437,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   #renderExistingRules() {
-    if (this._rules.length === 0)
+    if (this._rules!.length === 0)
       return html`
         <budgee-empty-state
           heading="No rules yet"
@@ -448,7 +449,7 @@ export class RuleManager extends BusyMixin(LitElement) {
         </budgee-empty-state>
       `;
 
-    const filteredRules = this._rules.filter((r) => this.#ruleMatchesFilter(r));
+    const filteredRules = this._rules!.filter((r) => this.#ruleMatchesFilter(r));
     const sortedRules = this.#sortedRules(filteredRules);
     const pageStart = (this._rulesPage - 1) * this._rulesPageSize;
     const pageRules = sortedRules.slice(pageStart, pageStart + this._rulesPageSize);
@@ -489,7 +490,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   #renderUnmatchedRules() {
-    const unmatchedRules = this._rules.filter((r) => this._unmatchedRuleIds.has(r.id));
+    const unmatchedRules = this._rules!.filter((r) => this._unmatchedRuleIds.has(r.id));
     if (unmatchedRules.length === 0) return nothing;
 
     const count = unmatchedRules.length;
@@ -578,6 +579,12 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   render() {
+    if (this._rules === null) {
+      return html`
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
+      `;
+    }
+
     const merchantLookup = new Map(this._merchants.map((m) => [m.id, m.name]));
 
     return html`

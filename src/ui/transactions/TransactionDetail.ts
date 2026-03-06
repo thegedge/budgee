@@ -13,6 +13,7 @@ import "../charts/ChartWrapper";
 import { cssVar } from "../cssVar";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { tableStyles } from "../tableStyles";
+import "../shared/SkeletonLoader";
 import "../tags/TagAutocomplete";
 
 declare global {
@@ -277,7 +278,8 @@ export class TransactionDetail extends BusyMixin(LitElement) {
   render() {
     if (!this._transaction) {
       return html`
-        <p>Loading...</p>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
+        <budgee-skeleton variant="text" rows="4"></budgee-skeleton>
       `;
     }
 

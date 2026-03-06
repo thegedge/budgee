@@ -6,10 +6,8 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { waitForDb, isDemoMode } from "../database/Db";
 import { importDatabase } from "../database/importDb";
-import { migrateDatabase } from "../database/migrations";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
-import { seedDemoData } from "../database/demo";
 import { ConfirmDialog } from "./shared/ConfirmDialog";
 import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { setupGlobalErrorHandler } from "./globalErrorHandler";
@@ -308,21 +306,16 @@ export class Application extends LitElement {
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
     setupGlobalErrorHandler();
-    waitForDb()
-      .then(async (dbs) => {
-        await migrateDatabase(dbs);
-        if (isDemoMode) await seedDemoData(dbs);
-      })
-      .catch((error) => {
-        console.error(error);
-        const isDatabaseError = error instanceof SchemaVersionError;
-        const message = isDatabaseError
-          ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
-          : error instanceof Error
-            ? error.message
-            : String(error);
-        showErrorOverlay(message, { isDatabaseError });
-      });
+    waitForDb().catch((error) => {
+      console.error(error);
+      const isDatabaseError = error instanceof SchemaVersionError;
+      const message = isDatabaseError
+        ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
+        : error instanceof Error
+          ? error.message
+          : String(error);
+      showErrorOverlay(message, { isDatabaseError });
+    });
     if (!isDemoMode) this.#connectReplication();
   }
 

@@ -17,6 +17,7 @@ import "../shared/PaginatedTable";
 import "../shared/TimeRangePicker";
 import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import { tableStyles } from "../tableStyles";
+import "../shared/SkeletonLoader";
 import "./DashboardChartCard";
 import "./DashboardTableCard";
 import "./TableConfigurator";
@@ -328,8 +329,8 @@ export class Dashboard extends LitElement {
   render() {
     if (this._transactions === null) {
       return html`
-        <h3>Dashboard</h3>
-        <p>Loading…</p>
+        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
+        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
       `;
     }
 
