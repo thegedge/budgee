@@ -17,7 +17,6 @@
     "noImplicitReturns": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
-    "useUnknownInCatchVariables": false,
     "erasableSyntaxOnly": true,
     "noImplicitAny": true
   },
