@@ -1,57 +1,30 @@
 :root {
-  --budgee-bg: lch(98.3% 0 none);
-  --budgee-border: lch(89.2% 0 none);
+  color-scheme: light dark;
+  --budgee-bg: light-dark(lch(98.3% 0 none), lch(12% 0 none));
+  --budgee-border: light-dark(lch(89.2% 0 none), lch(30% 0 none));
   --budgee-danger-hover: lch(58.2% 41.3 24.4);
   --budgee-danger: lch(72.8% 28.9 22.1);
-  --budgee-negative: lch(66% 26.2 22);
-  --budgee-overlay: lch(0% 0 none / 0.5);
-  --budgee-positive: lch(75% 34.3 158);
-  --budgee-primary-hover: lch(61.4% 26.9 245.6);
-  --budgee-primary: lch(72.1% 25.1 246.4);
-  --budgee-row-alt: lch(94.8% 0 none);
-  --budgee-row-hover: lch(92% 0 none);
-  --budgee-secondary-hover: lch(56% 0 none);
-  --budgee-secondary: lch(66% 0 none);
+  --budgee-negative: light-dark(lch(66% 26.2 22), lch(70% 26.2 22));
+  --budgee-overlay: light-dark(lch(0% 0 none / 0.5), lch(0% 0 none / 0.65));
+  --budgee-positive: light-dark(lch(75% 34.3 158), lch(78% 34.3 158));
+  --budgee-primary-hover: light-dark(lch(61.4% 26.9 245.6), lch(45% 22 245.6));
+  --budgee-primary: light-dark(lch(72.1% 25.1 246.4), lch(52% 20 246.4));
+  --budgee-row-alt: light-dark(lch(94.8% 0 none), lch(22% 0 none));
+  --budgee-row-hover: light-dark(lch(92% 0 none), lch(28% 0 none));
+  --budgee-secondary-hover: light-dark(lch(56% 0 none), lch(60% 0 none));
+  --budgee-secondary: light-dark(lch(66% 0 none), lch(50% 0 none));
   --budgee-success: lch(63.6% 33.6 180.1);
-  --budgee-surface: lch(100% 0 none);
-  --budgee-text-muted: lch(56.7% 0 none);
-  --budgee-text: lch(21.2% 0 none);
+  --budgee-surface: light-dark(lch(100% 0 none), lch(18% 0 none));
+  --budgee-text-muted: light-dark(lch(56.7% 0 none), lch(70% 0 none));
+  --budgee-text: light-dark(lch(21.2% 0 none), lch(82% 0 none));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --budgee-bg: lch(12% 0 none);
-    --budgee-border: lch(30% 0 none);
-    --budgee-negative: lch(70% 26.2 22);
-    --budgee-overlay: lch(0% 0 none / 0.65);
-    --budgee-positive: lch(78% 34.3 158);
-    --budgee-row-alt: lch(22% 0 none);
-    --budgee-row-hover: lch(28% 0 none);
-    --budgee-secondary: lch(50% 0 none);
-    --budgee-secondary-hover: lch(60% 0 none);
-    --budgee-primary: lch(52% 20 246.4);
-    --budgee-primary-hover: lch(45% 22 245.6);
-    --budgee-surface: lch(18% 0 none);
-    --budgee-text-muted: lch(70% 0 none);
-    --budgee-text: lch(82% 0 none);
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --budgee-bg: lch(12% 0 none);
-  --budgee-border: lch(30% 0 none);
-  --budgee-negative: lch(70% 26.2 22);
-  --budgee-overlay: lch(0% 0 none / 0.65);
-  --budgee-positive: lch(78% 34.3 158);
-  --budgee-primary: lch(52% 20 246.4);
-  --budgee-primary-hover: lch(45% 22 245.6);
-  --budgee-row-alt: lch(22% 0 none);
-  --budgee-row-hover: lch(28% 0 none);
-  --budgee-secondary: lch(50% 0 none);
-  --budgee-secondary-hover: lch(60% 0 none);
-  --budgee-surface: lch(18% 0 none);
-  --budgee-text-muted: lch(70% 0 none);
-  --budgee-text: lch(82% 0 none);
+  color-scheme: dark;
 }
 
 body {
