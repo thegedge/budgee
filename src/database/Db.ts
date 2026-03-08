@@ -245,6 +245,12 @@ export class Collection<T extends { id: string }> {
     await this.#collection.bulkUpsert(docs);
   }
 
+  async bulkRemove(ids: string[]): Promise<void> {
+    if (ids.length > 0) {
+      await this.#collection.bulkRemove(ids);
+    }
+  }
+
   async remove(id: string): Promise<void> {
     const doc = await this.#collection.findOne(id).exec();
     if (doc) await doc.remove();
