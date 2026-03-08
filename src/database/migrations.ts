@@ -1,9 +1,69 @@
 import type { Databases } from "./Db";
 import { type DatabaseExport, clearAndImport, exportCurrentData, saveBackup } from "./importDb";
+import type { ChartFilterCondition, DashboardChartRecord } from "./types";
 
 type Migration = (data: DatabaseExport) => DatabaseExport;
 
-const MIGRATIONS: Migration[] = [];
+/**
+ * Converts legacy individual filter fields on dashboard charts into
+ * ChartFilterCondition entries in the `filters` array.
+ */
+function migrateLegacyChartFilters(data: DatabaseExport): DatabaseExport {
+  const charts = data.dashboardCharts;
+  if (!charts) return { ...data, version: 1 };
+
+  const migrated: DashboardChartRecord[] = charts.map((chart) => {
+    const legacy = chart as unknown as Record<string, unknown>;
+    const filters: ChartFilterCondition[] = [...(chart.filters ?? [])];
+
+    if (legacy.tagId)
+      filters.push({ field: "tag", operator: "is", value: legacy.tagId as string });
+    if (legacy.merchantId)
+      filters.push({ field: "merchant", operator: "is", value: legacy.merchantId as string });
+    if (legacy.direction === "debit")
+      filters.push({ field: "amount", operator: "lt", value: "0" });
+    else if (legacy.direction === "credit")
+      filters.push({ field: "amount", operator: "gt", value: "0" });
+    if (legacy.descriptionFilter) {
+      filters.push({
+        field: "description",
+        operator: legacy.descriptionFilterMode === "include" ? "contains" : "excludes",
+        value: legacy.descriptionFilter as string,
+      });
+    }
+    for (const id of (legacy.excludedTagIds as string[]) ?? []) {
+      filters.push({ field: "tag", operator: "isNot", value: id });
+    }
+    for (const id of (legacy.excludedMerchantIds as string[]) ?? []) {
+      filters.push({ field: "merchant", operator: "isNot", value: id });
+    }
+
+    const {
+      tagId: _t,
+      merchantId: _m,
+      direction: _d,
+      descriptionFilter: _df,
+      descriptionFilterMode: _dm,
+      excludedTagIds: _et,
+      excludedMerchantIds: _em,
+      ...rest
+    } = legacy as Record<string, unknown> & DashboardChartRecord;
+
+    return {
+      ...rest,
+      id: chart.id,
+      title: chart.title,
+      chartType: chart.chartType,
+      granularity: chart.granularity,
+      position: chart.position,
+      filters: filters.length > 0 ? filters : undefined,
+    } as DashboardChartRecord;
+  });
+
+  return { ...data, dashboardCharts: migrated, version: 1 };
+}
+
+const MIGRATIONS: Migration[] = [migrateLegacyChartFilters];
 
 export const LATEST_VERSION = MIGRATIONS.length;
 

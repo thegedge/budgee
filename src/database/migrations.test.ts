@@ -20,6 +20,94 @@ describe("migrateExport", () => {
     const result = migrateExport(data);
     expect(result).toBe(data);
   });
+
+  it("should migrate legacy chart filter fields to filters array", () => {
+    const data: DatabaseExport = {
+      version: 0,
+      dashboardCharts: [
+        {
+          id: "c1",
+          title: "Test",
+          chartType: "bar",
+          granularity: "month",
+          position: 0,
+          tagId: "tag1",
+          merchantId: "m1",
+          direction: "debit",
+          descriptionFilter: "CC PAYMENT",
+          descriptionFilterMode: "exclude",
+          excludedTagIds: ["tag2", "tag3"],
+          excludedMerchantIds: ["m2"],
+        } as DatabaseExport["dashboardCharts"] extends (infer T)[] | undefined ? T : never,
+      ],
+    };
+
+    const result = migrateExport(data);
+    expect(result.version).toBe(LATEST_VERSION);
+    expect(result.dashboardCharts).toHaveLength(1);
+
+    const chart = result.dashboardCharts![0];
+    expect(chart.filters).toEqual([
+      { field: "tag", operator: "is", value: "tag1" },
+      { field: "merchant", operator: "is", value: "m1" },
+      { field: "amount", operator: "lt", value: "0" },
+      { field: "description", operator: "excludes", value: "CC PAYMENT" },
+      { field: "tag", operator: "isNot", value: "tag2" },
+      { field: "tag", operator: "isNot", value: "tag3" },
+      { field: "merchant", operator: "isNot", value: "m2" },
+    ]);
+
+    // Legacy fields should be removed
+    const raw = chart as unknown as Record<string, unknown>;
+    expect(raw.tagId).toBeUndefined();
+    expect(raw.merchantId).toBeUndefined();
+    expect(raw.direction).toBeUndefined();
+    expect(raw.descriptionFilter).toBeUndefined();
+    expect(raw.descriptionFilterMode).toBeUndefined();
+    expect(raw.excludedTagIds).toBeUndefined();
+    expect(raw.excludedMerchantIds).toBeUndefined();
+  });
+
+  it("should not create filters for empty legacy fields", () => {
+    const data: DatabaseExport = {
+      version: 0,
+      dashboardCharts: [
+        {
+          id: "c1",
+          title: "Plain",
+          chartType: "bar",
+          granularity: "month",
+          position: 0,
+        },
+      ],
+    };
+
+    const result = migrateExport(data);
+    expect(result.dashboardCharts![0].filters).toBeUndefined();
+  });
+
+  it("should preserve existing filters during migration", () => {
+    const data: DatabaseExport = {
+      version: 0,
+      dashboardCharts: [
+        {
+          id: "c1",
+          title: "Mixed",
+          chartType: "bar",
+          granularity: "month",
+          position: 0,
+          direction: "credit",
+          filters: [{ field: "tag", operator: "is", value: "existing" }],
+        } as DatabaseExport["dashboardCharts"] extends (infer T)[] | undefined ? T : never,
+      ],
+    };
+
+    const result = migrateExport(data);
+    expect(result.dashboardCharts![0].filters).toEqual([
+      { field: "tag", operator: "is", value: "existing" },
+      { field: "amount", operator: "gt", value: "0" },
+    ]);
+  });
 });
 
 describe("migrateDatabase", () => {

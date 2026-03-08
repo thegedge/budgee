@@ -176,10 +176,15 @@ export async function importDatabase(file: File) {
       rule.tagIds = remapIds(tagIdMap, rule.tagIds) ?? rule.tagIds;
     }
     for (const chart of dashboardCharts) {
-      chart.tagId = remapId(tagIdMap, chart.tagId);
-      chart.merchantId = remapId(merchantIdMap, chart.merchantId);
-      chart.excludedTagIds = remapIds(tagIdMap, chart.excludedTagIds);
-      chart.excludedMerchantIds = remapIds(merchantIdMap, chart.excludedMerchantIds);
+      if (chart.filters) {
+        for (const filter of chart.filters) {
+          if (filter.field === "tag") {
+            filter.value = remapId(tagIdMap, filter.value) ?? filter.value;
+          } else if (filter.field === "merchant") {
+            filter.value = remapId(merchantIdMap, filter.value) ?? filter.value;
+          }
+        }
+      }
     }
   }
 

@@ -36,7 +36,7 @@ describe("chart-configurator", () => {
     el.remove();
   });
 
-  it("should migrate legacy fields to filters on save", async () => {
+  it("should preserve filters on save", async () => {
     const el = document.createElement("chart-configurator") as ChartConfigurator;
     el.editingChart = {
       id: "c1",
@@ -44,9 +44,10 @@ describe("chart-configurator", () => {
       chartType: "bar",
       granularity: "month",
       position: 0,
-      direction: "debit",
-      descriptionFilter: "CC PAYMENT",
-      descriptionFilterMode: "exclude",
+      filters: [
+        { field: "amount", operator: "lt", value: "0" },
+        { field: "description", operator: "excludes", value: "CC PAYMENT" },
+      ],
     };
     document.body.appendChild(el);
     await el.updateComplete;

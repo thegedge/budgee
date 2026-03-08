@@ -8,16 +8,9 @@ export class DashboardChart {
   readonly granularity!: "day" | "month" | "year" | "byTag" | "byMerchant";
   readonly startDate?: string;
   readonly endDate?: string;
-  readonly tagId?: string;
-  readonly merchantId?: string;
   readonly position!: number;
   readonly colSpan?: number;
   readonly rowSpan?: number;
-  readonly excludedTagIds?: string[];
-  readonly excludedMerchantIds?: string[];
-  readonly direction?: "debit" | "credit";
-  readonly descriptionFilter?: string;
-  readonly descriptionFilterMode?: "include" | "exclude";
   readonly legendPosition?: "top" | "bottom" | "left" | "right" | "hidden";
   readonly filters?: ChartFilterCondition[];
 

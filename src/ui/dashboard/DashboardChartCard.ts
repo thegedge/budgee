@@ -150,33 +150,22 @@ export class DashboardChartCard extends ResizableMixin(LitElement) {
   ];
 
   get #chartData(): ChartData {
-    const filterOptions = this.config.filters
-      ? chartFiltersToFilterOptions(this.config.filters)
-      : {
-          tagId: this.config.tagId,
-          merchantId: this.config.merchantId,
-          amountFilter:
-            this.config.direction === "debit"
-              ? { operator: "lt" as const, value: 0 }
-              : this.config.direction === "credit"
-                ? { operator: "gt" as const, value: 0 }
-                : undefined,
-          descriptionFilter: this.config.descriptionFilter,
-          descriptionFilterMode: this.config.descriptionFilterMode,
-        };
+    const filterOptions = chartFiltersToFilterOptions(this.config.filters ?? []);
     const filtered = filterTransactions(this.transactions, filterOptions);
 
     const { granularity } = this.config;
+    const excludedTagIds = this.#excludedIds("tag");
+    const excludedMerchantIds = this.#excludedIds("merchant");
     const aggregated =
       granularity === "byTag"
         ? mapKeys(
             aggregateBy(filtered, (tx) => tx.tagIds),
-            this.#excludeEntities(this.tags, this.config.excludedTagIds),
+            this.#excludeEntities(this.tags, excludedTagIds),
           )
         : granularity === "byMerchant"
           ? mapKeys(
               aggregateBy(filtered, (tx) => (tx.merchantId ? [tx.merchantId] : [])),
-              this.#excludeEntities(this.merchants, this.config.excludedMerchantIds),
+              this.#excludeEntities(this.merchants, excludedMerchantIds),
             )
           : aggregateByPeriod(filtered, granularity);
     const isByDimension = granularity === "byTag" || granularity === "byMerchant";
@@ -258,8 +247,14 @@ export class DashboardChartCard extends ResizableMixin(LitElement) {
     };
   }
 
-  #excludeEntities(entities: { id: string; name: string }[], excludedIds?: string[]) {
-    if (!excludedIds?.length) return entities;
+  #excludedIds(field: "tag" | "merchant"): string[] {
+    return (this.config.filters ?? [])
+      .filter((f) => f.field === field && f.operator === "isNot")
+      .map((f) => f.value);
+  }
+
+  #excludeEntities(entities: { id: string; name: string }[], excludedIds: string[]) {
+    if (excludedIds.length === 0) return entities;
     const excluded = new Set(excludedIds);
     return entities.filter((e) => !excluded.has(e.id));
   }

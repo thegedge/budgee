@@ -235,8 +235,6 @@ export class Dashboard extends LitElement {
         title: detail.title,
         chartType: detail.chartType,
         granularity: detail.granularity,
-        excludedTagIds: detail.excludedTagIds,
-        excludedMerchantIds: detail.excludedMerchantIds,
         legendPosition: detail.legendPosition,
         filters: detail.filters,
       });

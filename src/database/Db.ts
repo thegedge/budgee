@@ -114,7 +114,7 @@ const merchantRuleSchema: RxJsonSchema<MerchantRuleRecord> = {
 };
 
 const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -124,16 +124,9 @@ const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
     granularity: { type: "string" },
     startDate: { type: "string" },
     endDate: { type: "string" },
-    tagId: { type: "string" },
-    merchantId: { type: "string" },
     position: { type: "number" },
     colSpan: { type: "number" },
     rowSpan: { type: "number" },
-    excludedTagIds: { type: "array", items: { type: "string" } },
-    excludedMerchantIds: { type: "array", items: { type: "string" } },
-    direction: { type: "string" },
-    descriptionFilter: { type: "string" },
-    descriptionFilterMode: { type: "string" },
     legendPosition: { type: "string" },
     filters: {
       type: "array",
@@ -347,7 +340,44 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
           1: (doc: MerchantRuleRecord) => doc,
         },
       },
-      dashboard_charts: { schema: dashboardChartSchema },
+      dashboard_charts: {
+        schema: dashboardChartSchema,
+        migrationStrategies: {
+          1: (doc: Record<string, unknown>) => {
+            const filters: { field: string; operator: string; value: string }[] = [
+              ...((doc.filters as { field: string; operator: string; value: string }[]) ?? []),
+            ];
+            if (doc.tagId) filters.push({ field: "tag", operator: "is", value: doc.tagId as string });
+            if (doc.merchantId)
+              filters.push({ field: "merchant", operator: "is", value: doc.merchantId as string });
+            if (doc.direction === "debit") filters.push({ field: "amount", operator: "lt", value: "0" });
+            else if (doc.direction === "credit")
+              filters.push({ field: "amount", operator: "gt", value: "0" });
+            if (doc.descriptionFilter) {
+              filters.push({
+                field: "description",
+                operator: doc.descriptionFilterMode === "include" ? "contains" : "excludes",
+                value: doc.descriptionFilter as string,
+              });
+            }
+            for (const id of (doc.excludedTagIds as string[]) ?? []) {
+              filters.push({ field: "tag", operator: "isNot", value: id });
+            }
+            for (const id of (doc.excludedMerchantIds as string[]) ?? []) {
+              filters.push({ field: "merchant", operator: "isNot", value: id });
+            }
+            delete doc.tagId;
+            delete doc.merchantId;
+            delete doc.direction;
+            delete doc.descriptionFilter;
+            delete doc.descriptionFilterMode;
+            delete doc.excludedTagIds;
+            delete doc.excludedMerchantIds;
+            doc.filters = filters.length > 0 ? filters : undefined;
+            return doc;
+          },
+        },
+      },
       dashboard_tables: { schema: dashboardTableSchema },
       meta: { schema: metaSchema },
       backups: { schema: backupSchema },

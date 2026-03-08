@@ -82,16 +82,9 @@ export interface DashboardChartRecord {
   granularity: "day" | "month" | "year" | "byTag" | "byMerchant";
   startDate?: string;
   endDate?: string;
-  tagId?: string;
-  merchantId?: string;
   position: number;
   colSpan?: number;
   rowSpan?: number;
-  excludedTagIds?: string[];
-  excludedMerchantIds?: string[];
-  direction?: "debit" | "credit";
-  descriptionFilter?: string;
-  descriptionFilterMode?: "include" | "exclude";
   legendPosition?: "top" | "bottom" | "left" | "right" | "hidden";
   filters?: ChartFilterCondition[];
 }

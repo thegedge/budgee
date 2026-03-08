@@ -125,30 +125,17 @@ export class ChartConfigurator extends LitElement {
       this._title = this.editingChart.title;
       this._chartType = this.editingChart.chartType;
       this._granularity = this.editingChart.granularity;
-      this._filters = this.editingChart.filters ?? this.#migrateToFilters(this.editingChart);
-      this._excludedTagIds = this.editingChart.excludedTagIds ?? [];
-      this._excludedMerchantIds = this.editingChart.excludedMerchantIds ?? [];
+      const allFilters = this.editingChart.filters ?? [];
+      this._filters = allFilters.filter((f) => !(f.operator === "isNot" && (f.field === "tag" || f.field === "merchant")));
+      this._excludedTagIds = allFilters
+        .filter((f) => f.field === "tag" && f.operator === "isNot")
+        .map((f) => f.value);
+      this._excludedMerchantIds = allFilters
+        .filter((f) => f.field === "merchant" && f.operator === "isNot")
+        .map((f) => f.value);
       this._legendPosition = this.editingChart.legendPosition ?? "top";
       this._initialized = true;
     }
-  }
-
-  #migrateToFilters(chart: DashboardChart): ChartFilterCondition[] {
-    const filters: ChartFilterCondition[] = [];
-    if (chart.tagId) filters.push({ field: "tag", operator: "is", value: chart.tagId });
-    if (chart.merchantId)
-      filters.push({ field: "merchant", operator: "is", value: chart.merchantId });
-    if (chart.direction === "debit") filters.push({ field: "amount", operator: "lt", value: "0" });
-    else if (chart.direction === "credit")
-      filters.push({ field: "amount", operator: "gt", value: "0" });
-    if (chart.descriptionFilter) {
-      filters.push({
-        field: "description",
-        operator: chart.descriptionFilterMode === "include" ? "contains" : "excludes",
-        value: chart.descriptionFilter,
-      });
-    }
-    return filters;
   }
 
   #onFilterChanged(e: CustomEvent) {
@@ -169,7 +156,13 @@ export class ChartConfigurator extends LitElement {
     const title = this._title.trim();
     if (!title) return;
 
-    const validFilters = this._filters.filter((f) => f.value.trim());
+    const validFilters: ChartFilterCondition[] = this._filters.filter((f) => f.value.trim());
+    for (const id of this._excludedTagIds) {
+      validFilters.push({ field: "tag", operator: "isNot", value: id });
+    }
+    for (const id of this._excludedMerchantIds) {
+      validFilters.push({ field: "merchant", operator: "isNot", value: id });
+    }
 
     this.dispatchEvent(
       new CustomEvent("chart-saved", {
@@ -178,9 +171,6 @@ export class ChartConfigurator extends LitElement {
           title,
           chartType: this._chartType,
           granularity: this._granularity,
-          excludedTagIds: this._excludedTagIds.length > 0 ? this._excludedTagIds : undefined,
-          excludedMerchantIds:
-            this._excludedMerchantIds.length > 0 ? this._excludedMerchantIds : undefined,
           legendPosition: this._legendPosition,
           filters: validFilters.length > 0 ? validFilters : undefined,
         },
