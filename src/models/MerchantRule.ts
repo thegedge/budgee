@@ -65,18 +65,23 @@ function matchesCondition(value: string | undefined, c: PreparedCondition): bool
 }
 
 export class MerchantRule {
-  readonly id!: string;
-  readonly logic!: "and" | "or";
-  readonly conditions!: RuleCondition[];
+  readonly id: string;
+  readonly logic: "and" | "or";
+  readonly conditions: RuleCondition[];
   readonly merchantId?: string;
   readonly accountId?: string;
-  readonly tagIds!: string[];
+  readonly tagIds: string[];
 
   readonly #prepared: PreparedCondition[];
 
   constructor(data: MerchantRuleRecord) {
-    Object.assign(this, data);
-    this.#prepared = this.conditions.map((c) => ({
+    this.id = data.id;
+    this.logic = data.logic;
+    this.conditions = data.conditions;
+    this.merchantId = data.merchantId;
+    this.accountId = data.accountId;
+    this.tagIds = data.tagIds;
+    this.#prepared = data.conditions.map((c) => ({
       field: c.field,
       operator: c.operator,
       value: c.value.toLowerCase(),

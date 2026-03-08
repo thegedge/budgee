@@ -20,17 +20,24 @@ async function getCache(): Promise<Transaction[]> {
 }
 
 export class Transaction {
-  readonly id!: string;
-  readonly date!: string;
-  readonly amount!: number;
-  readonly description!: string;
+  readonly id: string;
+  readonly date: string;
+  readonly amount: number;
+  readonly description: string;
   readonly memo?: string;
   readonly merchantId?: string;
   readonly accountId?: string;
-  readonly tagIds!: string[];
+  readonly tagIds: string[];
 
   constructor(data: TransactionRecord) {
-    Object.assign(this, data);
+    this.id = data.id;
+    this.date = data.date;
+    this.amount = data.amount;
+    this.description = data.description;
+    this.memo = data.memo;
+    this.merchantId = data.merchantId;
+    this.accountId = data.accountId;
+    this.tagIds = data.tagIds;
   }
 
   static async subscribe(callback: () => void) {
