@@ -72,7 +72,7 @@ describe("rule-manager", () => {
     let deleteBtn: HTMLButtonElement;
     await waitFor(() => {
       const tableEls = el.shadowRoot!.querySelectorAll("paginated-table");
-      for (const tableEl of tableEls) {
+      for (const tableEl of Array.from(tableEls)) {
         const btn = tableEl.shadowRoot!.querySelector(
           'button[aria-label="Delete rule"]',
         ) as HTMLButtonElement | null;

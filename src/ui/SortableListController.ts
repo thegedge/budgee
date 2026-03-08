@@ -42,6 +42,8 @@ export class SortableListController<T, K extends string = string> implements Rea
     host.addController(this);
   }
 
+  hostConnected() {}
+
   /** Filter then sort the given items. Returns a new array. */
   filterAndSort(items: T[]): T[] {
     const filtered = items.filter((item) => this.#filterFn(item, this.filter));
