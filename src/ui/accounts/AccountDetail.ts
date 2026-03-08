@@ -42,7 +42,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
   @state()
   private _timeRange: TimeRange = null;
 
-
   static styles = [
     busyStyles,
     tableStyles,
@@ -137,10 +136,8 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   constructor() {
     super();
-    new DataSubscriptionController(
-      this,
-      [Account.subscribe, Transaction.subscribe],
-      () => this.#load(),
+    new DataSubscriptionController(this, [Account.subscribe, Transaction.subscribe], () =>
+      this.#load(),
     );
   }
 

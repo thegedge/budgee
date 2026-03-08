@@ -25,7 +25,10 @@ export class Tag {
   }
 
   static async create(name: string, options?: Partial<TagRecord>): Promise<Tag> {
-    const doc = await tags.create({ name, color: randomTagColor(), ...options } as Omit<TagRecord, "id">);
+    const doc = await tags.create({ name, color: randomTagColor(), ...options } as Omit<
+      TagRecord,
+      "id"
+    >);
     return new Tag(doc);
   }
 

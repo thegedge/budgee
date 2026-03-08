@@ -6,7 +6,6 @@ import "./TransactionList";
 import { TransactionList } from "./TransactionList";
 
 describe("transaction-list", () => {
-
   it("should be defined", () => {
     expect(customElements.get("transaction-list")).toBe(TransactionList);
   });

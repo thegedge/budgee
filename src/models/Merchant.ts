@@ -50,9 +50,7 @@ export const merchants = new Repository<MerchantRecord>({
     const all = await dbs.transactions.all();
     const affected = all.filter((t) => t.merchantId === id);
     if (affected.length > 0) {
-      await dbs.transactions.bulkDocs(
-        affected.map((t) => ({ ...t, merchantId: "" })),
-      );
+      await dbs.transactions.bulkDocs(affected.map((t) => ({ ...t, merchantId: "" })));
     }
   },
 });

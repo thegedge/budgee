@@ -30,10 +30,7 @@ export class SortableListController<T, K extends string = string> implements Rea
   sortDir: SortDir;
   filter = "";
 
-  constructor(
-    host: ReactiveControllerHost,
-    options: SortableListControllerOptions<T, K>,
-  ) {
+  constructor(host: ReactiveControllerHost, options: SortableListControllerOptions<T, K>) {
     this.#host = host;
     this.#comparators = options.comparators;
     this.#filterFn = options.filterFn;

@@ -58,10 +58,8 @@ export class MerchantList extends LitElement {
 
   constructor() {
     super();
-    new DataSubscriptionController(
-      this,
-      [Merchant.subscribe, Transaction.subscribe],
-      () => this.#load(),
+    new DataSubscriptionController(this, [Merchant.subscribe, Transaction.subscribe], () =>
+      this.#load(),
     );
   }
 

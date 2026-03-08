@@ -6,7 +6,6 @@ import "./Dashboard";
 import { Dashboard } from "./Dashboard";
 
 describe("budgee-dashboard", () => {
-
   it("should be defined", () => {
     expect(customElements.get("budgee-dashboard")).toBe(Dashboard);
   });

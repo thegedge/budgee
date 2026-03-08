@@ -6,7 +6,6 @@ import "./AccountList";
 import { AccountList } from "./AccountList";
 
 describe("account-list", () => {
-
   it("should be defined", () => {
     expect(customElements.get("account-list")).toBe(AccountList);
   });

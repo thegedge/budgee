@@ -42,7 +42,6 @@ export class MerchantDetail extends LitElement {
   @state()
   private _draftName = "";
 
-
   static styles = [
     tableStyles,
     css`
@@ -126,10 +125,8 @@ export class MerchantDetail extends LitElement {
 
   constructor() {
     super();
-    new DataSubscriptionController(
-      this,
-      [Merchant.subscribe, Transaction.subscribe],
-      () => this.#load(),
+    new DataSubscriptionController(this, [Merchant.subscribe, Transaction.subscribe], () =>
+      this.#load(),
     );
   }
 

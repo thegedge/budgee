@@ -16,12 +16,10 @@ function migrateLegacyChartFilters(data: DatabaseExport): DatabaseExport {
     const legacy = chart as unknown as Record<string, unknown>;
     const filters: ChartFilterCondition[] = [...(chart.filters ?? [])];
 
-    if (legacy.tagId)
-      filters.push({ field: "tag", operator: "is", value: legacy.tagId as string });
+    if (legacy.tagId) filters.push({ field: "tag", operator: "is", value: legacy.tagId as string });
     if (legacy.merchantId)
       filters.push({ field: "merchant", operator: "is", value: legacy.merchantId as string });
-    if (legacy.direction === "debit")
-      filters.push({ field: "amount", operator: "lt", value: "0" });
+    if (legacy.direction === "debit") filters.push({ field: "amount", operator: "lt", value: "0" });
     else if (legacy.direction === "credit")
       filters.push({ field: "amount", operator: "gt", value: "0" });
     if (legacy.descriptionFilter) {

@@ -54,9 +54,7 @@ export const accounts = new Repository<AccountRecord>({
     const all = await dbs.transactions.all();
     const affected = all.filter((t) => t.accountId === id);
     if (affected.length > 0) {
-      await dbs.transactions.bulkDocs(
-        affected.map((t) => ({ ...t, accountId: "" })),
-      );
+      await dbs.transactions.bulkDocs(affected.map((t) => ({ ...t, accountId: "" })));
     }
   },
 });

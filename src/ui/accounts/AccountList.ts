@@ -61,10 +61,8 @@ export class AccountList extends LitElement {
 
   constructor() {
     super();
-    new DataSubscriptionController(
-      this,
-      [Account.subscribe, Transaction.subscribe],
-      () => this.#load(),
+    new DataSubscriptionController(this, [Account.subscribe, Transaction.subscribe], () =>
+      this.#load(),
     );
   }
 

@@ -126,7 +126,9 @@ export class ChartConfigurator extends LitElement {
       this._chartType = this.editingChart.chartType;
       this._granularity = this.editingChart.granularity;
       const allFilters = this.editingChart.filters ?? [];
-      this._filters = allFilters.filter((f) => !(f.operator === "isNot" && (f.field === "tag" || f.field === "merchant")));
+      this._filters = allFilters.filter(
+        (f) => !(f.operator === "isNot" && (f.field === "tag" || f.field === "merchant")),
+      );
       this._excludedTagIds = allFilters
         .filter((f) => f.field === "tag" && f.operator === "isNot")
         .map((f) => f.value);

@@ -6,7 +6,6 @@ import "./RuleManager";
 import { RuleManager } from "./RuleManager";
 
 describe("rule-manager", () => {
-
   it("should be defined", () => {
     expect(customElements.get("rule-manager")).toBe(RuleManager);
   });

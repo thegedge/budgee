@@ -6,7 +6,6 @@ import "./TagManager";
 import { TagManager } from "./TagManager";
 
 describe("tag-manager", () => {
-
   it("should be defined", () => {
     expect(customElements.get("tag-manager")).toBe(TagManager);
   });

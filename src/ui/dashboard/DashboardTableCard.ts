@@ -62,7 +62,6 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
     );
   }
 
-
   static styles = [
     tableStyles,
     iconButtonStyles,
@@ -101,7 +100,6 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
   #onDelete() {
     this.dispatchEvent(new CustomEvent("table-deleted", { detail: { id: this.config.id } }));
   }
-
 
   #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";

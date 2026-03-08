@@ -347,10 +347,12 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
             const filters: { field: string; operator: string; value: string }[] = [
               ...((doc.filters as { field: string; operator: string; value: string }[]) ?? []),
             ];
-            if (doc.tagId) filters.push({ field: "tag", operator: "is", value: doc.tagId as string });
+            if (doc.tagId)
+              filters.push({ field: "tag", operator: "is", value: doc.tagId as string });
             if (doc.merchantId)
               filters.push({ field: "merchant", operator: "is", value: doc.merchantId as string });
-            if (doc.direction === "debit") filters.push({ field: "amount", operator: "lt", value: "0" });
+            if (doc.direction === "debit")
+              filters.push({ field: "amount", operator: "lt", value: "0" });
             else if (doc.direction === "credit")
               filters.push({ field: "amount", operator: "gt", value: "0" });
             if (doc.descriptionFilter) {
