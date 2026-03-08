@@ -1,9 +1,9 @@
-import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
+import { showToast } from "./shared/toast";
 
 export function setupGlobalErrorHandler() {
   window.addEventListener("error", (event) => {
     const message = event.message || "An unknown error occurred.";
-    showErrorOverlay(message);
+    showToast({ message, type: "error" });
   });
 
   window.addEventListener("unhandledrejection", (event) => {
@@ -14,6 +14,6 @@ export function setupGlobalErrorHandler() {
         : reason
           ? String(reason)
           : "An unhandled promise rejection occurred.";
-    showErrorOverlay(message);
+    showToast({ message, type: "error" });
   });
 }
