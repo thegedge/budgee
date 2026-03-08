@@ -2,10 +2,12 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { transactionStats } from "../../charting/transactionStats";
 import { accountTypeLabel } from "../../database/types";
+import { formatAmount } from "../../formatAmount";
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
@@ -24,22 +26,29 @@ interface AccountRow {
   balance: number | null;
 }
 
-type SortColumn = "name" | "type" | "count" | "balance";
-type SortDir = "asc" | "desc";
-
 @customElement("account-list")
 export class AccountList extends LitElement {
   @state()
   private _rows: AccountRow[] | null = null;
 
-  @state()
-  private _filter = "";
-
-  @state()
-  private _sortCol: SortColumn = "name";
-
-  @state()
-  private _sortDir: SortDir = "asc";
+  #sort = new SortableListController<AccountRow>(this, {
+    defaultSortCol: "name",
+    defaultSortDir: "asc",
+    comparators: {
+      name: (a, b) => a.account.name.localeCompare(b.account.name),
+      type: (a, b) => (a.account.type ?? "").localeCompare(b.account.type ?? ""),
+      count: (a, b) => (a.transactionCount ?? 0) - (b.transactionCount ?? 0),
+      balance: (a, b) => (a.balance ?? 0) - (b.balance ?? 0),
+    },
+    filterFn: (row, filter) => {
+      const lower = filter.toLowerCase();
+      if (row.account.name.toLowerCase().includes(lower)) return true;
+      if (row.account.type?.toLowerCase().includes(lower)) return true;
+      if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
+      if (row.balance != null && row.balance.toFixed(2).includes(lower)) return true;
+      return false;
+    },
+  });
 
   static styles = [
     tableStyles,
@@ -79,52 +88,6 @@ export class AccountList extends LitElement {
     });
   }
 
-  #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
-    this._filter = e.detail.filter;
-  }
-
-  #matchesFilter(row: AccountRow): boolean {
-    if (!this._filter) return true;
-    const lower = this._filter.toLowerCase();
-    if (row.account.name.toLowerCase().includes(lower)) return true;
-    if (row.account.type?.toLowerCase().includes(lower)) return true;
-    if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
-    if (row.balance != null && row.balance.toFixed(2).includes(lower)) return true;
-    return false;
-  }
-
-  #onSortClick(col: SortColumn) {
-    if (this._sortCol === col) {
-      this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
-    } else {
-      this._sortCol = col;
-      this._sortDir = "asc";
-    }
-  }
-
-  #sortIndicator(col: SortColumn): string {
-    if (this._sortCol !== col) return "";
-    return this._sortDir === "asc" ? " ▲" : " ▼";
-  }
-
-  #sorted(rows: AccountRow[]): AccountRow[] {
-    const col = this._sortCol;
-    const dir = this._sortDir === "asc" ? 1 : -1;
-    return [...rows].sort((a, b) => {
-      let cmp = 0;
-      if (col === "name") {
-        cmp = a.account.name.localeCompare(b.account.name);
-      } else if (col === "type") {
-        cmp = (a.account.type ?? "").localeCompare(b.account.type ?? "");
-      } else if (col === "count") {
-        cmp = (a.transactionCount ?? 0) - (b.transactionCount ?? 0);
-      } else if (col === "balance") {
-        cmp = (a.balance ?? 0) - (b.balance ?? 0);
-      }
-      return cmp * dir;
-    });
-  }
-
   #navigateToAccount(id: string) {
     navigate(`/accounts/${id}`);
   }
@@ -145,40 +108,40 @@ export class AccountList extends LitElement {
       `;
     }
 
-    const filtered = this._rows.filter((r) => this.#matchesFilter(r));
-    const sorted = this.#sorted(filtered);
+    const processed = this.#sort.filterAndSort(this._rows);
 
     return html`
       <paginated-table
-        .items=${sorted}
+        .items=${processed}
         .defaultPageSize=${25}
         storageKey="accounts"
         ?filterable=${true}
-        @filter-change=${this.#onFilterChange}
+        @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
+          this.#sort.onFilterChange(e.detail.filter)}
         .renderRow=${(row: AccountRow) => html`
           <tr @click=${() => this.#navigateToAccount(row.account.id)}>
             <td>${row.account.name}</td>
             <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td class="col-amount ${row.balance != null && row.balance < 0 ? "amount-negative" : row.balance != null ? "amount-positive" : ""}">
-              ${row.balance != null ? row.balance.toFixed(2) : "…"}
+              ${row.balance != null ? formatAmount(row.balance) : "…"}
             </td>
           </tr>
         `}
       >
         <thead slot="header">
           <tr>
-            <th class="sortable" @click=${() => this.#onSortClick("name")}>
-              Name${this.#sortIndicator("name")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("name")}>
+              Name${this.#sort.sortIndicator("name")}
             </th>
-            <th class="sortable" @click=${() => this.#onSortClick("type")}>
-              Type${this.#sortIndicator("type")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("type")}>
+              Type${this.#sort.sortIndicator("type")}
             </th>
-            <th class="sortable" @click=${() => this.#onSortClick("count")}>
-              Transactions${this.#sortIndicator("count")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("count")}>
+              Transactions${this.#sort.sortIndicator("count")}
             </th>
-            <th class="sortable col-amount" @click=${() => this.#onSortClick("balance")}>
-              Balance${this.#sortIndicator("balance")}
+            <th class="sortable col-amount" @click=${() => this.#sort.onSortClick("balance")}>
+              Balance${this.#sort.sortIndicator("balance")}
             </th>
           </tr>
         </thead>

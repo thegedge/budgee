@@ -4,6 +4,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
+import { formatAmount } from "../../formatAmount";
 import { Account } from "../../models/Account";
 import { Merchant } from "../../models/Merchant";
 import { MerchantRule, prepareTransaction } from "../../models/MerchantRule";
@@ -14,6 +15,7 @@ import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
@@ -30,9 +32,6 @@ declare global {
     "rule-manager": RuleManager;
   }
 }
-
-type RulesSortColumn = "conditions" | "merchant" | "tags";
-type SortDir = "asc" | "desc";
 
 @customElement("rule-manager")
 export class RuleManager extends BusyMixin(LitElement) {
@@ -64,15 +63,6 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _editingMerchantName = "";
 
   @state()
-  private _rulesFilter = "";
-
-  @state()
-  private _rulesSortCol: RulesSortColumn = "conditions";
-
-  @state()
-  private _rulesSortDir: SortDir = "asc";
-
-  @state()
   private _unmerchantedFilter = "";
 
   @state()
@@ -80,6 +70,35 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   @state()
   private _overlapData: OverlapPair[] = [];
+
+  #rulesSort = new SortableListController<MerchantRule>(this, {
+    defaultSortCol: "conditions",
+    defaultSortDir: "asc",
+    comparators: {
+      conditions: (a, b) => {
+        const aVal = a.conditions[0]?.value ?? "";
+        const bVal = b.conditions[0]?.value ?? "";
+        return aVal.localeCompare(bVal);
+      },
+      merchant: (a, b) =>
+        this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId)),
+      tags: (a, b) => {
+        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+        return aNames.localeCompare(bNames);
+      },
+    },
+    filterFn: (rule, filter) => {
+      const lower = filter.toLowerCase();
+      if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
+      if (rule.merchantId) {
+        const merchant = this._merchants.find((m) => m.id === rule.merchantId);
+        if (merchant?.name.toLowerCase().includes(lower)) return true;
+      }
+      if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
+      return false;
+    },
+  });
 
   static styles = [
     buttonStyles,
@@ -302,60 +321,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       .join(rule.logic === "and" ? " AND " : " OR ");
   }
 
-  #onRulesFilterChange(e: CustomEvent<FilterChangeDetail>) {
-    this._rulesFilter = e.detail.filter;
-  }
-
-  #ruleMatchesFilter(rule: MerchantRule): boolean {
-    if (!this._rulesFilter) return true;
-    const lower = this._rulesFilter.toLowerCase();
-    if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
-    if (rule.merchantId) {
-      const merchant = this._merchants.find((m) => m.id === rule.merchantId);
-      if (merchant?.name.toLowerCase().includes(lower)) return true;
-    }
-    if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
-    return false;
-  }
-
-  #onRulesSortClick(col: RulesSortColumn) {
-    if (this._rulesSortCol === col) {
-      this._rulesSortDir = this._rulesSortDir === "asc" ? "desc" : "asc";
-    } else {
-      this._rulesSortCol = col;
-      this._rulesSortDir = "asc";
-    }
-  }
-
-  #rulesSortIndicator(col: RulesSortColumn): string {
-    if (this._rulesSortCol !== col) return "";
-    return this._rulesSortDir === "asc" ? " ▲" : " ▼";
-  }
-
-  #sortedRules(rules: MerchantRule[]): MerchantRule[] {
-    const col = this._rulesSortCol;
-    const dir = this._rulesSortDir === "asc" ? 1 : -1;
-    return [...rules].sort((a, b) => {
-      let cmp = 0;
-      if (col === "conditions") {
-        const aVal = a.conditions[0]?.value ?? "";
-        const bVal = b.conditions[0]?.value ?? "";
-        cmp = aVal.localeCompare(bVal);
-      } else if (col === "merchant") {
-        cmp = this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId));
-      } else if (col === "tags") {
-        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
-        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
-        cmp = aNames.localeCompare(bNames);
-      }
-      return cmp * dir;
-    });
-  }
-
-  #onUnmerchantedFilterChange(e: CustomEvent<FilterChangeDetail>) {
-    this._unmerchantedFilter = e.detail.filter;
-  }
-
   #selectTransaction(tx: Transaction) {
     this._prefillDescription = tx.description;
     this._showEditor = true;
@@ -411,30 +376,30 @@ export class RuleManager extends BusyMixin(LitElement) {
         </budgee-empty-state>
       `;
 
-    const filteredRules = this._rules!.filter((r) => this.#ruleMatchesFilter(r));
-    const sortedRules = this.#sortedRules(filteredRules);
+    const processedRules = this.#rulesSort.filterAndSort(this._rules!);
 
     return html`
       <div class="section">
         <h3>Existing Rules</h3>
         <paginated-table
-          .items=${sortedRules}
+          .items=${processedRules}
           .defaultPageSize=${10}
           storageKey="rules"
           ?filterable=${true}
-          @filter-change=${this.#onRulesFilterChange}
+          @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
+            this.#rulesSort.onFilterChange(e.detail.filter)}
           .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
         >
           <thead slot="header">
             <tr>
-              <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
-                Conditions${this.#rulesSortIndicator("conditions")}
+              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("conditions")}>
+                Conditions${this.#rulesSort.sortIndicator("conditions")}
               </th>
-              <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
-                Merchant${this.#rulesSortIndicator("merchant")}
+              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("merchant")}>
+                Merchant${this.#rulesSort.sortIndicator("merchant")}
               </th>
-              <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
-                Tags${this.#rulesSortIndicator("tags")}
+              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("tags")}>
+                Tags${this.#rulesSort.sortIndicator("tags")}
               </th>
               <th></th>
             </tr>
@@ -474,12 +439,14 @@ export class RuleManager extends BusyMixin(LitElement) {
           .defaultPageSize=${20}
           storageKey="unmerchanted"
           ?filterable=${true}
-          @filter-change=${this.#onUnmerchantedFilterChange}
+          @filter-change=${(e: CustomEvent<FilterChangeDetail>) => {
+            this._unmerchantedFilter = e.detail.filter;
+          }}
           .renderRow=${(tx: Transaction) => html`
             <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
               <td>${tx.date}</td>
               <td>${tx.description}</td>
-              <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
+              <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
             </tr>
           `}
         >

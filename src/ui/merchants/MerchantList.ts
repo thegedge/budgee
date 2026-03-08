@@ -1,10 +1,12 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { transactionStats } from "../../charting/transactionStats";
+import { formatAmount } from "../../formatAmount";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
@@ -23,22 +25,27 @@ interface MerchantRow {
   totalSpend: number | null;
 }
 
-type SortColumn = "name" | "count" | "spend";
-type SortDir = "asc" | "desc";
-
 @customElement("merchant-list")
 export class MerchantList extends LitElement {
   @state()
   private _rows: MerchantRow[] | null = null;
 
-  @state()
-  private _filter = "";
-
-  @state()
-  private _sortCol: SortColumn = "name";
-
-  @state()
-  private _sortDir: SortDir = "asc";
+  #sort = new SortableListController<MerchantRow>(this, {
+    defaultSortCol: "name",
+    defaultSortDir: "asc",
+    comparators: {
+      name: (a, b) => a.merchant.name.localeCompare(b.merchant.name),
+      count: (a, b) => (a.transactionCount ?? 0) - (b.transactionCount ?? 0),
+      spend: (a, b) => (a.totalSpend ?? 0) - (b.totalSpend ?? 0),
+    },
+    filterFn: (row, filter) => {
+      const lower = filter.toLowerCase();
+      if (row.merchant.name.toLowerCase().includes(lower)) return true;
+      if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
+      if (row.totalSpend != null && row.totalSpend.toFixed(2).includes(lower)) return true;
+      return false;
+    },
+  });
 
   static styles = [
     tableStyles,
@@ -78,49 +85,6 @@ export class MerchantList extends LitElement {
     });
   }
 
-  #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
-    this._filter = e.detail.filter;
-  }
-
-  #matchesFilter(row: MerchantRow): boolean {
-    if (!this._filter) return true;
-    const lower = this._filter.toLowerCase();
-    if (row.merchant.name.toLowerCase().includes(lower)) return true;
-    if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
-    if (row.totalSpend != null && row.totalSpend.toFixed(2).includes(lower)) return true;
-    return false;
-  }
-
-  #onSortClick(col: SortColumn) {
-    if (this._sortCol === col) {
-      this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
-    } else {
-      this._sortCol = col;
-      this._sortDir = "asc";
-    }
-  }
-
-  #sortIndicator(col: SortColumn): string {
-    if (this._sortCol !== col) return "";
-    return this._sortDir === "asc" ? " ▲" : " ▼";
-  }
-
-  #sorted(rows: MerchantRow[]): MerchantRow[] {
-    const col = this._sortCol;
-    const dir = this._sortDir === "asc" ? 1 : -1;
-    return [...rows].sort((a, b) => {
-      let cmp = 0;
-      if (col === "name") {
-        cmp = a.merchant.name.localeCompare(b.merchant.name);
-      } else if (col === "count") {
-        cmp = (a.transactionCount ?? 0) - (b.transactionCount ?? 0);
-      } else if (col === "spend") {
-        cmp = (a.totalSpend ?? 0) - (b.totalSpend ?? 0);
-      }
-      return cmp * dir;
-    });
-  }
-
   #navigateToMerchant(id: string) {
     navigate(`/merchants/${id}`);
   }
@@ -141,36 +105,36 @@ export class MerchantList extends LitElement {
       `;
     }
 
-    const filtered = this._rows.filter((r) => this.#matchesFilter(r));
-    const sorted = this.#sorted(filtered);
+    const processed = this.#sort.filterAndSort(this._rows);
 
     return html`
       <paginated-table
-        .items=${sorted}
+        .items=${processed}
         .defaultPageSize=${25}
         storageKey="merchants"
         ?filterable=${true}
-        @filter-change=${this.#onFilterChange}
+        @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
+          this.#sort.onFilterChange(e.detail.filter)}
         .renderRow=${(row: MerchantRow) => html`
           <tr @click=${() => this.#navigateToMerchant(row.merchant.id)}>
             <td>${row.merchant.name}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
-              ${row.totalSpend != null ? row.totalSpend.toFixed(2) : "…"}
+              ${row.totalSpend != null ? formatAmount(row.totalSpend) : "…"}
             </td>
           </tr>
         `}
       >
         <thead slot="header">
           <tr>
-            <th class="sortable" @click=${() => this.#onSortClick("name")}>
-              Name${this.#sortIndicator("name")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("name")}>
+              Name${this.#sort.sortIndicator("name")}
             </th>
-            <th class="sortable" @click=${() => this.#onSortClick("count")}>
-              Transactions${this.#sortIndicator("count")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("count")}>
+              Transactions${this.#sort.sortIndicator("count")}
             </th>
-            <th class="sortable col-amount" @click=${() => this.#onSortClick("spend")}>
-              Total Spend${this.#sortIndicator("spend")}
+            <th class="sortable col-amount" @click=${() => this.#sort.onSortClick("spend")}>
+              Total Spend${this.#sort.sortIndicator("spend")}
             </th>
           </tr>
         </thead>

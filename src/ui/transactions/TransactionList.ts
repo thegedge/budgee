@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
+import { formatAmount } from "../../formatAmount";
 import { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
@@ -16,6 +17,7 @@ import type { FilterChangeDetail } from "../shared/PaginatedTable";
 import { PaginatedTable } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/SkeletonLoader";
 import { highlightMatch } from "../shared/highlightMatch";
@@ -28,9 +30,6 @@ declare global {
     "transaction-list": TransactionList;
   }
 }
-
-type SortColumn = "date" | "merchant" | "description" | "amount" | "tags";
-type SortDir = "asc" | "desc";
 
 @customElement("transaction-list")
 export class TransactionList extends BusyMixin(LitElement) {
@@ -49,15 +48,6 @@ export class TransactionList extends BusyMixin(LitElement) {
   private _merchantList: Merchant[] = [];
 
   @state()
-  private _filter = "";
-
-  @state()
-  private _sortCol: SortColumn = "date";
-
-  @state()
-  private _sortDir: SortDir = "desc";
-
-  @state()
   private _selectedIds = new Set<string>();
 
   @state()
@@ -71,6 +61,36 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   @state()
   private _showImporter = false;
+
+  #sort = new SortableListController<Transaction>(this, {
+    defaultSortCol: "date",
+    defaultSortDir: "desc",
+    comparators: {
+      date: (a, b) => a.date.localeCompare(b.date),
+      merchant: (a, b) =>
+        this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId)),
+      description: (a, b) => a.description.localeCompare(b.description),
+      amount: (a, b) => a.amount - b.amount,
+      tags: (a, b) => {
+        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+        return aNames.localeCompare(bNames);
+      },
+    },
+    filterFn: (t, filter) => {
+      if (this._noMerchant && t.merchantId) return false;
+      if (t.tagIds.some((id) => this._excludeTagIds.has(id))) return false;
+      if (!filter) return true;
+      const lower = filter.toLowerCase();
+      if (t.description.toLowerCase().includes(lower)) return true;
+      if (t.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
+      if (t.merchantId && this._merchants.get(t.merchantId)?.toLowerCase().includes(lower))
+        return true;
+      if (t.date.includes(lower)) return true;
+      if (t.amount.toFixed(2).includes(lower)) return true;
+      return false;
+    },
+  });
 
   static styles = [
     buttonStyles,
@@ -238,39 +258,6 @@ export class TransactionList extends BusyMixin(LitElement) {
     return this.#tag(tagId)?.name ?? `#${tagId}`;
   }
 
-  #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
-    this._filter = e.detail.filter;
-  }
-
-  #matchesFilter(t: Transaction): boolean {
-    if (this._noMerchant && t.merchantId) return false;
-    if (t.tagIds.some((id) => this._excludeTagIds.has(id))) return false;
-
-    if (!this._filter) return true;
-    const lower = this._filter.toLowerCase();
-    if (t.description.toLowerCase().includes(lower)) return true;
-    if (t.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
-    if (t.merchantId && this._merchants.get(t.merchantId)?.toLowerCase().includes(lower))
-      return true;
-    if (t.date.includes(lower)) return true;
-    if (t.amount.toFixed(2).includes(lower)) return true;
-    return false;
-  }
-
-  #onSortClick(col: SortColumn) {
-    if (this._sortCol === col) {
-      this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
-    } else {
-      this._sortCol = col;
-      this._sortDir = "asc";
-    }
-  }
-
-  #sortIndicator(col: SortColumn): string {
-    if (this._sortCol !== col) return "";
-    return this._sortDir === "asc" ? " ▲" : " ▼";
-  }
-
   #merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
     return this._merchants.get(merchantId) ?? "";
@@ -280,28 +267,6 @@ export class TransactionList extends BusyMixin(LitElement) {
     const [year, month, day] = dateStr.split("-");
     const date = new Date(Number(year), Number(month) - 1, Number(day));
     return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  }
-
-  #sorted(transactions: Transaction[]): Transaction[] {
-    const col = this._sortCol;
-    const dir = this._sortDir === "asc" ? 1 : -1;
-    return [...transactions].sort((a, b) => {
-      let cmp = 0;
-      if (col === "date") {
-        cmp = a.date.localeCompare(b.date);
-      } else if (col === "merchant") {
-        cmp = this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId));
-      } else if (col === "description") {
-        cmp = a.description.localeCompare(b.description);
-      } else if (col === "amount") {
-        cmp = a.amount - b.amount;
-      } else if (col === "tags") {
-        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
-        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
-        cmp = aNames.localeCompare(bNames);
-      }
-      return cmp * dir;
-    });
   }
 
   #navigateToMerchant(id: string) {
@@ -540,13 +505,12 @@ export class TransactionList extends BusyMixin(LitElement) {
       `;
     }
 
-    const filtered = this._transactions.filter((t) => this.#matchesFilter(t));
-    const sorted = this.#sorted(filtered);
+    const processed = this.#sort.filterAndSort(this._transactions);
 
     // Get current page items from the paginated-table element so the
     // "select all on page" checkbox reflects the actual visible rows.
     const tableEl = this.shadowRoot?.querySelector<PaginatedTable<Transaction>>("paginated-table");
-    const pageTransactions = tableEl ? tableEl.currentItems : sorted.slice(0, 50);
+    const pageTransactions = tableEl ? tableEl.currentItems : processed.slice(0, 50);
     const pageIds = pageTransactions.map((t) => t.id);
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
@@ -566,11 +530,12 @@ export class TransactionList extends BusyMixin(LitElement) {
       ${this.#renderFilterBar()}
       ${this.#renderBulkBar()}
       <paginated-table
-        .items=${sorted}
+        .items=${processed}
         .defaultPageSize=${50}
         storageKey="transactions"
         ?filterable=${true}
-        @filter-change=${this.#onFilterChange}
+        @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
+          this.#sort.onFilterChange(e.detail.filter)}
         .renderRow=${(t: Transaction) => html`
           <tr @click=${() => this.#navigateToTransaction(t.id)}>
             <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
@@ -589,9 +554,9 @@ export class TransactionList extends BusyMixin(LitElement) {
                   }}>${this._merchants.get(t.merchantId!)}</a>`
                 : ""
             }</td>
-            <td>${this._filter ? highlightMatch(t.description, this._filter) : t.description}</td>
+            <td>${this.#sort.filter ? highlightMatch(t.description, this.#sort.filter) : t.description}</td>
             <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
-              ${t.amount.toFixed(2)}
+              ${formatAmount(t.amount)}
             </td>
             <td class="col-tags">
               <tag-pills .tags=${this._tags} .tagIds=${t.tagIds}></tag-pills>
@@ -608,20 +573,20 @@ export class TransactionList extends BusyMixin(LitElement) {
                 @change=${() => this.#toggleSelectAll(pageTransactions)}
               />
             </th>
-            <th class="sortable col-date" @click=${() => this.#onSortClick("date")}>
-              Date${this.#sortIndicator("date")}
+            <th class="sortable col-date" @click=${() => this.#sort.onSortClick("date")}>
+              Date${this.#sort.sortIndicator("date")}
             </th>
-            <th class="sortable" @click=${() => this.#onSortClick("merchant")}>
-              Merchant${this.#sortIndicator("merchant")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("merchant")}>
+              Merchant${this.#sort.sortIndicator("merchant")}
             </th>
-            <th class="sortable" @click=${() => this.#onSortClick("description")}>
-              Description${this.#sortIndicator("description")}
+            <th class="sortable" @click=${() => this.#sort.onSortClick("description")}>
+              Description${this.#sort.sortIndicator("description")}
             </th>
-            <th class="sortable col-amount" @click=${() => this.#onSortClick("amount")}>
-              Amount${this.#sortIndicator("amount")}
+            <th class="sortable col-amount" @click=${() => this.#sort.onSortClick("amount")}>
+              Amount${this.#sort.sortIndicator("amount")}
             </th>
-            <th class="sortable col-tags" @click=${() => this.#onSortClick("tags")}>
-              Tags${this.#sortIndicator("tags")}
+            <th class="sortable col-tags" @click=${() => this.#sort.onSortClick("tags")}>
+              Tags${this.#sort.sortIndicator("tags")}
             </th>
           </tr>
         </thead>
