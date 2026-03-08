@@ -3,7 +3,6 @@ import { customElement, state } from "lit/decorators.js";
 import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
-import { debounce } from "../../debounce";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
@@ -15,6 +14,7 @@ import "../shared/Modal";
 import "../shared/PaginatedTable";
 import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/SkeletonLoader";
 import { highlightMatch } from "../shared/highlightMatch";
@@ -185,27 +185,23 @@ export class TransactionList extends BusyMixin(LitElement) {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
+  constructor() {
+    super();
+    new DataSubscriptionController(
+      this,
+      [Transaction.subscribe, Tag.subscribe, Merchant.subscribe],
+      () => this.#refresh(),
+    );
+  }
 
   connectedCallback() {
     super.connectedCallback();
-    this.#refresh();
     document.addEventListener("budgee-import-csv", this.#onCsvDrop);
-    const debouncedRefresh = debounce(() => this.#refresh(), 300);
-    Promise.all([
-      Transaction.subscribe(debouncedRefresh),
-      Tag.subscribe(debouncedRefresh),
-      Merchant.subscribe(debouncedRefresh),
-    ]).then((subs) => {
-      this.#subscriptions = subs;
-    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener("budgee-import-csv", this.#onCsvDrop);
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
   }
 
   #onCsvDrop = (e: Event) => {

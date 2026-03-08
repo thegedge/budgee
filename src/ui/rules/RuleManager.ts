@@ -4,7 +4,6 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import alertTriangleIcon from "lucide-static/icons/triangle-alert.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
-import { debounce } from "../../debounce";
 import { Account } from "../../models/Account";
 import { Merchant } from "../../models/Merchant";
 import { MerchantRule, prepareTransaction } from "../../models/MerchantRule";
@@ -14,6 +13,7 @@ import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
@@ -146,26 +146,13 @@ export class RuleManager extends BusyMixin(LitElement) {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.#refresh();
-    const debouncedRefresh = debounce(() => this.#refresh(), 300);
-    Promise.all([
-      MerchantRule.subscribe(debouncedRefresh),
-      Tag.subscribe(debouncedRefresh),
-      Merchant.subscribe(debouncedRefresh),
-      Transaction.subscribe(debouncedRefresh),
-    ]).then((subs) => {
-      this.#subscriptions = subs;
-    });
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
+  constructor() {
+    super();
+    new DataSubscriptionController(
+      this,
+      [MerchantRule.subscribe, Tag.subscribe, Merchant.subscribe, Transaction.subscribe],
+      () => this.#refresh(),
+    );
   }
 
   async #refresh() {

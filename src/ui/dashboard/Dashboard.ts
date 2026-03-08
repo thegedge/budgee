@@ -2,7 +2,6 @@ import { Temporal } from "@js-temporal/polyfill";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import Sortable from "sortablejs";
-import { debounce } from "../../debounce";
 import { Account } from "../../models/Account";
 import { DashboardChart } from "../../models/DashboardChart";
 import { DashboardTable } from "../../models/DashboardTable";
@@ -17,6 +16,7 @@ import "../shared/PaginatedTable";
 import "../shared/TimeRangePicker";
 import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
 import { tableStyles } from "../tableStyles";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/SkeletonLoader";
 import "./DashboardChartCard";
 import "./DashboardTableCard";
@@ -127,35 +127,31 @@ export class Dashboard extends LitElement {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
+  constructor() {
+    super();
+    new DataSubscriptionController(
+      this,
+      [
+        Transaction.subscribe,
+        Tag.subscribe,
+        Merchant.subscribe,
+        Account.subscribe,
+        DashboardChart.subscribe,
+        DashboardTable.subscribe,
+      ],
+      () => this.#refresh(),
+    );
+  }
 
   willUpdate() {
     this.style.setProperty("--grid-columns", String(this.columns));
     this.style.setProperty("--grid-row-height", `${800 / this.rows}px`);
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.#refresh();
-    const debouncedRefresh = debounce(() => this.#refresh(), 300);
-    Promise.all([
-      Transaction.subscribe(debouncedRefresh),
-      Tag.subscribe(debouncedRefresh),
-      Merchant.subscribe(debouncedRefresh),
-      Account.subscribe(debouncedRefresh),
-      DashboardChart.subscribe(debouncedRefresh),
-      DashboardTable.subscribe(debouncedRefresh),
-    ]).then((subs) => {
-      this.#subscriptions = subs;
-    });
-  }
-
   disconnectedCallback() {
     super.disconnectedCallback();
     this._chartSortable?.destroy();
     this._tableSortable?.destroy();
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
   }
 
   updated() {

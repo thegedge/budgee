@@ -3,8 +3,8 @@ import { customElement, state } from "lit/decorators.js";
 import { transactionStats } from "../../charting/transactionStats";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
-import { debounce } from "../../debounce";
 import { navigate } from "../navigate";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
@@ -55,23 +55,13 @@ export class MerchantList extends LitElement {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.#load();
-    const debouncedLoad = debounce(() => this.#load(), 300);
-    Promise.all([Merchant.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
-      (subs) => {
-        this.#subscriptions = subs;
-      },
+  constructor() {
+    super();
+    new DataSubscriptionController(
+      this,
+      [Merchant.subscribe, Transaction.subscribe],
+      () => this.#load(),
     );
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
   }
 
   async #load() {

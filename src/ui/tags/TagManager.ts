@@ -3,13 +3,13 @@ import { customElement, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import { Tag } from "../../models/Tag";
-import { debounce } from "../../debounce";
 import { colorToHex } from "../../color/colorToHex";
 import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { inputStyles } from "../inputStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/IconPicker";
 import "../shared/PaginatedTable";
@@ -94,21 +94,9 @@ export class TagManager extends BusyMixin(LitElement) {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.#refreshTags();
-    const debouncedRefresh = debounce(() => this.#refreshTags(), 300);
-    Tag.subscribe(debouncedRefresh).then((sub) => {
-      this.#subscriptions = [sub];
-    });
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
+  constructor() {
+    super();
+    new DataSubscriptionController(this, [Tag.subscribe], () => this.#refreshTags());
   }
 
   async #refreshTags() {

@@ -5,8 +5,8 @@ import { aggregateByPeriod } from "../../charting/aggregateBy";
 import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
-import { debounce } from "../../debounce";
 import { navigate } from "../navigate";
+import { DataSubscriptionController } from "../DataSubscriptionController";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
@@ -140,23 +140,13 @@ export class AccountDetail extends BusyMixin(LitElement) {
     `,
   ];
 
-  #subscriptions: { unsubscribe: () => void }[] = [];
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.#load();
-    const debouncedLoad = debounce(() => this.#load(), 300);
-    Promise.all([Account.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
-      (subs) => {
-        this.#subscriptions = subs;
-      },
+  constructor() {
+    super();
+    new DataSubscriptionController(
+      this,
+      [Account.subscribe, Transaction.subscribe],
+      () => this.#load(),
     );
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    for (const sub of this.#subscriptions) sub.unsubscribe();
-    this.#subscriptions = [];
   }
 
   async #load() {
