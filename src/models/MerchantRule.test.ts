@@ -1,18 +1,19 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AccountRecord, MerchantRuleRecord } from "../database/types";
 import { db } from "../database/Db";
-import { clearDb } from "../test/clearDb";
 import { uuid } from "../uuid";
 import { MerchantRule, prepareTransaction } from "./MerchantRule";
 
 beforeEach(async () => {
-  await clearDb(db.merchantRules);
-  await clearDb(db.transactions);
+  const dbs = await db();
+  await dbs.merchantRules.clear();
+  await dbs.transactions.clear();
 });
 
 describe("MerchantRule", () => {
   it("should return all rules", async () => {
-    await db.merchantRules.put({
+    const dbs = await db();
+    await dbs.merchantRules.put({
       id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "test" }],
@@ -23,28 +24,31 @@ describe("MerchantRule", () => {
   });
 
   it("should create a rule", async () => {
+    const dbs = await db();
     const created = await MerchantRule.create({
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "coffee" }],
       tagIds: [],
     });
-    const rule = await db.merchantRules.get(created.id);
+    const rule = await dbs.merchantRules.get(created.id);
     expect(rule?.conditions[0].value).toBe("coffee");
   });
 
   it("should remove a rule", async () => {
-    const resp = await db.merchantRules.put({
+    const dbs = await db();
+    const resp = await dbs.merchantRules.put({
       id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "x" }],
       tagIds: [],
     });
     await MerchantRule.remove(resp.id);
-    expect(await db.merchantRules.get(resp.id).catch(() => undefined)).toBeUndefined();
+    expect(await dbs.merchantRules.get(resp.id).catch(() => undefined)).toBeUndefined();
   });
 
   it("should apply a rule to matching transactions", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -78,7 +82,7 @@ describe("MerchantRule", () => {
     const count = await MerchantRule.applyToTransactions(rule);
     expect(count).toBe(1);
 
-    const txs = await db.transactions.all();
+    const txs = await dbs.transactions.all();
     const coffee = txs.find((t) => t.description === "COFFEE SHOP");
     expect(coffee?.merchantId).toBe(merchantId);
     expect(coffee?.tagIds).toContain(tagId);

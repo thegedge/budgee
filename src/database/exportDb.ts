@@ -1,18 +1,18 @@
-import { waitForDb } from "./Db";
+import { db } from "./Db";
 import { LATEST_VERSION } from "./migrations";
 
 export async function exportDatabase() {
-  const db = await waitForDb();
+  const dbs = await db();
 
   const data = {
     version: LATEST_VERSION,
-    transactions: await db.transactions.all(),
-    tags: await db.tags.all(),
-    merchants: await db.merchants.all(),
-    accounts: await db.accounts.all(),
-    merchantRules: await db.merchantRules.all(),
-    dashboardCharts: await db.dashboardCharts.all(),
-    dashboardTables: await db.dashboardTables.all(),
+    transactions: await dbs.transactions.all(),
+    tags: await dbs.tags.all(),
+    merchants: await dbs.merchants.all(),
+    accounts: await dbs.accounts.all(),
+    merchantRules: await dbs.merchantRules.all(),
+    dashboardCharts: await dbs.dashboardCharts.all(),
+    dashboardTables: await dbs.dashboardTables.all(),
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });

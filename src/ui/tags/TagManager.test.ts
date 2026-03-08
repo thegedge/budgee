@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./TagManager";
@@ -8,7 +7,8 @@ import { TagManager } from "./TagManager";
 
 describe("tag-manager", () => {
   beforeEach(async () => {
-    await clearDb(db.tags);
+    const dbs = await db();
+    await dbs.tags.clear();
   });
 
   it("should be defined", () => {
@@ -32,7 +32,8 @@ describe("tag-manager", () => {
     addBtn.click();
 
     await waitFor(async () => {
-      const tags = await db.tags.all();
+      const dbs = await db();
+      const tags = await dbs.tags.all();
       expect(tags).toHaveLength(1);
       expect(tags[0].name).toBe("Food");
     });
@@ -41,7 +42,8 @@ describe("tag-manager", () => {
   });
 
   it("should show error for duplicate tag names", async () => {
-    await db.tags.put({ id: uuid(), name: "Food" });
+    const dbs = await db();
+    await dbs.tags.put({ id: uuid(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
@@ -68,7 +70,8 @@ describe("tag-manager", () => {
   });
 
   it("should delete a tag when Remove is clicked", async () => {
-    await db.tags.put({ id: uuid(), name: "Food" });
+    const dbs = await db();
+    await dbs.tags.put({ id: uuid(), name: "Food" });
 
     const el = document.createElement("tag-manager") as TagManager;
     document.body.appendChild(el);
@@ -86,7 +89,7 @@ describe("tag-manager", () => {
     deleteBtn.click();
 
     await waitFor(async () => {
-      const tags = await db.tags.all();
+      const tags = await dbs.tags.all();
       expect(tags).toHaveLength(0);
     });
 

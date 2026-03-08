@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./TransactionDetail";
@@ -8,9 +7,10 @@ import { TransactionDetail } from "./TransactionDetail";
 
 describe("transaction-detail", () => {
   beforeEach(async () => {
-    await clearDb(db.transactions);
-    await clearDb(db.tags);
-    await clearDb(db.merchants);
+    const dbs = await db();
+    await dbs.transactions.clear();
+    await dbs.tags.clear();
+    await dbs.merchants.clear();
   });
 
   it("should be defined", () => {
@@ -18,8 +18,9 @@ describe("transaction-detail", () => {
   });
 
   it("should display transaction header", async () => {
+    const dbs = await db();
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
@@ -41,11 +42,12 @@ describe("transaction-detail", () => {
   });
 
   it("should display merchant name when available", async () => {
+    const dbs = await db();
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Whole Foods" });
+    await dbs.merchants.put({ id: merchantId, name: "Whole Foods" });
 
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
@@ -66,11 +68,12 @@ describe("transaction-detail", () => {
   });
 
   it("should display tag badges", async () => {
+    const dbs = await db();
     const tagId = uuid();
-    await db.tags.put({ id: tagId, name: "Groceries" });
+    await dbs.tags.put({ id: tagId, name: "Groceries" });
 
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
@@ -93,8 +96,9 @@ describe("transaction-detail", () => {
   });
 
   it("should save memo on blur", async () => {
+    const dbs = await db();
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2024-01-15",
       amount: -42.5,
@@ -115,7 +119,7 @@ describe("transaction-detail", () => {
     textarea.dispatchEvent(new Event("blur"));
 
     await waitFor(async () => {
-      const updated = await db.transactions.get(txId);
+      const updated = await dbs.transactions.get(txId);
       expect(updated!.memo).toBe("Weekly groceries");
     });
 
@@ -123,11 +127,12 @@ describe("transaction-detail", () => {
   });
 
   it("should show related transactions for same merchant", async () => {
+    const dbs = await db();
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Starbucks" });
+    await dbs.merchants.put({ id: merchantId, name: "Starbucks" });
 
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2024-01-15",
       amount: -5.5,
@@ -135,7 +140,7 @@ describe("transaction-detail", () => {
       merchantId,
       tagIds: [],
     });
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: uuid(),
       date: "2024-01-10",
       amount: -4.75,

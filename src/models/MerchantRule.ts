@@ -1,29 +1,12 @@
-import { waitForDb } from "../database/Db";
+import { db } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type {
   AccountRecord,
   MerchantRuleRecord,
   RuleCondition,
   TransactionRecord,
 } from "../database/types";
-import { uuid } from "../uuid";
 import { Account } from "./Account";
-
-let cached: MerchantRule[] | null = null;
-let cacheSubscribed = false;
-
-async function getCache(): Promise<MerchantRule[]> {
-  if (cached) return cached;
-  const db = await waitForDb();
-  const docs = await db.merchantRules.all();
-  cached = docs.map((d) => new MerchantRule(d));
-  if (!cacheSubscribed) {
-    cacheSubscribed = true;
-    db.merchantRules.subscribe(() => {
-      cached = null;
-    });
-  }
-  return cached;
-}
 
 interface PreparedCondition {
   field: RuleCondition["field"];
@@ -96,49 +79,44 @@ export class MerchantRule {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.merchantRules.subscribe(callback);
+    return merchantRules.subscribe(callback);
   }
 
   static async all(): Promise<MerchantRule[]> {
-    return getCache();
+    const docs = await merchantRules.all();
+    return docs.map((d) => new MerchantRule(d));
   }
 
   static async create(rule: Omit<MerchantRuleRecord, "id">): Promise<MerchantRule> {
-    const db = await waitForDb();
-    const data = { ...rule, id: uuid() };
-    await db.merchantRules.put(data);
-    return new MerchantRule(data);
+    const doc = await merchantRules.create(rule);
+    return new MerchantRule(doc);
   }
 
   static async put(rule: MerchantRuleRecord & { id?: string }): Promise<void> {
-    const db = await waitForDb();
     if (rule.id) {
-      await db.merchantRules.put(rule as MerchantRuleRecord);
+      await merchantRules.put(rule as MerchantRuleRecord);
     } else {
-      await db.merchantRules.put({ ...rule, id: uuid() });
+      await merchantRules.create(rule as Omit<MerchantRuleRecord, "id">);
     }
   }
 
   static async update(id: string, changes: Partial<MerchantRuleRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.merchantRules.get(id);
-    await db.merchantRules.put({ ...doc, ...changes });
+    await merchantRules.update(id, changes);
   }
 
   static async remove(id: string): Promise<void> {
-    const db = await waitForDb();
-    await db.merchantRules.remove(id);
+    await merchantRules.remove(id);
   }
 
   static async applyToTransactions(rule: MerchantRuleRecord): Promise<number> {
-    const db = await waitForDb();
-    const allTx = await db.transactions.all();
-    const accounts = Account.toLookup(await db.accounts.all());
+    const dbs = await db();
+    const allTx = await dbs.transactions.all();
+    const accountDocs = await dbs.accounts.all();
+    const accountMap = Account.toLookup(accountDocs);
     const prepared = new MerchantRule(rule);
     const updates: TransactionRecord[] = [];
     for (const tx of allTx) {
-      if (prepared.matches(prepareTransaction(tx, accounts))) {
+      if (prepared.matches(prepareTransaction(tx, accountMap))) {
         updates.push({
           ...tx,
           merchantId: rule.merchantId ?? tx.merchantId,
@@ -147,8 +125,13 @@ export class MerchantRule {
       }
     }
     if (updates.length > 0) {
-      await db.transactions.bulkDocs(updates);
+      await dbs.transactions.bulkDocs(updates);
     }
     return updates.length;
   }
 }
+
+export const merchantRules = new Repository<MerchantRuleRecord>({
+  collection: (dbs) => dbs.merchantRules,
+  cache: true,
+});

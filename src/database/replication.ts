@@ -3,7 +3,7 @@ import type { RxCollection } from "rxdb/plugins/core";
 import type { RxReplicationState } from "rxdb/plugins/replication";
 import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
 import type { DatabaseCollections } from "./Db";
-import { waitForDb } from "./Db";
+import { db } from "./Db";
 
 export type SyncStatus = "not-configured" | "connecting" | "syncing" | "synced" | "error";
 
@@ -50,7 +50,7 @@ export const syncStatus$: Observable<SyncStatus> = replicationStatus$.pipe(
 export async function startReplication(serverUrl: string): Promise<() => void> {
   replicationStatus$.next({ state: "connecting" });
 
-  const dbs = await waitForDb();
+  const dbs = await db();
   const rxdb = dbs.rxdb;
 
   const wsBaseUrl = serverUrl.replace(/^http/, "ws") + "/ws";

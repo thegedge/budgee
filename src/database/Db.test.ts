@@ -17,42 +17,46 @@ describe("schema snapshots", () => {
 
 describe("BudgeeDatabase", () => {
   beforeEach(async () => {
-    await db.tags.clear();
-    await db.merchants.clear();
-    await db.transactions.clear();
-    await db.accounts.clear();
+    const dbs = await db();
+    await dbs.tags.clear();
+    await dbs.merchants.clear();
+    await dbs.transactions.clear();
+    await dbs.accounts.clear();
   });
 
-  it("should initialize successfully", () => {
-    expect(db).toBeDefined();
-    expect(db.transactions).toBeDefined();
-    expect(db.tags).toBeDefined();
-    expect(db.merchants).toBeDefined();
-    expect(db.accounts).toBeDefined();
-    expect(db.merchantRules).toBeDefined();
-    expect(db.dashboardCharts).toBeDefined();
+  it("should initialize successfully", async () => {
+    const dbs = await db();
+    expect(dbs).toBeDefined();
+    expect(dbs.transactions).toBeDefined();
+    expect(dbs.tags).toBeDefined();
+    expect(dbs.merchants).toBeDefined();
+    expect(dbs.accounts).toBeDefined();
+    expect(dbs.merchantRules).toBeDefined();
+    expect(dbs.dashboardCharts).toBeDefined();
   });
 
   it("should create and retrieve a tag", async () => {
+    const dbs = await db();
     const id = uuid();
-    await db.tags.put({ id, name: "Groceries" });
-    const tag = await db.tags.get(id);
+    await dbs.tags.put({ id, name: "Groceries" });
+    const tag = await dbs.tags.get(id);
     expect(tag.name).toBe("Groceries");
     expect(tag.id).toBe(id);
   });
 
   it("should create and retrieve a transaction", async () => {
+    const dbs = await db();
     const tagId = uuid();
-    await db.tags.put({ id: tagId, name: "Coffee" });
+    await dbs.tags.put({ id: tagId, name: "Coffee" });
 
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Starbucks" });
+    await dbs.merchants.put({ id: merchantId, name: "Starbucks" });
 
     const accountId = uuid();
-    await db.accounts.put({ id: accountId, name: "Checking Account", type: "chequing" });
+    await dbs.accounts.put({ id: accountId, name: "Checking Account", type: "chequing" });
 
     const txId = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id: txId,
       date: "2023-10-27",
       amount: -5.5,
@@ -62,7 +66,7 @@ describe("BudgeeDatabase", () => {
       accountId,
     });
 
-    const tx = await db.transactions.get(txId);
+    const tx = await dbs.transactions.get(txId);
     expect(tx).toBeDefined();
     expect(tx.amount).toBe(-5.5);
     expect(tx.tagIds).toContain(tagId);
@@ -71,14 +75,15 @@ describe("BudgeeDatabase", () => {
   });
 
   it("should isolate collections within the single database", async () => {
-    await db.tags.put({ id: "shared-id", name: "A Tag" });
-    await db.merchants.put({ id: "merchant-id", name: "A Merchant" });
+    const dbs = await db();
+    await dbs.tags.put({ id: "shared-id", name: "A Tag" });
+    await dbs.merchants.put({ id: "merchant-id", name: "A Merchant" });
 
-    const tags = await db.tags.all();
+    const tags = await dbs.tags.all();
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("A Tag");
 
-    const merchants = await db.merchants.all();
+    const merchants = await dbs.merchants.all();
     expect(merchants).toHaveLength(1);
     expect(merchants[0].name).toBe("A Merchant");
   });

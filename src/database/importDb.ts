@@ -1,4 +1,4 @@
-import { waitForDb, type Databases } from "./Db";
+import { db as getDb, type Databases } from "./Db";
 import { uuid } from "../uuid";
 import type {
   AccountRecord,
@@ -148,7 +148,7 @@ export async function importDatabase(file: File) {
   const { migrateExport, LATEST_VERSION } = await import("./migrations");
   const migrated = migrateExport(data);
 
-  const db = await waitForDb();
+  const db = await getDb();
 
   // Save a backup of current data before clearing
   const currentData = await exportCurrentData(db);

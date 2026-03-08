@@ -1,6 +1,5 @@
-import { waitForDb } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type { AccountRecord, AccountType } from "../database/types";
-import { uuid } from "../uuid";
 
 export class Account {
   readonly id: string;
@@ -14,47 +13,50 @@ export class Account {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.accounts.subscribe(callback);
+    return accounts.subscribe(callback);
   }
 
   static async all(): Promise<Account[]> {
-    const db = await waitForDb();
-    return (await db.accounts.all()).map((d) => new Account(d));
+    const docs = await accounts.all();
+    return docs.map((d) => new Account(d));
   }
 
   static async get(id: string): Promise<Account | undefined> {
-    const db = await waitForDb();
-    try {
-      return new Account(await db.accounts.get(id));
-    } catch {
-      return undefined;
-    }
+    const doc = await accounts.get(id);
+    return doc ? new Account(doc) : undefined;
   }
 
   static async create(account: Omit<AccountRecord, "id">): Promise<Account> {
-    const db = await waitForDb();
-    const data = { ...account, id: uuid() };
-    await db.accounts.put(data);
-    return new Account(data);
+    const doc = await accounts.create(account);
+    return new Account(doc);
   }
 
   static async update(id: string, changes: Partial<AccountRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.accounts.get(id);
-    await db.accounts.put({ ...doc, ...changes });
+    await accounts.update(id, changes);
   }
 
   static async remove(id: string): Promise<void> {
-    const db = await waitForDb();
-    await db.accounts.remove(id);
+    await accounts.remove(id);
   }
 
-  static toLookup(accounts: AccountRecord[]): Record<string, AccountRecord> {
+  static toLookup(accts: AccountRecord[]): Record<string, AccountRecord> {
     const map: Record<string, AccountRecord> = {};
-    for (const a of accounts) {
+    for (const a of accts) {
       map[a.id] = a;
     }
     return map;
   }
 }
+
+export const accounts = new Repository<AccountRecord>({
+  collection: (dbs) => dbs.accounts,
+  onRemove: async (id, dbs) => {
+    const all = await dbs.transactions.all();
+    const affected = all.filter((t) => t.accountId === id);
+    if (affected.length > 0) {
+      await dbs.transactions.bulkDocs(
+        affected.map((t) => ({ ...t, accountId: "" })),
+      );
+    }
+  },
+});

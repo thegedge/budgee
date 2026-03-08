@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./RuleManager";
@@ -8,10 +7,11 @@ import { RuleManager } from "./RuleManager";
 
 describe("rule-manager", () => {
   beforeEach(async () => {
-    await clearDb(db.merchantRules);
-    await clearDb(db.tags);
-    await clearDb(db.transactions);
-    await clearDb(db.merchants);
+    const dbs = await db();
+    await dbs.merchantRules.clear();
+    await dbs.tags.clear();
+    await dbs.transactions.clear();
+    await dbs.merchants.clear();
   });
 
   it("should be defined", () => {
@@ -19,8 +19,9 @@ describe("rule-manager", () => {
   });
 
   it("should add a rule via clicking an unmerchanted transaction", async () => {
-    await db.tags.put({ id: uuid(), name: "Coffee" });
-    await db.transactions.put({
+    const dbs = await db();
+    await dbs.tags.put({ id: uuid(), name: "Coffee" });
+    await dbs.transactions.put({
       id: uuid(),
       date: "2024-01-01",
       description: "STARBUCKS",
@@ -53,7 +54,7 @@ describe("rule-manager", () => {
     );
 
     await waitFor(async () => {
-      const rules = await db.merchantRules.all();
+      const rules = await dbs.merchantRules.all();
       expect(rules).toHaveLength(1);
       expect(rules[0].conditions[0].value).toBe("starbucks");
     });
@@ -62,7 +63,8 @@ describe("rule-manager", () => {
   });
 
   it("should delete a rule", async () => {
-    await db.merchantRules.put({
+    const dbs = await db();
+    await dbs.merchantRules.put({
       id: uuid(),
       logic: "and",
       conditions: [{ field: "description", operator: "contains", value: "starbucks" }],
@@ -83,7 +85,7 @@ describe("rule-manager", () => {
     deleteBtn!.click();
 
     await waitFor(async () => {
-      const rules = await db.merchantRules.all();
+      const rules = await dbs.merchantRules.all();
       expect(rules).toHaveLength(0);
     });
 

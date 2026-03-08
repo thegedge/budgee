@@ -24,46 +24,50 @@ describe("migrateExport", () => {
 
 describe("migrateDatabase", () => {
   beforeEach(async () => {
-    await db.tags.clear();
-    await db.merchants.clear();
-    await db.transactions.clear();
-    await db.accounts.clear();
-    await db.merchantRules.clear();
-    await db.dashboardCharts.clear();
-    await db.dashboardTables.clear();
-    await db.meta.clear();
-    await db.backups.clear();
+    const dbs = await db();
+    await dbs.tags.clear();
+    await dbs.merchants.clear();
+    await dbs.transactions.clear();
+    await dbs.accounts.clear();
+    await dbs.merchantRules.clear();
+    await dbs.dashboardCharts.clear();
+    await dbs.dashboardTables.clear();
+    await dbs.meta.clear();
+    await dbs.backups.clear();
   });
 
   it("should set schema version on first run with empty database", async () => {
-    await migrateDatabase(db);
+    const dbs = await db();
+    await migrateDatabase(dbs);
 
-    const doc = await db.meta.get("schema_version");
+    const doc = await dbs.meta.get("schema_version");
     expect(doc.value).toBe(LATEST_VERSION);
   });
 
   it("should skip migration when already at latest version", async () => {
-    await db.meta.put({ id: "schema_version", value: LATEST_VERSION });
-    await db.tags.put({ id: "t1", name: "Food" });
+    const dbs = await db();
+    await dbs.meta.put({ id: "schema_version", value: LATEST_VERSION });
+    await dbs.tags.put({ id: "t1", name: "Food" });
 
-    await migrateDatabase(db);
+    await migrateDatabase(dbs);
 
-    const tags = await db.tags.all();
+    const tags = await dbs.tags.all();
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("Food");
   });
 
   it("should preserve data through migration when already at latest version", async () => {
-    await db.tags.put({ id: "t1", name: "Food" });
-    await db.merchants.put({ id: "m1", name: "Costco" });
+    const dbs = await db();
+    await dbs.tags.put({ id: "t1", name: "Food" });
+    await dbs.merchants.put({ id: "m1", name: "Costco" });
 
-    await migrateDatabase(db);
+    await migrateDatabase(dbs);
 
-    const tags = await db.tags.all();
+    const tags = await dbs.tags.all();
     expect(tags).toHaveLength(1);
     expect(tags[0].name).toBe("Food");
 
-    const merchants = await db.merchants.all();
+    const merchants = await dbs.merchants.all();
     expect(merchants).toHaveLength(1);
     expect(merchants[0].name).toBe("Costco");
   });

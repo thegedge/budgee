@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./TransactionList";
@@ -8,8 +7,9 @@ import { TransactionList } from "./TransactionList";
 
 describe("transaction-list", () => {
   beforeEach(async () => {
-    await clearDb(db.transactions);
-    await clearDb(db.tags);
+    const dbs = await db();
+    await dbs.transactions.clear();
+    await dbs.tags.clear();
   });
 
   it("should be defined", () => {
@@ -30,7 +30,8 @@ describe("transaction-list", () => {
   });
 
   it("should render rows for each transaction", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -74,9 +75,10 @@ describe("transaction-list", () => {
   });
 
   it("should display tag badges for tagged transactions", async () => {
+    const dbs = await db();
     const tagId = uuid();
-    await db.tags.put({ id: tagId, name: "Food" });
-    await db.transactions.put({
+    await dbs.tags.put({ id: tagId, name: "Food" });
+    await dbs.transactions.put({
       id: uuid(),
       date: "2024-01-01",
       amount: -50,
@@ -99,9 +101,10 @@ describe("transaction-list", () => {
   });
 
   it("should not allow removing tags from the list view", async () => {
+    const dbs = await db();
     const tagId = uuid();
-    await db.tags.put({ id: tagId, name: "Food" });
-    await db.transactions.put({
+    await dbs.tags.put({ id: tagId, name: "Food" });
+    await dbs.transactions.put({
       id: uuid(),
       date: "2024-01-01",
       amount: -50,

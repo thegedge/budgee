@@ -4,12 +4,14 @@ import { db } from "../database/Db";
 import { Transaction } from "./Transaction";
 
 beforeEach(async () => {
-  await db.transactions.clear();
+  const dbs = await db();
+  await dbs.transactions.clear();
 });
 
 describe("Transaction", () => {
   it("should return all transactions", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -30,8 +32,9 @@ describe("Transaction", () => {
   });
 
   it("should get a transaction by id", async () => {
+    const dbs = await db();
     const id = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id,
       date: "2024-01-01",
       amount: -10,
@@ -43,8 +46,9 @@ describe("Transaction", () => {
   });
 
   it("should update a transaction", async () => {
+    const dbs = await db();
     const id = uuid();
-    await db.transactions.put({
+    await dbs.transactions.put({
       id,
       date: "2024-01-01",
       amount: -10,
@@ -52,13 +56,14 @@ describe("Transaction", () => {
       tagIds: [],
     });
     await Transaction.update(id, { amount: -20 });
-    const tx = await db.transactions.get(id);
+    const tx = await dbs.transactions.get(id);
     expect(tx?.amount).toBe(-20);
   });
 
   it("should return transactions for a merchant sorted by date desc", async () => {
+    const dbs = await db();
     const merchantId = "m1";
-    await db.transactions.bulkDocs([
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -98,7 +103,8 @@ describe("Transaction", () => {
   });
 
   it("should delete transactions for a specific account", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -126,17 +132,18 @@ describe("Transaction", () => {
     ]);
     const deleted = await Transaction.deleteForAccount("a1");
     expect(deleted).toBe(2);
-    const remaining = await db.transactions.all();
+    const remaining = await dbs.transactions.all();
     expect(remaining).toHaveLength(1);
     expect(remaining[0].accountId).toBe("a2");
   });
 
   it("should bulk add transactions", async () => {
+    const dbs = await db();
     await Transaction.bulkAdd([
       { date: "2024-01-01", amount: -10, description: "A", tagIds: [] },
       { date: "2024-01-02", amount: -20, description: "B", tagIds: [] },
     ]);
-    const all = await db.transactions.all();
+    const all = await dbs.transactions.all();
     expect(all).toHaveLength(2);
   });
 });

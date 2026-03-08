@@ -1,23 +1,7 @@
-import { waitForDb } from "../database/Db";
+import { db } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type { TransactionRecord } from "../database/types";
 import { uuid } from "../uuid";
-
-let cached: Transaction[] | null = null;
-let cacheSubscribed = false;
-
-async function getCache(): Promise<Transaction[]> {
-  if (cached) return cached;
-  const db = await waitForDb();
-  const docs = await db.transactions.all();
-  cached = docs.map((d) => new Transaction(d));
-  if (!cacheSubscribed) {
-    cacheSubscribed = true;
-    db.transactions.subscribe(() => {
-      cached = null;
-    });
-  }
-  return cached;
-}
 
 export class Transaction {
   readonly id: string;
@@ -41,71 +25,68 @@ export class Transaction {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.transactions.subscribe(callback);
+    return transactions.subscribe(callback);
   }
 
   static async all(): Promise<Transaction[]> {
-    return getCache();
+    const docs = await transactions.all();
+    return docs.map((d) => new Transaction(d));
   }
 
   static async get(id: string): Promise<Transaction | undefined> {
-    const db = await waitForDb();
-    try {
-      return new Transaction(await db.transactions.get(id));
-    } catch {
-      return undefined;
-    }
+    const doc = await transactions.get(id);
+    return doc ? new Transaction(doc) : undefined;
   }
 
   static async update(id: string, changes: Partial<TransactionRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.transactions.get(id);
-    await db.transactions.put({ ...doc, ...changes });
+    await transactions.update(id, changes);
   }
 
-  static async bulkPut(transactions: TransactionRecord[]): Promise<void> {
-    const db = await waitForDb();
-    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, id: t.id ?? uuid() })));
+  static async bulkPut(txs: TransactionRecord[]): Promise<void> {
+    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: t.id ?? uuid() })));
   }
 
-  static async bulkAdd(transactions: Omit<TransactionRecord, "id">[]): Promise<void> {
-    const db = await waitForDb();
-    await db.transactions.bulkDocs(transactions.map((t) => ({ ...t, id: uuid() })));
+  static async bulkAdd(txs: Omit<TransactionRecord, "id">[]): Promise<void> {
+    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: uuid() }) as TransactionRecord));
   }
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {
-    const all = await getCache();
+    const all = await transactions.all();
     return all
       .filter((t) => t.merchantId === merchantId)
+      .map((d) => new Transaction(d))
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async forAccount(accountId: string): Promise<Transaction[]> {
-    const all = await getCache();
+    const all = await transactions.all();
     return all
       .filter((t) => t.accountId === accountId)
+      .map((d) => new Transaction(d))
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   static async bulkRemove(ids: string[]): Promise<void> {
-    if (ids.length === 0) return;
-    const db = await waitForDb();
-    await db.transactions.bulkRemove(ids);
+    await transactions.bulkRemove(ids);
   }
 
   static async deleteAll(): Promise<number> {
-    const db = await waitForDb();
-    const docs = await db.transactions.all();
-    await db.transactions.bulkRemove(docs.map((doc) => doc.id));
+    const dbs = await db();
+    const docs = await dbs.transactions.all();
+    await dbs.transactions.bulkRemove(docs.map((doc) => doc.id));
     return docs.length;
   }
 
   static async deleteForAccount(accountId: string): Promise<number> {
-    const db = await waitForDb();
-    const all = await db.transactions.all();
+    const dbs = await db();
+    const all = await dbs.transactions.all();
     const docs = all.filter((t) => t.accountId === accountId);
-    await db.transactions.bulkRemove(docs.map((doc) => doc.id));
+    await dbs.transactions.bulkRemove(docs.map((doc) => doc.id));
     return docs.length;
   }
 }
+
+export const transactions = new Repository<TransactionRecord>({
+  collection: (dbs) => dbs.transactions,
+  cache: true,
+});

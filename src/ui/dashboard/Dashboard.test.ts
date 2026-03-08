@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./Dashboard";
@@ -8,11 +7,12 @@ import { Dashboard } from "./Dashboard";
 
 describe("budgee-dashboard", () => {
   beforeEach(async () => {
-    await clearDb(db.transactions);
-    await clearDb(db.tags);
-    await clearDb(db.dashboardCharts);
-    await clearDb(db.dashboardTables);
-    await clearDb(db.merchants);
+    const dbs = await db();
+    await dbs.transactions.clear();
+    await dbs.tags.clear();
+    await dbs.dashboardCharts.clear();
+    await dbs.dashboardTables.clear();
+    await dbs.merchants.clear();
   });
 
   it("should be defined", () => {
@@ -31,7 +31,8 @@ describe("budgee-dashboard", () => {
   });
 
   it("should render chart grid when transactions exist", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -60,7 +61,8 @@ describe("budgee-dashboard", () => {
   });
 
   it("should render dashboard tables from database", async () => {
-    await db.transactions.bulkDocs([
+    const dbs = await db();
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2024-01-01",
@@ -69,7 +71,7 @@ describe("budgee-dashboard", () => {
         tagIds: [],
       },
     ]);
-    await db.dashboardTables.put({
+    await dbs.dashboardTables.put({
       id: uuid(),
       title: "Recent Transactions",
       model: "transactions",

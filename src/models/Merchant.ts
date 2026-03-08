@@ -1,6 +1,5 @@
-import { waitForDb } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type { MerchantRecord } from "../database/types";
-import { uuid } from "../uuid";
 
 export class Merchant {
   readonly id: string;
@@ -12,46 +11,48 @@ export class Merchant {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.merchants.subscribe(callback);
+    return merchants.subscribe(callback);
   }
 
   static async all(): Promise<Merchant[]> {
-    const db = await waitForDb();
-    return (await db.merchants.all()).map((d) => new Merchant(d));
+    const docs = await merchants.all();
+    return docs.map((d) => new Merchant(d));
   }
 
   static async get(id: string): Promise<Merchant | undefined> {
-    const db = await waitForDb();
-    try {
-      return new Merchant(await db.merchants.get(id));
-    } catch {
-      return undefined;
-    }
+    const doc = await merchants.get(id);
+    return doc ? new Merchant(doc) : undefined;
   }
 
   static async create(name: string): Promise<Merchant> {
-    const db = await waitForDb();
-    const data = { id: uuid(), name };
-    await db.merchants.put(data);
-    return new Merchant(data);
+    const doc = await merchants.create({ name } as Omit<MerchantRecord, "id">);
+    return new Merchant(doc);
   }
 
   static async update(id: string, changes: Partial<MerchantRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.merchants.get(id);
-    await db.merchants.put({ ...doc, ...changes });
+    await merchants.update(id, changes);
   }
 
   static async remove(id: string): Promise<void> {
-    const db = await waitForDb();
-    await db.merchants.remove(id);
+    await merchants.remove(id);
   }
 
   static async byName(name: string): Promise<Merchant | undefined> {
-    const db = await waitForDb();
-    const all = await db.merchants.all();
+    const all = await merchants.all();
     const found = all.find((m) => m.name.toLowerCase() === name.toLowerCase());
     return found ? new Merchant(found) : undefined;
   }
 }
+
+export const merchants = new Repository<MerchantRecord>({
+  collection: (dbs) => dbs.merchants,
+  onRemove: async (id, dbs) => {
+    const all = await dbs.transactions.all();
+    const affected = all.filter((t) => t.merchantId === id);
+    if (affected.length > 0) {
+      await dbs.transactions.bulkDocs(
+        affected.map((t) => ({ ...t, merchantId: "" })),
+      );
+    }
+  },
+});

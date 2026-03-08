@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
-import { clearDb } from "../test/clearDb";
 import { uuid } from "../uuid";
 import { Account } from "./Account";
 
 beforeEach(async () => {
-  await clearDb(db.accounts);
+  const dbs = await db();
+  await dbs.accounts.clear();
+  await dbs.transactions.clear();
 });
 
 describe("Account", () => {
   it("should return all accounts", async () => {
-    await db.accounts.bulkDocs([
+    const dbs = await db();
+    await dbs.accounts.bulkDocs([
       { id: uuid(), name: "Checking" },
       { id: uuid(), name: "Savings" },
     ]);
@@ -49,5 +51,22 @@ describe("Account", () => {
     await Account.remove(id);
     const account = await Account.get(id);
     expect(account).toBeUndefined();
+  });
+
+  it("should cascade-clear accountId on transactions when removing", async () => {
+    const dbs = await db();
+    const { id: accountId } = await Account.create({ name: "CascadeTest" });
+    const txId = uuid();
+    await dbs.transactions.put({
+      id: txId,
+      date: "2024-01-01",
+      amount: -10,
+      description: "Test",
+      tagIds: [],
+      accountId,
+    });
+    await Account.remove(accountId);
+    const tx = await dbs.transactions.get(txId);
+    expect(tx.accountId).toBe("");
   });
 });

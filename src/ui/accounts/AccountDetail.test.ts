@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./AccountDetail";
@@ -8,8 +7,9 @@ import { AccountDetail } from "./AccountDetail";
 
 describe("account-detail", () => {
   beforeEach(async () => {
-    await clearDb(db.accounts);
-    await clearDb(db.transactions);
+    const dbs = await db();
+    await dbs.accounts.clear();
+    await dbs.transactions.clear();
   });
 
   it("should be defined", () => {
@@ -26,9 +26,10 @@ describe("account-detail", () => {
   });
 
   it("should render account name and transactions", async () => {
+    const dbs = await db();
     const accountId = uuid();
-    await db.accounts.put({ id: accountId, name: "Checking", type: "chequing" });
-    await db.transactions.bulkDocs([
+    await dbs.accounts.put({ id: accountId, name: "Checking", type: "chequing" });
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2025-12-15",

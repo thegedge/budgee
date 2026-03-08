@@ -4,7 +4,7 @@ import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
-import { waitForDb, isDemoMode } from "../database/Db";
+import { db, isDemoMode } from "../database/Db";
 import { importDatabase } from "../database/importDb";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
@@ -306,7 +306,7 @@ export class Application extends LitElement {
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
     setupGlobalErrorHandler();
-    waitForDb().catch((error) => {
+    db().catch((error) => {
       console.error(error);
       const isDatabaseError = error instanceof SchemaVersionError;
       const message = isDatabaseError

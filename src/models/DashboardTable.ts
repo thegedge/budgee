@@ -1,10 +1,9 @@
-import { waitForDb } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type {
   DashboardTableColumn,
   DashboardTableModel,
   DashboardTableRecord,
 } from "../database/types";
-import { uuid } from "../uuid";
 
 export class DashboardTable {
   readonly id!: string;
@@ -20,41 +19,36 @@ export class DashboardTable {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.dashboardTables.subscribe(callback);
+    return dashboardTables.subscribe(callback);
   }
 
   static async all(): Promise<DashboardTable[]> {
-    const db = await waitForDb();
-    const docs = await db.dashboardTables.all();
+    const docs = await dashboardTables.all();
     return docs.sort((a, b) => a.position - b.position).map((d) => new DashboardTable(d));
   }
 
   static async create(table: Omit<DashboardTableRecord, "id">): Promise<DashboardTable> {
-    const db = await waitForDb();
-    const data = { ...table, id: uuid() };
-    await db.dashboardTables.put(data);
-    return new DashboardTable(data);
+    const doc = await dashboardTables.create(table);
+    return new DashboardTable(doc);
   }
 
   static async update(id: string, changes: Partial<DashboardTableRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.dashboardTables.get(id);
-    await db.dashboardTables.put({ ...doc, ...changes });
+    await dashboardTables.update(id, changes);
   }
 
   static async remove(id: string): Promise<void> {
-    const db = await waitForDb();
-    await db.dashboardTables.remove(id);
+    await dashboardTables.remove(id);
   }
 
   static async reorder(ids: string[]): Promise<void> {
-    const db = await waitForDb();
     await Promise.all(
       ids.map(async (id, i) => {
-        const doc = await db.dashboardTables.get(id);
-        await db.dashboardTables.put({ ...doc, position: i });
+        await dashboardTables.update(id, { position: i } as Partial<DashboardTableRecord>);
       }),
     );
   }
 }
+
+export const dashboardTables = new Repository<DashboardTableRecord>({
+  collection: (dbs) => dbs.dashboardTables,
+});

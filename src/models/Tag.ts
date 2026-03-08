@@ -1,6 +1,5 @@
-import { waitForDb } from "../database/Db";
+import { Repository } from "../database/Repository";
 import type { TagRecord } from "../database/types";
-import { uuid } from "../uuid";
 import { randomTagColor } from "../color/randomTagColor";
 
 export class Tag {
@@ -17,37 +16,43 @@ export class Tag {
   }
 
   static async subscribe(callback: () => void) {
-    const db = await waitForDb();
-    return db.tags.subscribe(callback);
+    return tags.subscribe(callback);
   }
 
   static async all(): Promise<Tag[]> {
-    const db = await waitForDb();
-    return (await db.tags.all()).map((d) => new Tag(d));
+    const docs = await tags.all();
+    return docs.map((d) => new Tag(d));
   }
 
   static async create(name: string, options?: Partial<TagRecord>): Promise<Tag> {
-    const db = await waitForDb();
-    const data = { id: uuid(), name, color: randomTagColor(), ...options };
-    await db.tags.put(data);
-    return new Tag(data);
+    const doc = await tags.create({ name, color: randomTagColor(), ...options } as Omit<TagRecord, "id">);
+    return new Tag(doc);
   }
 
   static async update(id: string, changes: Partial<TagRecord>): Promise<void> {
-    const db = await waitForDb();
-    const doc = await db.tags.get(id);
-    await db.tags.put({ ...doc, ...changes });
+    await tags.update(id, changes);
   }
 
   static async remove(id: string): Promise<void> {
-    const db = await waitForDb();
-    await db.tags.remove(id);
+    await tags.remove(id);
   }
 
   static async byName(name: string): Promise<Tag | undefined> {
-    const db = await waitForDb();
-    const all = await db.tags.all();
+    const all = await tags.all();
     const found = all.find((t) => t.name.toLowerCase() === name.toLowerCase());
     return found ? new Tag(found) : undefined;
   }
 }
+
+export const tags = new Repository<TagRecord>({
+  collection: (dbs) => dbs.tags,
+  onRemove: async (id, dbs) => {
+    const all = await dbs.transactions.all();
+    const affected = all.filter((t) => t.tagIds.includes(id));
+    if (affected.length > 0) {
+      await dbs.transactions.bulkDocs(
+        affected.map((t) => ({ ...t, tagIds: t.tagIds.filter((tid) => tid !== id) })),
+      );
+    }
+  },
+});

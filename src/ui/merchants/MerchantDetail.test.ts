@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
-import { clearDb } from "../../test/clearDb";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
 import "./MerchantDetail";
@@ -8,8 +7,9 @@ import { MerchantDetail } from "./MerchantDetail";
 
 describe("merchant-detail", () => {
   beforeEach(async () => {
-    await clearDb(db.merchants);
-    await clearDb(db.transactions);
+    const dbs = await db();
+    await dbs.merchants.clear();
+    await dbs.transactions.clear();
   });
 
   it("should be defined", () => {
@@ -26,9 +26,10 @@ describe("merchant-detail", () => {
   });
 
   it("should render merchant name and transactions", async () => {
+    const dbs = await db();
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
-    await db.transactions.bulkDocs([
+    await dbs.merchants.put({ id: merchantId, name: "Coffee Shop" });
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2025-12-15",
@@ -61,9 +62,10 @@ describe("merchant-detail", () => {
   });
 
   it("should render transactions when merchantId is set after connecting", async () => {
+    const dbs = await db();
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
-    await db.transactions.bulkDocs([
+    await dbs.merchants.put({ id: merchantId, name: "Coffee Shop" });
+    await dbs.transactions.bulkDocs([
       {
         id: uuid(),
         date: "2025-12-15",
@@ -88,8 +90,9 @@ describe("merchant-detail", () => {
   });
 
   it("should allow inline editing of the merchant name", async () => {
+    const dbs = await db();
     const merchantId = uuid();
-    await db.merchants.put({ id: merchantId, name: "Coffee Shop" });
+    await dbs.merchants.put({ id: merchantId, name: "Coffee Shop" });
 
     const el = document.createElement("merchant-detail") as MerchantDetail;
     el.merchantId = merchantId;

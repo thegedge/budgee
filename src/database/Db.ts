@@ -403,19 +403,26 @@ async function createDefaultDatabase(): Promise<Databases> {
   return createDatabases(getRxStorageDexie());
 }
 
-export let db: Databases;
+let cachedDb: Promise<Databases> | undefined;
 
-const dbReady = createDefaultDatabase().then(async (dbs) => {
-  db = dbs;
-  const { migrateDatabase } = await import("./migrations");
-  await migrateDatabase(dbs);
-  if (isDemoMode) {
-    const { seedDemoData } = await import("./demo");
-    await seedDemoData(dbs);
+export function db(): Promise<Databases> {
+  if (!cachedDb) {
+    cachedDb = createDefaultDatabase().then(async (dbs) => {
+      const { migrateDatabase } = await import("./migrations");
+      await migrateDatabase(dbs);
+      if (isDemoMode) {
+        const { seedDemoData } = await import("./demo");
+        await seedDemoData(dbs);
+      }
+      return dbs;
+    });
   }
-  return dbs;
-});
+  return cachedDb;
+}
 
+/**
+ * @deprecated Use `db()` instead.
+ */
 export function waitForDb(): Promise<Databases> {
-  return dbReady;
+  return db();
 }
