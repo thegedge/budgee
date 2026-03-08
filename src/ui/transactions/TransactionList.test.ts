@@ -51,12 +51,15 @@ describe("transaction-list", () => {
     const el = document.createElement("transaction-list") as TransactionList;
     document.body.appendChild(el);
 
+    let rows: NodeListOf<Element>;
     await waitFor(() => {
-      const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);
     });
 
-    const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+    const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+    rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
 
     // Default sort is date descending, so 2024-01-02 comes first
     // Columns: Checkbox, Date, Merchant, Description, Amount, Tags
@@ -90,7 +93,8 @@ describe("transaction-list", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const pills = el.shadowRoot!.querySelector("tag-pills")!;
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      const pills = tableEl.shadowRoot!.querySelector("tag-pills")!;
       expect(pills).toBeTruthy();
       const badges = pills.shadowRoot!.querySelectorAll(".tag-pill");
       expect(badges).toHaveLength(1);
@@ -116,7 +120,8 @@ describe("transaction-list", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const pills = el.shadowRoot!.querySelector("tag-pills")!;
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      const pills = tableEl.shadowRoot!.querySelector("tag-pills")!;
       expect(pills).toBeTruthy();
       expect(pills.shadowRoot!.querySelector("tag-autocomplete")).toBeNull();
       expect(pills.shadowRoot!.querySelectorAll(".tag-pill")).toHaveLength(1);

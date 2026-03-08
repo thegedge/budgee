@@ -9,7 +9,7 @@ import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
+import type { FilterChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -31,12 +31,6 @@ type SortDir = "asc" | "desc";
 export class AccountList extends LitElement {
   @state()
   private _rows: AccountRow[] | null = null;
-
-  @state()
-  private _currentPage = 1;
-
-  @state()
-  private _pageSize = 25;
 
   @state()
   private _filter = "";
@@ -85,14 +79,8 @@ export class AccountList extends LitElement {
     });
   }
 
-  #onPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._currentPage = e.detail.page;
-    this._pageSize = e.detail.pageSize;
-  }
-
   #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._filter = e.detail.filter;
-    this._currentPage = 1;
   }
 
   #matchesFilter(row: AccountRow): boolean {
@@ -112,7 +100,6 @@ export class AccountList extends LitElement {
       this._sortCol = col;
       this._sortDir = "asc";
     }
-    this._currentPage = 1;
   }
 
   #sortIndicator(col: SortColumn): string {
@@ -160,50 +147,41 @@ export class AccountList extends LitElement {
 
     const filtered = this._rows.filter((r) => this.#matchesFilter(r));
     const sorted = this.#sorted(filtered);
-    const start = (this._currentPage - 1) * this._pageSize;
-    const pageRows = sorted.slice(start, start + this._pageSize);
 
     return html`
       <paginated-table
-        .totalItems=${filtered.length}
+        .items=${sorted}
         .defaultPageSize=${25}
         storageKey="accounts"
         ?filterable=${true}
-        @page-change=${this.#onPageChange}
         @filter-change=${this.#onFilterChange}
+        .renderRow=${(row: AccountRow) => html`
+          <tr @click=${() => this.#navigateToAccount(row.account.id)}>
+            <td>${row.account.name}</td>
+            <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
+            <td>${row.transactionCount ?? "…"}</td>
+            <td class="col-amount ${row.balance != null && row.balance < 0 ? "amount-negative" : row.balance != null ? "amount-positive" : ""}">
+              ${row.balance != null ? row.balance.toFixed(2) : "…"}
+            </td>
+          </tr>
+        `}
       >
-        <table>
-          <thead>
-            <tr>
-              <th class="sortable" @click=${() => this.#onSortClick("name")}>
-                Name${this.#sortIndicator("name")}
-              </th>
-              <th class="sortable" @click=${() => this.#onSortClick("type")}>
-                Type${this.#sortIndicator("type")}
-              </th>
-              <th class="sortable" @click=${() => this.#onSortClick("count")}>
-                Transactions${this.#sortIndicator("count")}
-              </th>
-              <th class="sortable col-amount" @click=${() => this.#onSortClick("balance")}>
-                Balance${this.#sortIndicator("balance")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${pageRows.map(
-              (row) => html`
-              <tr @click=${() => this.#navigateToAccount(row.account.id)}>
-                <td>${row.account.name}</td>
-                <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
-                <td>${row.transactionCount ?? "…"}</td>
-                <td class="col-amount ${row.balance != null && row.balance < 0 ? "amount-negative" : row.balance != null ? "amount-positive" : ""}">
-                  ${row.balance != null ? row.balance.toFixed(2) : "…"}
-                </td>
-              </tr>
-            `,
-            )}
-          </tbody>
-        </table>
+        <thead slot="header">
+          <tr>
+            <th class="sortable" @click=${() => this.#onSortClick("name")}>
+              Name${this.#sortIndicator("name")}
+            </th>
+            <th class="sortable" @click=${() => this.#onSortClick("type")}>
+              Type${this.#sortIndicator("type")}
+            </th>
+            <th class="sortable" @click=${() => this.#onSortClick("count")}>
+              Transactions${this.#sortIndicator("count")}
+            </th>
+            <th class="sortable col-amount" @click=${() => this.#onSortClick("balance")}>
+              Balance${this.#sortIndicator("balance")}
+            </th>
+          </tr>
+        </thead>
       </paginated-table>
     `;
   }

@@ -18,7 +18,7 @@ import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
+import type { FilterChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
 import "./RuleEditor";
@@ -64,12 +64,6 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _editingMerchantName = "";
 
   @state()
-  private _rulesPage = 1;
-
-  @state()
-  private _rulesPageSize = 10;
-
-  @state()
   private _rulesFilter = "";
 
   @state()
@@ -77,12 +71,6 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   @state()
   private _rulesSortDir: SortDir = "asc";
-
-  @state()
-  private _unmerchantedPage = 1;
-
-  @state()
-  private _unmerchantedPageSize = 20;
 
   @state()
   private _unmerchantedFilter = "";
@@ -314,14 +302,8 @@ export class RuleManager extends BusyMixin(LitElement) {
       .join(rule.logic === "and" ? " AND " : " OR ");
   }
 
-  #onRulesPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._rulesPage = e.detail.page;
-    this._rulesPageSize = e.detail.pageSize;
-  }
-
   #onRulesFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._rulesFilter = e.detail.filter;
-    this._rulesPage = 1;
   }
 
   #ruleMatchesFilter(rule: MerchantRule): boolean {
@@ -343,7 +325,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       this._rulesSortCol = col;
       this._rulesSortDir = "asc";
     }
-    this._rulesPage = 1;
   }
 
   #rulesSortIndicator(col: RulesSortColumn): string {
@@ -371,14 +352,8 @@ export class RuleManager extends BusyMixin(LitElement) {
     });
   }
 
-  #onUnmerchantedPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._unmerchantedPage = e.detail.page;
-    this._unmerchantedPageSize = e.detail.pageSize;
-  }
-
   #onUnmerchantedFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._unmerchantedFilter = e.detail.filter;
-    this._unmerchantedPage = 1;
   }
 
   #selectTransaction(tx: Transaction) {
@@ -438,39 +413,32 @@ export class RuleManager extends BusyMixin(LitElement) {
 
     const filteredRules = this._rules!.filter((r) => this.#ruleMatchesFilter(r));
     const sortedRules = this.#sortedRules(filteredRules);
-    const pageStart = (this._rulesPage - 1) * this._rulesPageSize;
-    const pageRules = sortedRules.slice(pageStart, pageStart + this._rulesPageSize);
 
     return html`
       <div class="section">
         <h3>Existing Rules</h3>
         <paginated-table
-          .totalItems=${filteredRules.length}
+          .items=${sortedRules}
           .defaultPageSize=${10}
           storageKey="rules"
           ?filterable=${true}
-          @page-change=${this.#onRulesPageChange}
           @filter-change=${this.#onRulesFilterChange}
+          .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
         >
-          <table>
-            <thead>
-              <tr>
-                <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
-                  Conditions${this.#rulesSortIndicator("conditions")}
-                </th>
-                <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
-                  Merchant${this.#rulesSortIndicator("merchant")}
-                </th>
-                <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
-                  Tags${this.#rulesSortIndicator("tags")}
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${pageRules.map((rule) => this.#renderRuleRow(rule))}
-            </tbody>
-          </table>
+          <thead slot="header">
+            <tr>
+              <th class="sortable" @click=${() => this.#onRulesSortClick("conditions")}>
+                Conditions${this.#rulesSortIndicator("conditions")}
+              </th>
+              <th class="sortable" @click=${() => this.#onRulesSortClick("merchant")}>
+                Merchant${this.#rulesSortIndicator("merchant")}
+              </th>
+              <th class="sortable" @click=${() => this.#onRulesSortClick("tags")}>
+                Tags${this.#rulesSortIndicator("tags")}
+              </th>
+              <th></th>
+            </tr>
+          </thead>
         </paginated-table>
       </div>
     `;
@@ -497,40 +465,31 @@ export class RuleManager extends BusyMixin(LitElement) {
     const filtered = lower
       ? this._unmerchanted.filter((tx) => tx.description.toLowerCase().includes(lower))
       : this._unmerchanted;
-    const pageStart = (this._unmerchantedPage - 1) * this._unmerchantedPageSize;
-    const pageTxs = filtered.slice(pageStart, pageStart + this._unmerchantedPageSize);
 
     return html`
       <div class="section">
         <h3>Unmerchanted Transactions</h3>
         <paginated-table
-          .totalItems=${filtered.length}
+          .items=${filtered}
           .defaultPageSize=${20}
           storageKey="unmerchanted"
           ?filterable=${true}
-          @page-change=${this.#onUnmerchantedPageChange}
           @filter-change=${this.#onUnmerchantedFilterChange}
+          .renderRow=${(tx: Transaction) => html`
+            <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+              <td>${tx.date}</td>
+              <td>${tx.description}</td>
+              <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
+            </tr>
+          `}
         >
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${pageTxs.map(
-                (tx) => html`
-                  <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
-                    <td>${tx.date}</td>
-                    <td>${tx.description}</td>
-                    <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${tx.amount.toFixed(2)}</td>
-                  </tr>
-                `,
-              )}
-            </tbody>
-          </table>
+          <thead slot="header">
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
         </paginated-table>
       </div>
     `;

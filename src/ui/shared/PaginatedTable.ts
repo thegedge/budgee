@@ -1,12 +1,7 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
-
-export interface PageChangeDetail {
-  page: number;
-  pageSize: number;
-}
 
 export interface FilterChangeDetail {
   filter: string;
@@ -14,14 +9,14 @@ export interface FilterChangeDetail {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "paginated-table": PaginatedTable;
+    "paginated-table": PaginatedTable<unknown>;
   }
 }
 
 @customElement("paginated-table")
-export class PaginatedTable extends LitElement {
-  @property({ type: Number })
-  totalItems = 0;
+export class PaginatedTable<T = unknown> extends LitElement {
+  @property({ type: Array })
+  items: T[] = [];
 
   @property({ type: Number })
   defaultPageSize = 10;
@@ -31,6 +26,10 @@ export class PaginatedTable extends LitElement {
 
   @property({ type: Boolean })
   filterable = false;
+
+  /** Callback to render a single row. Receives the item and its index in the current page. */
+  @property({ attribute: false })
+  renderRow: (item: T, index: number) => TemplateResult = () => html``;
 
   @state()
   private _currentPage = 1;
@@ -92,32 +91,29 @@ export class PaginatedTable extends LitElement {
   }
 
   private get _totalPages() {
-    return Math.max(1, Math.ceil(this.totalItems / this._effectivePageSize));
+    return Math.max(1, Math.ceil(this.items.length / this._effectivePageSize));
   }
 
-  firstUpdated() {
-    this.#firePageChange();
+  /** The items visible on the current page. Useful for consumers that need the current slice. */
+  get currentItems(): T[] {
+    const size = this._effectivePageSize;
+    const start = (this._currentPage - 1) * size;
+    return this.items.slice(start, start + size);
   }
 
   willUpdate(changed: Map<string, unknown>) {
-    if (changed.has("totalItems")) {
-      this._currentPage = 1;
+    if (changed.has("items")) {
+      const prev = changed.get("items") as T[] | undefined;
+      // Reset to page 1 when the dataset length changes (e.g. after filtering).
+      // Sorting the same set keeps the current page.
+      if (prev === undefined || prev.length !== this.items.length) {
+        this._currentPage = 1;
+      }
     }
   }
 
   reset() {
     this._currentPage = 1;
-    this.#firePageChange();
-  }
-
-  #firePageChange() {
-    this.dispatchEvent(
-      new CustomEvent<PageChangeDetail>("page-change", {
-        detail: { page: this._currentPage, pageSize: this._effectivePageSize },
-        bubbles: true,
-        composed: true,
-      }),
-    );
   }
 
   #onPageSizeChange(e: Event) {
@@ -130,20 +126,17 @@ export class PaginatedTable extends LitElement {
         // localStorage unavailable
       }
     }
-    this.#firePageChange();
   }
 
   #prevPage() {
     if (this._currentPage > 1) {
       this._currentPage--;
-      this.#firePageChange();
     }
   }
 
   #nextPage() {
     if (this._currentPage < this._totalPages) {
       this._currentPage++;
-      this.#firePageChange();
     }
   }
 
@@ -167,8 +160,9 @@ export class PaginatedTable extends LitElement {
 
   #renderPaginationBar() {
     const size = this._effectivePageSize;
-    const start = (this._currentPage - 1) * size + 1;
-    const end = Math.min(this._currentPage * size, this.totalItems);
+    const total = this.items.length;
+    const start = total === 0 ? 0 : (this._currentPage - 1) * size + 1;
+    const end = Math.min(this._currentPage * size, total);
 
     return html`
       <div class="pagination-bar">
@@ -193,7 +187,7 @@ export class PaginatedTable extends LitElement {
             </select>
           </label>
         </div>
-        <span>Showing ${start}–${end} of ${this.totalItems}</span>
+        <span>Showing ${start}–${end} of ${total}</span>
         <div class="pagination-controls">
           <button class="secondary" aria-label="Previous page" ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
           <button class="secondary" aria-label="Next page" ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
@@ -203,9 +197,16 @@ export class PaginatedTable extends LitElement {
   }
 
   render() {
+    const pageItems = this.currentItems;
+
     return html`
       ${this.#renderPaginationBar()}
-      <slot></slot>
+      <table>
+        <slot name="header"></slot>
+        <tbody>
+          ${pageItems.map((item, i) => this.renderRow(item, i))}
+        </tbody>
+      </table>
       ${this.#renderPaginationBar()}
     `;
   }

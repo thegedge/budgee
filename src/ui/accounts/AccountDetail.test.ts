@@ -55,7 +55,8 @@ describe("account-detail", () => {
     await waitFor(() => {
       const name = el.shadowRoot!.querySelector(".editable")!;
       expect(name.textContent).toBe("Checking");
-      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      const tableEl = el.shadowRoot!.querySelector(".section-transactions paginated-table")!;
+      const rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);
     });
 

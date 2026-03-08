@@ -33,11 +33,13 @@ describe("rule-manager", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const row = el.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      const row = tableEl.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
       expect(row).toBeTruthy();
     });
 
-    const row = el.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
+    const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+    const row = tableEl.shadowRoot!.querySelector(".clickable-row") as HTMLTableRowElement;
     row.click();
     await el.updateComplete;
 
@@ -76,9 +78,16 @@ describe("rule-manager", () => {
 
     let deleteBtn: HTMLButtonElement;
     await waitFor(() => {
-      deleteBtn = el.shadowRoot!.querySelector(
-        'button[aria-label="Delete rule"]',
-      ) as HTMLButtonElement;
+      const tableEls = el.shadowRoot!.querySelectorAll("paginated-table");
+      for (const tableEl of tableEls) {
+        const btn = tableEl.shadowRoot!.querySelector(
+          'button[aria-label="Delete rule"]',
+        ) as HTMLButtonElement | null;
+        if (btn) {
+          deleteBtn = btn;
+          break;
+        }
+      }
       expect(deleteBtn).toBeTruthy();
     });
 

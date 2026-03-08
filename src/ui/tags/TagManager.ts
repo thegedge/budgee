@@ -14,7 +14,7 @@ import "../shared/EmptyState";
 import "../shared/IconPicker";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
+import type { FilterChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -38,12 +38,6 @@ export class TagManager extends BusyMixin(LitElement) {
 
   @state()
   private _filter = "";
-
-  @state()
-  private _currentPage = 1;
-
-  @state()
-  private _pageSize = 25;
 
   @state()
   private _sortDir: SortDir = "asc";
@@ -157,19 +151,12 @@ export class TagManager extends BusyMixin(LitElement) {
     if (e.key === "Enter") this.#addTag();
   }
 
-  #onPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._currentPage = e.detail.page;
-    this._pageSize = e.detail.pageSize;
-  }
-
   #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._filter = e.detail.filter;
-    this._currentPage = 1;
   }
 
   #onNameSortClick() {
     this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
-    this._currentPage = 1;
   }
 
   #sorted(tags: Tag[]): Tag[] {
@@ -213,60 +200,51 @@ export class TagManager extends BusyMixin(LitElement) {
           ? this._tags.filter((t) => t.name.toLowerCase().includes(lower))
           : this._tags;
         const sorted = this.#sorted(filtered);
-        const start = (this._currentPage - 1) * this._pageSize;
-        const pageTags = sorted.slice(start, start + this._pageSize);
         const indicator = this._sortDir === "asc" ? " ▲" : " ▼";
         return html`
           <paginated-table
-            .totalItems=${filtered.length}
+            .items=${sorted}
             .defaultPageSize=${25}
             storageKey="tags"
             ?filterable=${true}
-            @page-change=${this.#onPageChange}
             @filter-change=${this.#onFilterChange}
+            .renderRow=${(tag: Tag) => html`
+              <tr>
+                <td class="col-icon">
+                  <icon-picker
+                    .value=${tag.icon ?? ""}
+                    @icon-selected=${(e: CustomEvent<{ icon: string }>) =>
+                      this.#saveTagIcon(tag, e.detail.icon)}
+                  ></icon-picker>
+                </td>
+                <td class="col-color">
+                  <input
+                    type="color"
+                    class="color-swatch"
+                    .value=${this.#toHex(tag.color)}
+                    @change=${(e: Event) =>
+                      this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
+                  />
+                </td>
+                <td>
+                  ${tag.name}
+                </td>
+                <td class="col-remove">
+                  <button class="icon-btn icon-btn--danger" title="Remove tag" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id)}>
+                    ${unsafeSVG(trash2Icon)}
+                  </button>
+                </td>
+              </tr>
+            `}
           >
-            <table>
-              <thead>
-                <tr>
-                  <th class="col-icon">Icon</th>
-                  <th class="col-color">Color</th>
-                  <th class="sortable" @click=${this.#onNameSortClick}>Name${indicator}</th>
-                  <th class="col-remove"></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pageTags.map(
-                  (tag) => html`
-                  <tr>
-                    <td class="col-icon">
-                      <icon-picker
-                        .value=${tag.icon ?? ""}
-                        @icon-selected=${(e: CustomEvent<{ icon: string }>) =>
-                          this.#saveTagIcon(tag, e.detail.icon)}
-                      ></icon-picker>
-                    </td>
-                    <td class="col-color">
-                      <input
-                        type="color"
-                        class="color-swatch"
-                        .value=${this.#toHex(tag.color)}
-                        @change=${(e: Event) =>
-                          this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
-                      />
-                    </td>
-                    <td>
-                      ${tag.name}
-                    </td>
-                    <td class="col-remove">
-                      <button class="icon-btn icon-btn--danger" title="Remove tag" aria-label="Remove tag" @click=${() => this.#deleteTag(tag.id)}>
-                        ${unsafeSVG(trash2Icon)}
-                      </button>
-                    </td>
-                  </tr>
-                `,
-                )}
-              </tbody>
-            </table>
+            <thead slot="header">
+              <tr>
+                <th class="col-icon">Icon</th>
+                <th class="col-color">Color</th>
+                <th class="sortable" @click=${this.#onNameSortClick}>Name${indicator}</th>
+                <th class="col-remove"></th>
+              </tr>
+            </thead>
           </paginated-table>
         `;
       })()}

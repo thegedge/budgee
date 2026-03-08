@@ -12,7 +12,8 @@ import "../merchants/MerchantAutocomplete";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
-import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
+import type { FilterChangeDetail } from "../shared/PaginatedTable";
+import { PaginatedTable } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
@@ -46,12 +47,6 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   @state()
   private _merchantList: Merchant[] = [];
-
-  @state()
-  private _currentPage = 1;
-
-  @state()
-  private _pageSize = 50;
 
   @state()
   private _filter = "";
@@ -243,14 +238,8 @@ export class TransactionList extends BusyMixin(LitElement) {
     return this.#tag(tagId)?.name ?? `#${tagId}`;
   }
 
-  #onPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._currentPage = e.detail.page;
-    this._pageSize = e.detail.pageSize;
-  }
-
   #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._filter = e.detail.filter;
-    this._currentPage = 1;
   }
 
   #matchesFilter(t: Transaction): boolean {
@@ -275,7 +264,6 @@ export class TransactionList extends BusyMixin(LitElement) {
       this._sortCol = col;
       this._sortDir = "asc";
     }
-    this._currentPage = 1;
   }
 
   #sortIndicator(col: SortColumn): string {
@@ -432,12 +420,10 @@ export class TransactionList extends BusyMixin(LitElement) {
       next.add(tagId);
     }
     this._excludeTagIds = next;
-    this._currentPage = 1;
   }
 
   #toggleNoMerchant() {
     this._noMerchant = !this._noMerchant;
-    this._currentPage = 1;
   }
 
   #renderFilterBar() {
@@ -556,8 +542,11 @@ export class TransactionList extends BusyMixin(LitElement) {
 
     const filtered = this._transactions.filter((t) => this.#matchesFilter(t));
     const sorted = this.#sorted(filtered);
-    const start = (this._currentPage - 1) * this._pageSize;
-    const pageTransactions = sorted.slice(start, start + this._pageSize);
+
+    // Get current page items from the paginated-table element so the
+    // "select all on page" checkbox reflects the actual visible rows.
+    const tableEl = this.shadowRoot?.querySelector<PaginatedTable<Transaction>>("paginated-table");
+    const pageTransactions = tableEl ? tableEl.currentItems : sorted.slice(0, 50);
     const pageIds = pageTransactions.map((t) => t.id);
     const allPageSelected = pageIds.length > 0 && pageIds.every((id) => this._selectedIds.has(id));
 
@@ -577,72 +566,65 @@ export class TransactionList extends BusyMixin(LitElement) {
       ${this.#renderFilterBar()}
       ${this.#renderBulkBar()}
       <paginated-table
-        .totalItems=${filtered.length}
+        .items=${sorted}
         .defaultPageSize=${50}
         storageKey="transactions"
         ?filterable=${true}
-        @page-change=${this.#onPageChange}
         @filter-change=${this.#onFilterChange}
+        .renderRow=${(t: Transaction) => html`
+          <tr @click=${() => this.#navigateToTransaction(t.id)}>
+            <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                .checked=${this._selectedIds.has(t.id)}
+                @change=${() => this.#toggleSelection(t.id)}
+              />
+            </td>
+            <td class="col-date">${this.#humanizeDate(t.date)}</td>
+            <td>${
+              t.merchantId && this._merchants.has(t.merchantId)
+                ? html`<a class="merchant-link" @click=${(e: Event) => {
+                    e.stopPropagation();
+                    this.#navigateToMerchant(t.merchantId!);
+                  }}>${this._merchants.get(t.merchantId!)}</a>`
+                : ""
+            }</td>
+            <td>${this._filter ? highlightMatch(t.description, this._filter) : t.description}</td>
+            <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
+              ${t.amount.toFixed(2)}
+            </td>
+            <td class="col-tags">
+              <tag-pills .tags=${this._tags} .tagIds=${t.tagIds}></tag-pills>
+            </td>
+          </tr>
+        `}
       >
-        <table>
-          <thead>
-            <tr>
-              <th class="col-checkbox">
-                <input
-                  type="checkbox"
-                  .checked=${allPageSelected}
-                  @change=${() => this.#toggleSelectAll(pageTransactions)}
-                />
-              </th>
-              <th class="sortable col-date" @click=${() => this.#onSortClick("date")}>
-                Date${this.#sortIndicator("date")}
-              </th>
-              <th class="sortable" @click=${() => this.#onSortClick("merchant")}>
-                Merchant${this.#sortIndicator("merchant")}
-              </th>
-              <th class="sortable" @click=${() => this.#onSortClick("description")}>
-                Description${this.#sortIndicator("description")}
-              </th>
-              <th class="sortable col-amount" @click=${() => this.#onSortClick("amount")}>
-                Amount${this.#sortIndicator("amount")}
-              </th>
-              <th class="sortable col-tags" @click=${() => this.#onSortClick("tags")}>
-                Tags${this.#sortIndicator("tags")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${pageTransactions.map(
-              (t) => html`
-              <tr @click=${() => this.#navigateToTransaction(t.id)}>
-                <td class="col-checkbox" @click=${(e: Event) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    .checked=${this._selectedIds.has(t.id)}
-                    @change=${() => this.#toggleSelection(t.id)}
-                  />
-                </td>
-                <td class="col-date">${this.#humanizeDate(t.date)}</td>
-                <td>${
-                  t.merchantId && this._merchants.has(t.merchantId)
-                    ? html`<a class="merchant-link" @click=${(e: Event) => {
-                        e.stopPropagation();
-                        this.#navigateToMerchant(t.merchantId!);
-                      }}>${this._merchants.get(t.merchantId!)}</a>`
-                    : ""
-                }</td>
-                <td>${this._filter ? highlightMatch(t.description, this._filter) : t.description}</td>
-                <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
-                  ${t.amount.toFixed(2)}
-                </td>
-                <td class="col-tags">
-                  <tag-pills .tags=${this._tags} .tagIds=${t.tagIds}></tag-pills>
-                </td>
-              </tr>
-            `,
-            )}
-          </tbody>
-        </table>
+        <thead slot="header">
+          <tr>
+            <th class="col-checkbox">
+              <input
+                type="checkbox"
+                .checked=${allPageSelected}
+                @change=${() => this.#toggleSelectAll(pageTransactions)}
+              />
+            </th>
+            <th class="sortable col-date" @click=${() => this.#onSortClick("date")}>
+              Date${this.#sortIndicator("date")}
+            </th>
+            <th class="sortable" @click=${() => this.#onSortClick("merchant")}>
+              Merchant${this.#sortIndicator("merchant")}
+            </th>
+            <th class="sortable" @click=${() => this.#onSortClick("description")}>
+              Description${this.#sortIndicator("description")}
+            </th>
+            <th class="sortable col-amount" @click=${() => this.#onSortClick("amount")}>
+              Amount${this.#sortIndicator("amount")}
+            </th>
+            <th class="sortable col-tags" @click=${() => this.#onSortClick("tags")}>
+              Tags${this.#sortIndicator("tags")}
+            </th>
+          </tr>
+        </thead>
       </paginated-table>
     `;
   }

@@ -9,7 +9,6 @@ import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { PageChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -42,11 +41,6 @@ export class MerchantDetail extends LitElement {
   @state()
   private _draftName = "";
 
-  @state()
-  private _currentPage = 1;
-
-  @state()
-  private _pageSize = 25;
 
   static styles = [
     tableStyles,
@@ -171,12 +165,6 @@ export class MerchantDetail extends LitElement {
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {
     this._timeRange = e.timeRange;
-    this._currentPage = 1;
-  }
-
-  #onPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._currentPage = e.detail.page;
-    this._pageSize = e.detail.pageSize;
   }
 
   updated(changed: Map<string, unknown>) {
@@ -225,8 +213,6 @@ export class MerchantDetail extends LitElement {
     }
 
     const filtered = this.#filteredTransactions;
-    const start = (this._currentPage - 1) * this._pageSize;
-    const pageTransactions = filtered.slice(start, start + this._pageSize);
     return html`
       <span class="back-link" @click=${this.#navigateBack}>&larr; Back to merchants</span>
 
@@ -264,33 +250,26 @@ export class MerchantDetail extends LitElement {
       <div class="section-transactions">
         <h3>Transactions</h3>
         <paginated-table
-          .totalItems=${filtered.length}
+          .items=${filtered}
           .defaultPageSize=${25}
           storageKey="merchant-transactions"
-          @page-change=${this.#onPageChange}
+          .renderRow=${(t: Transaction) => html`
+            <tr @click=${() => this.#navigateToTransaction(t.id)}>
+              <td>${t.date}</td>
+              <td>${t.description}</td>
+              <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                ${t.amount.toFixed(2)}
+              </td>
+            </tr>
+          `}
         >
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${pageTransactions.map(
-                (t) => html`
-                <tr @click=${() => this.#navigateToTransaction(t.id)}>
-                  <td>${t.date}</td>
-                  <td>${t.description}</td>
-                  <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
-                    ${t.amount.toFixed(2)}
-                  </td>
-                </tr>
-              `,
-              )}
-            </tbody>
-          </table>
+          <thead slot="header">
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
         </paginated-table>
       </div>
     `;

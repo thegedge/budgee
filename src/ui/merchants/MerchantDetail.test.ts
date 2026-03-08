@@ -54,7 +54,8 @@ describe("merchant-detail", () => {
 
     await waitFor(() => {
       expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
-      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      const tableEl = el.shadowRoot!.querySelector(".section-transactions paginated-table")!;
+      const rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);
     });
 
@@ -82,7 +83,8 @@ describe("merchant-detail", () => {
 
     await waitFor(() => {
       expect(el.shadowRoot!.querySelector("h2")!.textContent).toContain("Coffee Shop");
-      const rows = el.shadowRoot!.querySelectorAll(".section-transactions tbody tr");
+      const tableEl = el.shadowRoot!.querySelector(".section-transactions paginated-table")!;
+      const rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(1);
     });
 

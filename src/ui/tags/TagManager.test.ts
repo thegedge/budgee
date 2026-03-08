@@ -77,13 +77,15 @@ describe("tag-manager", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const deleteBtn = el.shadowRoot!.querySelector(
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      const deleteBtn = tableEl.shadowRoot!.querySelector(
         'button[aria-label="Remove tag"]',
       ) as HTMLButtonElement;
       expect(deleteBtn).toBeTruthy();
     });
 
-    const deleteBtn = el.shadowRoot!.querySelector(
+    const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+    const deleteBtn = tableEl.shadowRoot!.querySelector(
       'button[aria-label="Remove tag"]',
     ) as HTMLButtonElement;
     deleteBtn.click();

@@ -8,7 +8,7 @@ import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail, PageChangeDetail } from "../shared/PaginatedTable";
+import type { FilterChangeDetail } from "../shared/PaginatedTable";
 import { tableStyles } from "../tableStyles";
 
 declare global {
@@ -30,12 +30,6 @@ type SortDir = "asc" | "desc";
 export class MerchantList extends LitElement {
   @state()
   private _rows: MerchantRow[] | null = null;
-
-  @state()
-  private _currentPage = 1;
-
-  @state()
-  private _pageSize = 25;
 
   @state()
   private _filter = "";
@@ -84,14 +78,8 @@ export class MerchantList extends LitElement {
     });
   }
 
-  #onPageChange(e: CustomEvent<PageChangeDetail>) {
-    this._currentPage = e.detail.page;
-    this._pageSize = e.detail.pageSize;
-  }
-
   #onFilterChange(e: CustomEvent<FilterChangeDetail>) {
     this._filter = e.detail.filter;
-    this._currentPage = 1;
   }
 
   #matchesFilter(row: MerchantRow): boolean {
@@ -110,7 +98,6 @@ export class MerchantList extends LitElement {
       this._sortCol = col;
       this._sortDir = "asc";
     }
-    this._currentPage = 1;
   }
 
   #sortIndicator(col: SortColumn): string {
@@ -156,46 +143,37 @@ export class MerchantList extends LitElement {
 
     const filtered = this._rows.filter((r) => this.#matchesFilter(r));
     const sorted = this.#sorted(filtered);
-    const start = (this._currentPage - 1) * this._pageSize;
-    const pageRows = sorted.slice(start, start + this._pageSize);
 
     return html`
       <paginated-table
-        .totalItems=${filtered.length}
+        .items=${sorted}
         .defaultPageSize=${25}
         storageKey="merchants"
         ?filterable=${true}
-        @page-change=${this.#onPageChange}
         @filter-change=${this.#onFilterChange}
+        .renderRow=${(row: MerchantRow) => html`
+          <tr @click=${() => this.#navigateToMerchant(row.merchant.id)}>
+            <td>${row.merchant.name}</td>
+            <td>${row.transactionCount ?? "…"}</td>
+            <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
+              ${row.totalSpend != null ? row.totalSpend.toFixed(2) : "…"}
+            </td>
+          </tr>
+        `}
       >
-        <table>
-          <thead>
-            <tr>
-              <th class="sortable" @click=${() => this.#onSortClick("name")}>
-                Name${this.#sortIndicator("name")}
-              </th>
-              <th class="sortable" @click=${() => this.#onSortClick("count")}>
-                Transactions${this.#sortIndicator("count")}
-              </th>
-              <th class="sortable col-amount" @click=${() => this.#onSortClick("spend")}>
-                Total Spend${this.#sortIndicator("spend")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${pageRows.map(
-              (row) => html`
-              <tr @click=${() => this.#navigateToMerchant(row.merchant.id)}>
-                <td>${row.merchant.name}</td>
-                <td>${row.transactionCount ?? "…"}</td>
-                <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
-                  ${row.totalSpend != null ? row.totalSpend.toFixed(2) : "…"}
-                </td>
-              </tr>
-            `,
-            )}
-          </tbody>
-        </table>
+        <thead slot="header">
+          <tr>
+            <th class="sortable" @click=${() => this.#onSortClick("name")}>
+              Name${this.#sortIndicator("name")}
+            </th>
+            <th class="sortable" @click=${() => this.#onSortClick("count")}>
+              Transactions${this.#sortIndicator("count")}
+            </th>
+            <th class="sortable col-amount" @click=${() => this.#onSortClick("spend")}>
+              Total Spend${this.#sortIndicator("spend")}
+            </th>
+          </tr>
+        </thead>
       </paginated-table>
     `;
   }

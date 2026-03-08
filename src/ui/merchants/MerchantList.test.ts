@@ -40,7 +40,8 @@ describe("merchant-list", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const rows = el.shadowRoot!.querySelectorAll("tbody tr");
+      const tableEl = el.shadowRoot!.querySelector("paginated-table")!;
+      const rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);
     });
 

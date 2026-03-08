@@ -1,10 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { html } from "lit";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { PaginatedTable } from "./PaginatedTable";
 
-function createTable(totalItems: number, defaultPageSize = 10): PaginatedTable {
-  const el = new PaginatedTable();
-  el.totalItems = totalItems;
+function makeItems(count: number): { id: number }[] {
+  return Array.from({ length: count }, (_, i) => ({ id: i + 1 }));
+}
+
+function createTable(count: number, defaultPageSize = 10): PaginatedTable<{ id: number }> {
+  const el = new PaginatedTable<{ id: number }>();
+  el.items = makeItems(count);
   el.defaultPageSize = defaultPageSize;
+  el.renderRow = (item) => html`<tr><td>${item.id}</td></tr>`;
   document.body.appendChild(el);
   return el;
 }
@@ -73,25 +79,21 @@ describe("PaginatedTable", () => {
     el.remove();
   });
 
-  it("fires page-change event on next click", async () => {
+  it("navigates to next page on next click", async () => {
     const el = createTable(30, 10);
     await el.updateComplete;
-
-    const handler = vi.fn();
-    el.addEventListener("page-change", handler);
 
     const nextBtn = el.shadowRoot?.querySelectorAll("button")[1];
     nextBtn?.click();
     await el.updateComplete;
 
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ page: 2, pageSize: 10 });
     expect(el.shadowRoot?.textContent).toContain("Showing 11–20 of 30");
+    expect(el.currentItems.map((i) => i.id)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
 
     el.remove();
   });
 
-  it("fires page-change event on prev click", async () => {
+  it("navigates back to prev page on prev click", async () => {
     const el = createTable(30, 10);
     await el.updateComplete;
 
@@ -99,19 +101,15 @@ describe("PaginatedTable", () => {
     el.shadowRoot?.querySelectorAll("button")[1]?.click();
     await el.updateComplete;
 
-    const handler = vi.fn();
-    el.addEventListener("page-change", handler);
-
     el.shadowRoot?.querySelectorAll("button")[0]?.click();
     await el.updateComplete;
 
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 10 });
+    expect(el.shadowRoot?.textContent).toContain("Showing 1–10 of 30");
 
     el.remove();
   });
 
-  it("resets to page 1 when totalItems changes", async () => {
+  it("resets to page 1 when items length changes", async () => {
     const el = createTable(30, 10);
     await el.updateComplete;
 
@@ -120,10 +118,27 @@ describe("PaginatedTable", () => {
     await el.updateComplete;
     expect(el.shadowRoot?.textContent).toContain("Showing 11–20 of 30");
 
-    // Change total items
-    el.totalItems = 50;
+    // Change items to a different length
+    el.items = makeItems(50);
     await el.updateComplete;
     expect(el.shadowRoot?.textContent).toContain("Showing 1–10 of 50");
+
+    el.remove();
+  });
+
+  it("does not reset page when items length is unchanged (e.g. sort change)", async () => {
+    const el = createTable(30, 10);
+    await el.updateComplete;
+
+    // Go to page 2
+    el.shadowRoot?.querySelectorAll("button")[1]?.click();
+    await el.updateComplete;
+    expect(el.shadowRoot?.textContent).toContain("Showing 11–20 of 30");
+
+    // Replace with same-length array (simulating a sort)
+    el.items = makeItems(30).reverse();
+    await el.updateComplete;
+    expect(el.shadowRoot?.textContent).toContain("Showing 11–20 of 30");
 
     el.remove();
   });
@@ -132,16 +147,11 @@ describe("PaginatedTable", () => {
     const el = createTable(100, 10);
     await el.updateComplete;
 
-    const handler = vi.fn();
-    el.addEventListener("page-change", handler);
-
     const select = el.shadowRoot?.querySelector("select");
     select!.value = "25";
     select?.dispatchEvent(new Event("change"));
     await el.updateComplete;
 
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 25 });
     expect(el.shadowRoot?.textContent).toContain("Showing 1–25 of 100");
 
     el.remove();
@@ -194,44 +204,15 @@ describe("PaginatedTable", () => {
   it("restores page size from localStorage on connect", async () => {
     localStorage.setItem("budgee:pageSize:test-restore", "25");
 
-    const el = new PaginatedTable();
-    el.totalItems = 100;
+    const el = new PaginatedTable<{ id: number }>();
+    el.items = makeItems(100);
     el.defaultPageSize = 10;
     el.storageKey = "test-restore";
+    el.renderRow = (item) => html`<tr><td>${item.id}</td></tr>`;
     document.body.appendChild(el);
     await el.updateComplete;
 
     expect(el.shadowRoot?.textContent).toContain("Showing 1–25 of 100");
-
-    el.remove();
-  });
-
-  it("fires page-change on first render with stored page size", async () => {
-    localStorage.setItem("budgee:pageSize:test-initial", "25");
-
-    const handler = vi.fn();
-    const el = new PaginatedTable();
-    el.totalItems = 100;
-    el.defaultPageSize = 10;
-    el.storageKey = "test-initial";
-    el.addEventListener("page-change", handler);
-    document.body.appendChild(el);
-    await el.updateComplete;
-
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 25 });
-
-    el.remove();
-  });
-
-  it("fires page-change on first render with default page size", async () => {
-    const handler = vi.fn();
-    const el = createTable(50, 10);
-    el.addEventListener("page-change", handler);
-    await el.updateComplete;
-
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, pageSize: 10 });
 
     el.remove();
   });
@@ -245,6 +226,29 @@ describe("PaginatedTable", () => {
     select?.dispatchEvent(new Event("change"));
 
     expect(localStorage.getItem("budgee:pageSize:")).toBeNull();
+
+    el.remove();
+  });
+
+  it("shows 0–0 of 0 when items is empty", async () => {
+    const el = createTable(0, 10);
+    await el.updateComplete;
+
+    expect(el.shadowRoot?.textContent).toContain("Showing 0–0 of 0");
+
+    el.remove();
+  });
+
+  it("currentItems returns the correct slice", async () => {
+    const el = createTable(30, 10);
+    await el.updateComplete;
+
+    expect(el.currentItems.map((i) => i.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    el.shadowRoot?.querySelectorAll("button")[1]?.click();
+    await el.updateComplete;
+
+    expect(el.currentItems.map((i) => i.id)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
 
     el.remove();
   });
