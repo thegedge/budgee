@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
@@ -6,14 +6,6 @@ import "./Dashboard";
 import { Dashboard } from "./Dashboard";
 
 describe("budgee-dashboard", () => {
-  beforeEach(async () => {
-    const dbs = await db();
-    await dbs.transactions.clear();
-    await dbs.tags.clear();
-    await dbs.dashboardCharts.clear();
-    await dbs.dashboardTables.clear();
-    await dbs.merchants.clear();
-  });
 
   it("should be defined", () => {
     expect(customElements.get("budgee-dashboard")).toBe(Dashboard);

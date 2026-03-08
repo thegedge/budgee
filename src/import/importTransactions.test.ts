@@ -10,9 +10,6 @@ describe("importTransactions", () => {
 
   beforeEach(async () => {
     const dbs = await db();
-    await dbs.transactions.clear();
-    await dbs.merchantRules.clear();
-    await dbs.accounts.clear();
     await dbs.accounts.put({ id: accountId, name: "Test Account" });
   });
 

@@ -1,5 +1,5 @@
 import { uuid } from "../uuid";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { collectionSchemas, db } from "./Db";
 
 describe("schema snapshots", () => {
@@ -16,14 +16,6 @@ describe("schema snapshots", () => {
 });
 
 describe("BudgeeDatabase", () => {
-  beforeEach(async () => {
-    const dbs = await db();
-    await dbs.tags.clear();
-    await dbs.merchants.clear();
-    await dbs.transactions.clear();
-    await dbs.accounts.clear();
-  });
-
   it("should initialize successfully", async () => {
     const dbs = await db();
     expect(dbs).toBeDefined();

@@ -117,4 +117,9 @@ export class Repository<T extends { id: string }> {
     const col = await this.#collection();
     return col.subscribe(callback);
   }
+
+  clearCache(): void {
+    this.#cached = null;
+    this.#cacheSubscribed = false;
+  }
 }

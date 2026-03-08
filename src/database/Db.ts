@@ -404,6 +404,20 @@ export async function createDatabases(storage: unknown, name = "budgee"): Promis
   };
 }
 
+export async function clearAllCollections(dbs: Databases): Promise<void> {
+  await Promise.all([
+    dbs.transactions.clear(),
+    dbs.tags.clear(),
+    dbs.merchants.clear(),
+    dbs.accounts.clear(),
+    dbs.merchantRules.clear(),
+    dbs.dashboardCharts.clear(),
+    dbs.dashboardTables.clear(),
+    dbs.meta.clear(),
+    dbs.backups.clear(),
+  ]);
+}
+
 export async function destroyAll(dbs: Databases) {
   const rxCollection = (dbs.transactions as Collection<TransactionRecord>).rxCollection;
   const rxdb = rxCollection.database;
@@ -420,8 +434,7 @@ export const isDemoMode =
 async function createDefaultDatabase(): Promise<Databases> {
   if (import.meta.env?.MODE === "test") {
     const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
-    const testName = `budgee_test_${Math.random().toString(36).slice(2)}`;
-    return createDatabases(getRxStorageMemory(), testName);
+    return createDatabases(getRxStorageMemory(), "budgee_test");
   }
 
   if (isDemoMode) {

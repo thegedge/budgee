@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { db } from "../../database/Db";
 import { uuid } from "../../uuid";
 import { waitFor } from "../testing";
@@ -6,10 +6,6 @@ import "./TagManager";
 import { TagManager } from "./TagManager";
 
 describe("tag-manager", () => {
-  beforeEach(async () => {
-    const dbs = await db();
-    await dbs.tags.clear();
-  });
 
   it("should be defined", () => {
     expect(customElements.get("tag-manager")).toBe(TagManager);

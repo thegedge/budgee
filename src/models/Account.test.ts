@@ -1,13 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { db } from "../database/Db";
 import { uuid } from "../uuid";
 import { Account } from "./Account";
-
-beforeEach(async () => {
-  const dbs = await db();
-  await dbs.accounts.clear();
-  await dbs.transactions.clear();
-});
 
 describe("Account", () => {
   it("should return all accounts", async () => {

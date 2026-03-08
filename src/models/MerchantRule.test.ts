@@ -1,14 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { AccountRecord, MerchantRuleRecord } from "../database/types";
 import { db } from "../database/Db";
 import { uuid } from "../uuid";
 import { MerchantRule, prepareTransaction } from "./MerchantRule";
-
-beforeEach(async () => {
-  const dbs = await db();
-  await dbs.merchantRules.clear();
-  await dbs.transactions.clear();
-});
 
 describe("MerchantRule", () => {
   it("should return all rules", async () => {

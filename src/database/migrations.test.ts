@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { db } from "./Db";
 import type { DatabaseExport } from "./importDb";
 import { LATEST_VERSION, migrateDatabase, migrateExport } from "./migrations";
@@ -111,19 +111,6 @@ describe("migrateExport", () => {
 });
 
 describe("migrateDatabase", () => {
-  beforeEach(async () => {
-    const dbs = await db();
-    await dbs.tags.clear();
-    await dbs.merchants.clear();
-    await dbs.transactions.clear();
-    await dbs.accounts.clear();
-    await dbs.merchantRules.clear();
-    await dbs.dashboardCharts.clear();
-    await dbs.dashboardTables.clear();
-    await dbs.meta.clear();
-    await dbs.backups.clear();
-  });
-
   it("should set schema version on first run with empty database", async () => {
     const dbs = await db();
     await migrateDatabase(dbs);

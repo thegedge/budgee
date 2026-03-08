@@ -1,12 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { db } from "../database/Db";
 import { uuid } from "../uuid";
 import { DashboardChart } from "./DashboardChart";
-
-beforeEach(async () => {
-  const dbs = await db();
-  await dbs.dashboardCharts.clear();
-});
 
 describe("DashboardChart", () => {
   it("should return all charts sorted by position", async () => {
