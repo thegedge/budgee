@@ -10,7 +10,7 @@
   "scripts": {
     "postinstall": "patch-package",
     "build": "vite build",
-    "dev": "vite",
+    "dev": "vite --host",
     "format": "oxfmt --check",
     "format:fix": "oxfmt --write",
     "lint": "oxlint",
