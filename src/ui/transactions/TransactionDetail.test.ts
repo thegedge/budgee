@@ -28,7 +28,7 @@ describe("transaction-detail", () => {
 
     await waitFor(() => {
       expect(el.shadowRoot!.querySelector("h2")!.textContent).toBe("Whole Foods Market");
-      expect(el.shadowRoot!.querySelector(".amount")!.textContent!.trim()).toBe("-42.50");
+      expect(el.shadowRoot!.querySelector(".amount")!.textContent!.trim()).toBe("-$42.50");
       expect(el.shadowRoot!.querySelector(".meta")!.textContent).toContain("2024-01-15");
     });
 

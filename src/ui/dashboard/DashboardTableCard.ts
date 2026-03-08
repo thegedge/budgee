@@ -4,6 +4,7 @@ import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import trash2Icon from "lucide-static/icons/trash-2.svg?raw";
 import wrenchIcon from "lucide-static/icons/wrench.svg?raw";
 import { transactionStats } from "../../charting/transactionStats";
+import { formatAmount } from "../../formatAmount";
 import type { DashboardTableColumn } from "../../database/types";
 import type { Account } from "../../models/Account";
 import type { DashboardTable } from "../../models/DashboardTable";
@@ -164,7 +165,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
       case "date":
         return html`<td>${t.date}</td>`;
       case "amount":
-        return html`<td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">${t.amount.toFixed(2)}</td>`;
+        return html`<td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">${formatAmount(t.amount)}</td>`;
       case "description":
         return html`<td>${t.description}</td>`;
       case "merchant":
@@ -223,7 +224,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
       case "transactionCount":
         return html`<td>${row.transactionCount}</td>`;
       case "totalAmount":
-        return html`<td class="col-amount ${row.totalAmount < 0 ? "amount-negative" : "amount-positive"}">${row.totalAmount.toFixed(2)}</td>`;
+        return html`<td class="col-amount ${row.totalAmount < 0 ? "amount-negative" : "amount-positive"}">${formatAmount(row.totalAmount)}</td>`;
       default:
         return html`
           <td></td>
@@ -274,7 +275,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
       case "transactionCount":
         return html`<td>${row.transactionCount}</td>`;
       case "totalAmount":
-        return html`<td class="col-amount ${row.totalAmount < 0 ? "amount-negative" : "amount-positive"}">${row.totalAmount.toFixed(2)}</td>`;
+        return html`<td class="col-amount ${row.totalAmount < 0 ? "amount-negative" : "amount-positive"}">${formatAmount(row.totalAmount)}</td>`;
       default:
         return html`
           <td></td>

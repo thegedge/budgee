@@ -4,6 +4,7 @@ import { cardNetworkFromPrefix } from "../../cardNetwork";
 import { aggregateByPeriod } from "../../charting/aggregateBy";
 import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
+import { formatAmount } from "../../formatAmount";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
 import { DataSubscriptionController } from "../DataSubscriptionController";
@@ -246,7 +247,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 <tr>
                   <td>${month}</td>
                   <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
-                    ${total.toFixed(2)}
+                    ${formatAmount(total)}
                   </td>
                 </tr>
               `,
@@ -276,7 +277,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
               <td>${t.date}</td>
               <td>${t.description}</td>
               <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
-                ${t.amount.toFixed(2)}
+                ${formatAmount(t.amount)}
               </td>
             </tr>
           `}

@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
+import { formatAmount } from "../../formatAmount";
 import { Transaction } from "../../models/Transaction";
 import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
@@ -215,7 +216,7 @@ export class GlobalSearch extends LitElement {
           type: "transaction",
           id: tx.id,
           label: tx.description,
-          detail: `${tx.date} · ${tx.amount.toFixed(2)}`,
+          detail: `${tx.date} · ${formatAmount(tx.amount)}`,
           href: `/transactions/${tx.id}`,
         });
         txCount++;

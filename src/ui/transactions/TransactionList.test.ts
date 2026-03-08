@@ -61,12 +61,12 @@ describe("transaction-list", () => {
     const firstCells = rows[0].querySelectorAll("td");
     expect(firstCells[1].textContent).toBe("January 2, 2024");
     expect(firstCells[3].textContent).toBe("Payroll");
-    expect(firstCells[4].textContent!.trim()).toBe("2500.00");
+    expect(firstCells[4].textContent!.trim()).toBe("$2,500.00");
     expect(firstCells[4].classList.contains("amount-positive")).toBe(true);
 
     const secondCells = rows[1].querySelectorAll("td");
     expect(secondCells[1].textContent).toBe("January 1, 2024");
-    expect(secondCells[4].textContent!.trim()).toBe("-50.00");
+    expect(secondCells[4].textContent!.trim()).toBe("-$50.00");
     expect(secondCells[4].classList.contains("amount-negative")).toBe(true);
 
     el.remove();

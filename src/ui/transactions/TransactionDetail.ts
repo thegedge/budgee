@@ -1,6 +1,7 @@
 import type { ChartData } from "chart.js";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { formatAmount } from "../../formatAmount";
 import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
 import { Transaction } from "../../models/Transaction";
@@ -291,7 +292,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
       <div class="header">
         <h2>${tx.description}</h2>
         <div class="amount ${tx.amount < 0 ? "amount-negative" : "amount-positive"}">
-          ${tx.amount.toFixed(2)}
+          ${formatAmount(tx.amount)}
         </div>
         <div class="meta">
           ${tx.date}${this._merchant ? html` &middot; ${this._merchant.name}` : nothing}
@@ -348,7 +349,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
                       <td>${t.date}</td>
                       <td>${t.description}</td>
                       <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
-                        ${t.amount.toFixed(2)}
+                        ${formatAmount(t.amount)}
                       </td>
                     </tr>
                   `,
@@ -382,7 +383,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
                     <tr>
                       <td>${month}</td>
                       <td class="col-amount ${total < 0 ? "amount-negative" : "amount-positive"}">
-                        ${total.toFixed(2)}
+                        ${formatAmount(total)}
                       </td>
                     </tr>
                   `,

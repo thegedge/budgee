@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { aggregateByPeriod } from "../../charting/aggregateBy";
+import { formatAmount } from "../../formatAmount";
 import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
@@ -258,7 +259,7 @@ export class MerchantDetail extends LitElement {
               <td>${t.date}</td>
               <td>${t.description}</td>
               <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
-                ${t.amount.toFixed(2)}
+                ${formatAmount(t.amount)}
               </td>
             </tr>
           `}
