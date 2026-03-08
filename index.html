@@ -28,14 +28,6 @@
     <meta name="twitter:image" content="%VITE_BASE_URL%/screenshot.png" />
 
     <link rel="stylesheet" href="/global.css" />
-    <script>
-      if (!window.process)
-        window.process = {
-          nextTick: function (fn) {
-            Promise.resolve().then(fn);
-          },
-        };
-    </script>
     <script type="module" src="/src/ui/Application.ts"></script>
   </head>
   <body>
