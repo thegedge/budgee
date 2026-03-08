@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
-    "@lit-labs/router": "^0.1.4",
     "chart.js": "^4.5.1",
     "lit": "^3.3.2",
     "lucide-static": "^0.564.0",

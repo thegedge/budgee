@@ -1,4 +1,3 @@
-import { Router } from "@lit-labs/router";
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
@@ -15,6 +14,7 @@ import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay"
 import "./shared/GlobalSearch";
 import "./shared/ToastManager";
 import { navigate } from "./navigate";
+import { Router } from "./Router";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
 import birdIcon from "lucide-static/icons/bird.svg?raw";
