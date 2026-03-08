@@ -1,4 +1,4 @@
-import { waitForDb } from "./Db";
+import { waitForDb, type Databases } from "./Db";
 import { uuid } from "../uuid";
 import type {
   AccountRecord,
@@ -19,6 +19,93 @@ export interface DatabaseExport {
   merchantRules?: MerchantRuleRecord[];
   dashboardCharts?: DashboardChartRecord[];
   dashboardTables?: DashboardTableRecord[];
+}
+
+const COLLECTION_KEYS: readonly (keyof DatabaseExport)[] = [
+  "transactions",
+  "tags",
+  "merchants",
+  "accounts",
+  "merchantRules",
+  "dashboardCharts",
+  "dashboardTables",
+] as const;
+
+/**
+ * Validates that the parsed JSON has the expected shape for a database export.
+ * Throws a descriptive error if validation fails.
+ */
+function validateExportShape(data: unknown): asserts data is DatabaseExport {
+  if (data == null || typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("Invalid import file: expected a JSON object at the top level.");
+  }
+  const record = data as Record<string, unknown>;
+  for (const key of COLLECTION_KEYS) {
+    if (key in record && !Array.isArray(record[key])) {
+      throw new Error(
+        `Invalid import file: expected "${key}" to be an array, got ${typeof record[key]}.`,
+      );
+    }
+  }
+}
+
+/**
+ * Clears all data collections and bulk-inserts the provided data.
+ */
+export async function clearAndImport(dbs: Databases, data: DatabaseExport): Promise<void> {
+  await dbs.transactions.clear();
+  await dbs.tags.clear();
+  await dbs.merchants.clear();
+  await dbs.accounts.clear();
+  await dbs.merchantRules.clear();
+  await dbs.dashboardCharts.clear();
+  await dbs.dashboardTables.clear();
+
+  if (data.transactions?.length) await dbs.transactions.bulkDocs(data.transactions);
+  if (data.tags?.length) await dbs.tags.bulkDocs(data.tags);
+  if (data.merchants?.length) await dbs.merchants.bulkDocs(data.merchants);
+  if (data.accounts?.length) await dbs.accounts.bulkDocs(data.accounts);
+  if (data.merchantRules?.length) await dbs.merchantRules.bulkDocs(data.merchantRules);
+  if (data.dashboardCharts?.length) await dbs.dashboardCharts.bulkDocs(data.dashboardCharts);
+  if (data.dashboardTables?.length) await dbs.dashboardTables.bulkDocs(data.dashboardTables);
+}
+
+/**
+ * Exports all current data from the database collections.
+ */
+export async function exportCurrentData(dbs: Databases): Promise<DatabaseExport> {
+  const { LATEST_VERSION } = await import("./migrations");
+  return {
+    version: LATEST_VERSION,
+    transactions: await dbs.transactions.all(),
+    tags: await dbs.tags.all(),
+    merchants: await dbs.merchants.all(),
+    accounts: await dbs.accounts.all(),
+    merchantRules: await dbs.merchantRules.all(),
+    dashboardCharts: await dbs.dashboardCharts.all(),
+    dashboardTables: await dbs.dashboardTables.all(),
+  };
+}
+
+/**
+ * Saves a backup of the provided data, pruning old backups to keep at most `keepCount`.
+ */
+export async function saveBackup(
+  dbs: Databases,
+  data: DatabaseExport,
+  keepCount = 10,
+): Promise<void> {
+  const id = `backup_${new Date().toISOString()}`;
+  await dbs.backups.put({ id, data: JSON.stringify(data) });
+
+  const allBackups = await dbs.backups.all();
+  if (allBackups.length > keepCount) {
+    const sorted = allBackups.sort((a, b) => b.id.localeCompare(a.id));
+    const toDelete = sorted.slice(keepCount);
+    for (const doc of toDelete) {
+      await dbs.backups.remove(doc.id);
+    }
+  }
 }
 
 /**
@@ -53,20 +140,19 @@ function remapIds(idMap: Map<string, string>, ids: string[] | undefined): string
 
 export async function importDatabase(file: File) {
   const text = await file.text();
-  const data: DatabaseExport = JSON.parse(text);
+  const parsed: unknown = JSON.parse(text);
+
+  validateExportShape(parsed);
+  const data: DatabaseExport = parsed;
 
   const { migrateExport, LATEST_VERSION } = await import("./migrations");
   const migrated = migrateExport(data);
 
   const db = await waitForDb();
 
-  await db.transactions.clear();
-  await db.tags.clear();
-  await db.merchants.clear();
-  await db.accounts.clear();
-  await db.merchantRules.clear();
-  await db.dashboardCharts.clear();
-  await db.dashboardTables.clear();
+  // Save a backup of current data before clearing
+  const currentData = await exportCurrentData(db);
+  await saveBackup(db, currentData);
 
   const { docs: tags, idMap: tagIdMap } = ensureIds(migrated.tags);
   const { docs: merchants, idMap: merchantIdMap } = ensureIds(migrated.merchants);
@@ -97,13 +183,15 @@ export async function importDatabase(file: File) {
     }
   }
 
-  if (transactions.length) await db.transactions.bulkDocs(transactions);
-  if (tags.length) await db.tags.bulkDocs(tags);
-  if (merchants.length) await db.merchants.bulkDocs(merchants);
-  if (accounts.length) await db.accounts.bulkDocs(accounts);
-  if (merchantRules.length) await db.merchantRules.bulkDocs(merchantRules);
-  if (dashboardCharts.length) await db.dashboardCharts.bulkDocs(dashboardCharts);
-  if (dashboardTables.length) await db.dashboardTables.bulkDocs(dashboardTables);
+  await clearAndImport(db, {
+    transactions,
+    tags,
+    merchants,
+    accounts,
+    merchantRules,
+    dashboardCharts,
+    dashboardTables,
+  });
 
   try {
     const doc = await db.meta.get("schema_version");

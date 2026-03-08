@@ -262,7 +262,10 @@ export class Collection<T extends { id: string }> {
 
   async clear(): Promise<void> {
     const docs = await this.#collection.find().exec();
-    await Promise.all(docs.map((doc) => doc.remove()));
+    const ids = docs.map((doc) => doc.primary);
+    if (ids.length > 0) {
+      await this.#collection.bulkRemove(ids);
+    }
   }
 
   async count(): Promise<number> {

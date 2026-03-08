@@ -82,14 +82,17 @@ export class Transaction {
   }
 
   static async bulkRemove(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
     const db = await waitForDb();
-    await Promise.all(ids.map((id) => db.transactions.remove(id)));
+    await db.transactions.rxCollection.bulkRemove(ids);
   }
 
   static async deleteAll(): Promise<number> {
     const db = await waitForDb();
     const docs = await db.transactions.all();
-    await Promise.all(docs.map((doc) => db.transactions.remove(doc.id)));
+    if (docs.length > 0) {
+      await db.transactions.rxCollection.bulkRemove(docs.map((doc) => doc.id));
+    }
     return docs.length;
   }
 
@@ -97,7 +100,9 @@ export class Transaction {
     const db = await waitForDb();
     const all = await db.transactions.all();
     const docs = all.filter((t) => t.accountId === accountId);
-    await Promise.all(docs.map((doc) => db.transactions.remove(doc.id)));
+    if (docs.length > 0) {
+      await db.transactions.rxCollection.bulkRemove(docs.map((doc) => doc.id));
+    }
     return docs.length;
   }
 }
