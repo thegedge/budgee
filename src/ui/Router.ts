@@ -44,6 +44,11 @@ export class Router implements ReactiveController {
   };
 
   async #resolve(pathname: string) {
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    if (base && pathname.startsWith(base)) {
+      pathname = pathname.slice(base.length) || "/";
+    }
+
     for (const route of this.#routes) {
       const result = route.pattern.exec({ pathname });
       if (result === null) continue;

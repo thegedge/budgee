@@ -22,7 +22,10 @@ function baseUrlPlugin(): Plugin {
   };
 }
 
+const basePath = process.env.VITE_BASE_URL ? new URL(process.env.VITE_BASE_URL).pathname : "/";
+
 export default defineConfig({
+  base: basePath,
   plugins: [baseUrlPlugin()],
   define: {
     __COMMIT_SHA__: JSON.stringify(commitSha),

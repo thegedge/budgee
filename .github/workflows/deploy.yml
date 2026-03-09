@@ -40,9 +40,7 @@ jobs:
           VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
 
       - name: Prepare dist for GitHub Pages
-        run: |
-          cp dist/index.html dist/404.html
-          echo "budgee.gedge.ca" > dist/CNAME
+        run: cp dist/index.html dist/404.html
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
