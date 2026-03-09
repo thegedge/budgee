@@ -1,4 +1,4 @@
-import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e as E,n as I,f as L,g as G,t as N,h as U,j as V,r as u,k as q}from"./index-DUbKPKkx.js";var H=Object.defineProperty,J=Object.getOwnPropertyDescriptor,k=a=>{throw TypeError(a)},h=(a,t,e,n)=>{for(var d=n>1?void 0:n?J(t,e):t,g=a.length-1,_;g>=0;g--)(_=a[g])&&(d=(n?_(t,e,d):_(d))||d);return n&&d&&H(t,e,d),d},v=(a,t,e)=>t.has(a)||k("Cannot "+e),y=(a,t,e)=>(v(a,t,"read from private field"),e?e.call(a):t.get(a)),w=(a,t,e)=>t.has(a)?k("Cannot add the same private member more than once"):t instanceof WeakSet?t.add(a):t.set(a,e),x=(a,t,e,n)=>(v(a,t,"write to private field"),t.set(a,e),e),i=(a,t,e)=>(v(a,t,"access private method"),e),l,s,f,T,S,M,C,z,B,D,P,R;let r=class extends W(A){constructor(){super(...arguments),w(this,s),this.transactionId="",this._tags=[],this._relatedTransactions=[],this._monthlySpend=[],w(this,l,[])}connectedCallback(){super.connectedCallback(),i(this,s,f).call(this);const a=O(()=>i(this,s,f).call(this),300);Promise.all([c.subscribe(a),m.subscribe(a),$.subscribe(a)]).then(t=>{x(this,l,t)})}disconnectedCallback(){super.disconnectedCallback();for(const a of y(this,l))a.unsubscribe();x(this,l,[])}render(){if(!this._transaction)return o`
+import{B as W,i as O,T as c,a as m,M as I,b as o,A as p,f as b,d as E,m as L,c as f,e as G,n as k,g as N,h as U,t as V,j as q,k as F,r as u,l as H}from"./index-CnG_Cynz.js";var J=Object.defineProperty,K=Object.getOwnPropertyDescriptor,T=a=>{throw TypeError(a)},h=(a,t,e,n)=>{for(var d=n>1?void 0:n?K(t,e):t,g=a.length-1,_;g>=0;g--)(_=a[g])&&(d=(n?_(t,e,d):_(d))||d);return n&&d&&J(t,e,d),d},y=(a,t,e)=>t.has(a)||T("Cannot "+e),w=(a,t,e)=>(y(a,t,"read from private field"),e?e.call(a):t.get(a)),$=(a,t,e)=>t.has(a)?T("Cannot add the same private member more than once"):t instanceof WeakSet?t.add(a):t.set(a,e),x=(a,t,e,n)=>(y(a,t,"write to private field"),t.set(a,e),e),i=(a,t,e)=>(y(a,t,"access private method"),e),l,s,v,S,M,C,z,B,D,A,P,R;let r=class extends W(O){constructor(){super(...arguments),$(this,s),this.transactionId="",this._tags=[],this._relatedTransactions=[],this._monthlySpend=[],$(this,l,[])}connectedCallback(){super.connectedCallback(),i(this,s,v).call(this);const a=E(()=>i(this,s,v).call(this),300);Promise.all([c.subscribe(a),m.subscribe(a),I.subscribe(a)]).then(t=>{x(this,l,t)})}disconnectedCallback(){super.disconnectedCallback();for(const a of w(this,l))a.unsubscribe();x(this,l,[])}render(){if(!this._transaction)return o`
         <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
         <budgee-skeleton variant="text" rows="4"></budgee-skeleton>
       `;const a=this._transaction;return o`
@@ -7,7 +7,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
       <div class="header">
         <h2>${a.description}</h2>
         <div class="amount ${a.amount<0?"amount-negative":"amount-positive"}">
-          ${a.amount.toFixed(2)}
+          ${b(a.amount)}
         </div>
         <div class="meta">
           ${a.date}${this._merchant?o` &middot; ${this._merchant.name}`:p}
@@ -19,9 +19,9 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
         <tag-autocomplete
           .tags=${this._tags}
           .selectedTagIds=${a.tagIds}
-          @tag-selected=${i(this,s,M)}
-          @tag-created=${i(this,s,C)}
-          @tag-removed=${t=>i(this,s,z).call(this,t.detail.tagId)}
+          @tag-selected=${i(this,s,C)}
+          @tag-created=${i(this,s,z)}
+          @tag-removed=${t=>i(this,s,B).call(this,t.detail.tagId)}
         ></tag-autocomplete>
       </div>
 
@@ -35,7 +35,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
         <h3>Notes</h3>
         <textarea
           .value=${a.memo??""}
-          @blur=${i(this,s,B)}
+          @blur=${i(this,s,D)}
           placeholder="Add notes..."
         ></textarea>
       </div>
@@ -57,7 +57,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
                       <td>${t.date}</td>
                       <td>${t.description}</td>
                       <td class="col-amount ${t.amount<0?"amount-negative":"amount-positive"}">
-                        ${t.amount.toFixed(2)}
+                        ${b(t.amount)}
                       </td>
                     </tr>
                   `)}
@@ -71,7 +71,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
               <h3>Monthly Merchant Spend</h3>
               <chart-wrapper
                 chartType="bar"
-                .data=${y(this,s,D)}
+                .data=${w(this,s,A)}
               ></chart-wrapper>
               <table>
                 <thead>
@@ -85,7 +85,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
                     <tr>
                       <td>${t}</td>
                       <td class="col-amount ${e<0?"amount-negative":"amount-positive"}">
-                        ${e.toFixed(2)}
+                        ${b(e)}
                       </td>
                     </tr>
                   `)}
@@ -93,7 +93,7 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
               </table>
             </div>
           `:p}
-    `}};l=new WeakMap;s=new WeakSet;f=async function(){this.transactionId&&(this._transaction=await c.get(this.transactionId),this._tags=await m.all(),this._transaction?.merchantId&&(this._merchant=await $.get(this._transaction.merchantId)),this._transaction&&(await i(this,s,T).call(this),await i(this,s,S).call(this)))};T=async function(){if(!this._transaction?.merchantId){this._relatedTransactions=[];return}const a=await c.forMerchant(this._transaction.merchantId);this._relatedTransactions=a.filter(t=>t.id!==this._transaction.id).slice(0,10)};S=async function(){if(!this._transaction?.merchantId){this._monthlySpend=[];return}const a=await c.forMerchant(this._transaction.merchantId),t=new Map;for(const e of a){const n=e.date.slice(0,7);t.set(n,(t.get(n)??0)+e.amount)}this._monthlySpend=[...t.entries()].sort(([e],[n])=>n.localeCompare(e)).map(([e,n])=>({month:e,total:n}))};M=async function(a){if(!this._transaction)return;const t=a.detail.tag;this._transaction.tagIds.includes(t.id)||await this.withBusy(async()=>{const e=[...this._transaction.tagIds,t.id];await c.update(this._transaction.id,{tagIds:e}),this._transaction={...this._transaction,tagIds:e}})};C=async function(a){this._transaction&&await this.withBusy(async()=>{const t=a.detail.name,e=await m.create(t),n=[...this._transaction.tagIds,e.id];await c.update(this._transaction.id,{tagIds:n}),this._transaction={...this._transaction,tagIds:n},this._tags=await m.all()})};z=async function(a){this._transaction&&await this.withBusy(async()=>{const t=this._transaction.tagIds.filter(e=>e!==a);await c.update(this._transaction.id,{tagIds:t}),this._transaction={...this._transaction,tagIds:t}})};B=async function(a){this._transaction&&await this.withBusy(async()=>{const t=a.target.value;await c.update(this._transaction.id,{memo:t}),this._transaction={...this._transaction,memo:t}})};D=function(){const a=[...this._monthlySpend].reverse(),t=a.map(n=>n.total),e=F(t.length);return{labels:a.map(n=>n.month),datasets:[{label:this._merchant?.name??"Merchant",data:t,backgroundColor:b("--budgee-primary",.5),borderColor:b("--budgee-primary"),borderWidth:1},...t.length>=2?[{type:"line",label:`Moving Avg (${e}-mo)`,data:E(t,e),borderColor:b("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};P=function(a){const t=new URLSearchParams({description:a.description});I(`/rules?${t}`)};R=function(){I("/transactions")};r.styles=[L,G,N,U`
+    `}};l=new WeakMap;s=new WeakSet;v=async function(){this.transactionId&&(this._transaction=await c.get(this.transactionId),this._tags=await m.all(),this._transaction?.merchantId&&(this._merchant=await I.get(this._transaction.merchantId)),this._transaction&&(await i(this,s,S).call(this),await i(this,s,M).call(this)))};S=async function(){if(!this._transaction?.merchantId){this._relatedTransactions=[];return}const a=await c.forMerchant(this._transaction.merchantId);this._relatedTransactions=a.filter(t=>t.id!==this._transaction.id).slice(0,10)};M=async function(){if(!this._transaction?.merchantId){this._monthlySpend=[];return}const a=await c.forMerchant(this._transaction.merchantId),t=new Map;for(const e of a){const n=e.date.slice(0,7);t.set(n,(t.get(n)??0)+e.amount)}this._monthlySpend=[...t.entries()].sort(([e],[n])=>n.localeCompare(e)).map(([e,n])=>({month:e,total:n}))};C=async function(a){if(!this._transaction)return;const t=a.detail.tag;this._transaction.tagIds.includes(t.id)||await this.withBusy(async()=>{const e=[...this._transaction.tagIds,t.id];await c.update(this._transaction.id,{tagIds:e}),this._transaction={...this._transaction,tagIds:e}})};z=async function(a){this._transaction&&await this.withBusy(async()=>{const t=a.detail.name,e=await m.create(t),n=[...this._transaction.tagIds,e.id];await c.update(this._transaction.id,{tagIds:n}),this._transaction={...this._transaction,tagIds:n},this._tags=await m.all()})};B=async function(a){this._transaction&&await this.withBusy(async()=>{const t=this._transaction.tagIds.filter(e=>e!==a);await c.update(this._transaction.id,{tagIds:t}),this._transaction={...this._transaction,tagIds:t}})};D=async function(a){this._transaction&&await this.withBusy(async()=>{const t=a.target.value;await c.update(this._transaction.id,{memo:t}),this._transaction={...this._transaction,memo:t}})};A=function(){const a=[...this._monthlySpend].reverse(),t=a.map(n=>n.total),e=L(t.length);return{labels:a.map(n=>n.month),datasets:[{label:this._merchant?.name??"Merchant",data:t,backgroundColor:f("--budgee-primary",.5),borderColor:f("--budgee-primary"),borderWidth:1},...t.length>=2?[{type:"line",label:`Moving Avg (${e}-mo)`,data:G(t,e),borderColor:f("--budgee-text-muted",.5),borderWidth:1.5,pointRadius:0,fill:!1,tension:.3}]:[]]}};P=function(a){const t=new URLSearchParams({description:a.description});k(`/rules?${t}`)};R=function(){k("/transactions")};r.styles=[N,U,V,q`
       :host {
         display: block;
       }
@@ -166,4 +166,4 @@ import{B as W,i as A,T as c,a as m,M as $,b as o,A as p,d as O,m as F,c as b,e a
         margin-bottom: 1rem;
         display: inline-block;
       }
-    `];h([V({type:String})],r.prototype,"transactionId",2);h([u()],r.prototype,"_transaction",2);h([u()],r.prototype,"_tags",2);h([u()],r.prototype,"_merchant",2);h([u()],r.prototype,"_relatedTransactions",2);h([u()],r.prototype,"_monthlySpend",2);r=h([q("transaction-detail")],r);export{r as TransactionDetail};
+    `];h([F({type:String})],r.prototype,"transactionId",2);h([u()],r.prototype,"_transaction",2);h([u()],r.prototype,"_tags",2);h([u()],r.prototype,"_merchant",2);h([u()],r.prototype,"_relatedTransactions",2);h([u()],r.prototype,"_monthlySpend",2);r=h([H("transaction-detail")],r);export{r as TransactionDetail};
