@@ -7,6 +7,7 @@ import { db, isDemoMode } from "../database/Db";
 import { importDatabase } from "../database/importDb";
 import { startReplication } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
+import { fetchIdentity, type User } from "../identity";
 import { ConfirmDialog } from "./shared/ConfirmDialog";
 import { showErrorOverlay } from "./shared/DatabaseErrorOverlay";
 import { setupGlobalErrorHandler } from "./globalErrorHandler";
@@ -47,6 +48,8 @@ export class Application extends LitElement {
 
   @state()
   private _showShortcuts = false;
+
+  identity: User | null = null;
 
   #dragCounter = 0;
   #cancelReplication?: () => void;
@@ -306,6 +309,10 @@ export class Application extends LitElement {
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
     setupGlobalErrorHandler();
+    fetchIdentity().then((user) => {
+      this.identity = user;
+      if (user) console.info("Identified as:", user.login);
+    });
     db().catch((error) => {
       console.error(error);
       const isDatabaseError = error instanceof SchemaVersionError;
