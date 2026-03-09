@@ -423,9 +423,13 @@ export class Application extends LitElement {
   };
 
   private navLink(href: string, label: string, icon: string) {
-    const path = window.location.pathname;
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const path = window.location.pathname.slice(base.length) || "/";
     const active = href === "/" ? path === "/" : path.startsWith(href);
-    const fullHref = isDemoMode ? `${href}${href.includes("?") ? "&" : "?"}demo=1` : href;
+    const prefixedHref = base + href;
+    const fullHref = isDemoMode
+      ? `${prefixedHref}${prefixedHref.includes("?") ? "&" : "?"}demo=1`
+      : prefixedHref;
     return html`<a href=${fullHref} class=${classMap({ active })}>${unsafeSVG(icon)} ${label}</a>`;
   }
 
