@@ -47,7 +47,17 @@ export const syncStatus$: Observable<SyncStatus> = replicationStatus$.pipe(
   }),
 );
 
-export async function startReplication(serverUrl: string): Promise<() => void> {
+export function buildTopic(collectionName: string, userLogin?: string | null): string {
+  if (userLogin) {
+    return `budgee--${userLogin}--${collectionName}`;
+  }
+  return `budgee--${collectionName}`;
+}
+
+export async function startReplication(
+  serverUrl: string,
+  userLogin?: string | null,
+): Promise<() => void> {
   replicationStatus$.next({ state: "connecting" });
 
   const dbs = await db();
@@ -58,22 +68,27 @@ export async function startReplication(serverUrl: string): Promise<() => void> {
   const replications = await Promise.all(
     SYNCABLE_COLLECTIONS.map(async (collectionName) => {
       const collection: RxCollection = rxdb[collectionName];
-      const topic = `budgee--${collectionName}`;
+      const unNamespacedTopic = `budgee--${collectionName}`;
 
+      let wsTopic = buildTopic(collectionName, userLogin);
       try {
-        await fetch(`${serverUrl}/databases`, {
+        const response = await fetch(`${serverUrl}/databases`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, schema: collection.schema.jsonSchema }),
+          body: JSON.stringify({ topic: unNamespacedTopic, schema: collection.schema.jsonSchema }),
         });
+        if (response.ok) {
+          const data = (await response.json()) as { topic?: string };
+          if (data.topic) wsTopic = data.topic;
+        }
       } catch (e) {
         console.warn(`Failed to register schema for ${collectionName}:`, e);
       }
 
       return replicateWithWebsocketServer({
         collection,
-        replicationIdentifier: topic,
-        url: `${wsBaseUrl}/${topic}`,
+        replicationIdentifier: wsTopic,
+        url: `${wsBaseUrl}/${wsTopic}`,
         live: true,
       });
     }),

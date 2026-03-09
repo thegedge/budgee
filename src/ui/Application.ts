@@ -350,7 +350,7 @@ export class Application extends LitElement {
     }
     if (url) {
       try {
-        this.#cancelReplication = await startReplication(url);
+        this.#cancelReplication = await startReplication(url, this.identity?.login ?? null);
       } catch (e) {
         console.error("Failed to start replication:", e);
       }
