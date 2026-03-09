@@ -150,8 +150,8 @@ export class Dashboard extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._chartSortable?.destroy();
-    this._tableSortable?.destroy();
+    if (this._chartSortable?.el?.isConnected) this._chartSortable.destroy();
+    if (this._tableSortable?.el?.isConnected) this._tableSortable.destroy();
   }
 
   updated() {
@@ -191,14 +191,14 @@ export class Dashboard extends LitElement {
     const existing = kind === "chart" ? this._chartSortable : this._tableSortable;
     const grid = this.shadowRoot?.querySelector(selector) as HTMLElement | null;
     if (!grid) {
-      existing?.destroy();
+      if (existing?.el?.isConnected) existing.destroy();
       setter(undefined);
       return;
     }
 
     if (existing?.el === grid) return;
 
-    existing?.destroy();
+    if (existing?.el?.isConnected) existing.destroy();
     setter(
       Sortable.create(grid, {
         animation: 150,
