@@ -13,7 +13,7 @@ import { setupGlobalErrorHandler } from "./globalErrorHandler";
 import { hideLoadingOverlay, showLoadingOverlay } from "./shared/LoadingOverlay";
 import "./shared/GlobalSearch";
 import "./shared/ToastManager";
-import { navigate } from "./navigate";
+import { navigate, stripBasePath, withBasePath } from "./navigate";
 import { Router } from "./Router";
 
 import banknotesIcon from "lucide-static/icons/banknote.svg?raw";
@@ -423,10 +423,9 @@ export class Application extends LitElement {
   };
 
   private navLink(href: string, label: string, icon: string) {
-    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-    const path = window.location.pathname.slice(base.length) || "/";
+    const path = stripBasePath(window.location.pathname);
     const active = href === "/" ? path === "/" : path.startsWith(href);
-    const prefixedHref = base + href;
+    const prefixedHref = withBasePath(href);
     const fullHref = isDemoMode
       ? `${prefixedHref}${prefixedHref.includes("?") ? "&" : "?"}demo=1`
       : prefixedHref;

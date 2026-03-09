@@ -1,5 +1,6 @@
 import "urlpattern-polyfill";
 import type { ReactiveController, ReactiveControllerHost } from "lit";
+import { stripBasePath } from "./navigate";
 
 export interface RouteConfig {
   path: string;
@@ -44,10 +45,7 @@ export class Router implements ReactiveController {
   };
 
   async #resolve(pathname: string) {
-    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-    if (base && pathname.startsWith(base)) {
-      pathname = pathname.slice(base.length) || "/";
-    }
+    pathname = stripBasePath(pathname);
 
     for (const route of this.#routes) {
       const result = route.pattern.exec({ pathname });
