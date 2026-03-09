@@ -311,7 +311,42 @@ async function hashFunction(input: string): Promise<string> {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-export async function createDatabases(storage: unknown, name = "budgee"): Promise<Databases> {
+export const LEGACY_DB_NAME = "budgee";
+
+/**
+ * Sanitize a user login string for use as an IndexedDB database name suffix.
+ * Replaces `@` and `.` with `-`.
+ */
+export function sanitizeLoginForDbName(login: string): string {
+  return login.replace(/[@.]/g, "-");
+}
+
+/**
+ * Derive the database name for a given user login.
+ * Falls back to the legacy name when no login is provided.
+ */
+export function dbNameForLogin(login?: string | null): string {
+  if (!login) return LEGACY_DB_NAME;
+  return `${LEGACY_DB_NAME}-${sanitizeLoginForDbName(login)}`;
+}
+
+/**
+ * Check whether the legacy `budgee` database exists in IndexedDB.
+ * Returns false when the `indexedDB.databases()` API is unavailable.
+ */
+async function legacyDbExists(): Promise<boolean> {
+  if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") {
+    return false;
+  }
+  try {
+    const dbs = await indexedDB.databases();
+    return dbs.some((entry) => entry.name === LEGACY_DB_NAME);
+  } catch {
+    return false;
+  }
+}
+
+export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): Promise<Databases> {
   const rxdb = await createRxDatabase<DatabaseCollections>({
     name,
     storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
@@ -433,7 +468,7 @@ export async function destroyAll(dbs: Databases) {
 export const isDemoMode =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1";
 
-async function createDefaultDatabase(): Promise<Databases> {
+async function createDefaultDatabase(login?: string | null): Promise<Databases> {
   if (import.meta.env?.MODE === "test") {
     const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
     return createDatabases(getRxStorageMemory(), "budgee_test");
@@ -445,14 +480,22 @@ async function createDefaultDatabase(): Promise<Databases> {
   }
 
   const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
-  return createDatabases(getRxStorageDexie());
+  const name = dbNameForLogin(login);
+
+  if (login && name !== LEGACY_DB_NAME && (await legacyDbExists())) {
+    console.warn(
+      `Legacy database '${LEGACY_DB_NAME}' detected. Data will be synced from the server into your new user-specific database.`,
+    );
+  }
+
+  return createDatabases(getRxStorageDexie(), name);
 }
 
 let cachedDb: Promise<Databases> | undefined;
 
-export function db(): Promise<Databases> {
+export function db(login?: string | null): Promise<Databases> {
   if (!cachedDb) {
-    cachedDb = createDefaultDatabase().then(async (dbs) => {
+    cachedDb = createDefaultDatabase(login).then(async (dbs) => {
       const { migrateDatabase } = await import("./migrations");
       await migrateDatabase(dbs);
       if (isDemoMode) {

@@ -309,20 +309,21 @@ export class Application extends LitElement {
     this.addEventListener("dragleave", this.#onDragLeave);
     this.addEventListener("drop", this.#onDrop);
     setupGlobalErrorHandler();
-    fetchIdentity().then((user) => {
+    void (async () => {
+      const user = await fetchIdentity();
       this.identity = user;
       if (user) console.info("Identified as:", user.login);
-    });
-    db().catch((error) => {
-      console.error(error);
-      const isDatabaseError = error instanceof SchemaVersionError;
-      const message = isDatabaseError
-        ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
-        : error instanceof Error
-          ? error.message
-          : String(error);
-      showErrorOverlay(message, { isDatabaseError });
-    });
+      db(user?.login).catch((error: unknown) => {
+        console.error(error);
+        const isDatabaseError = error instanceof SchemaVersionError;
+        const message = isDatabaseError
+          ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
+          : error instanceof Error
+            ? error.message
+            : String(error);
+        showErrorOverlay(message, { isDatabaseError });
+      });
+    })();
     if (!isDemoMode) this.#connectReplication();
   }
 
