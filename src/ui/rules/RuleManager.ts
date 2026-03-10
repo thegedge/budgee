@@ -15,6 +15,7 @@ import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import "../shared/Badge";
 import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
@@ -89,17 +90,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
       .actions {
         white-space: nowrap;
-      }
-      .unmatched-warning {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        color: var(--budgee-warning, #b5850a);
-        font-size: 0.8rem;
-      }
-      .unmatched-warning svg {
-        width: 14px;
-        height: 14px;
       }
       .sections-grid {
         display: grid;
@@ -298,7 +288,7 @@ export class RuleManager extends BusyMixin(LitElement) {
       <tr>
         <td class="condition-summary">
           ${this.#formatConditions(rule)}
-          ${this._unmatchedRuleIds.has(rule.id) ? html`<span class="unmatched-warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</span>` : nothing}
+          ${this._unmatchedRuleIds.has(rule.id) ? html`<ui-badge variant="warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</ui-badge>` : nothing}
         </td>
         <td>${this.#merchantName(rule.merchantId)}</td>
         <td>
