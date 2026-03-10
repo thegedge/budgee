@@ -1,4 +1,4 @@
-import{i as D,D as R,M as f,T as b,b as s,s as C,f as T,n as v,t as E,j as I,k as P,r as h,u as O,v as z,l as A}from"./index-B9pduy55.js";var B=Object.defineProperty,q=Object.getOwnPropertyDescriptor,y=e=>{throw TypeError(e)},c=(e,t,a,m)=>{for(var i=m>1?void 0:m?q(t,a):t,l=e.length-1,p;l>=0;l--)(p=e[l])&&(i=(m?p(t,a,i):p(i))||i);return m&&i&&B(t,a,i),i},k=(e,t,a)=>t.has(e)||y("Cannot "+a),d=(e,t,a)=>(k(e,t,"read from private field"),a?a.call(e):t.get(e)),K=(e,t,a)=>t.has(e)?y("Cannot add the same private member more than once"):t instanceof WeakSet?t.add(e):t.set(e,a),o=(e,t,a)=>(k(e,t,"access private method"),a),n,u,_,$,g,w,N,x,S,M;let r=class extends D{constructor(){super(),K(this,n),this.merchantId="",this._transactions=[],this._timeRange=null,this._editingName=!1,this._draftName="",new R(this,[f.subscribe,b.subscribe],()=>o(this,n,u).call(this))}updated(e){if(super.updated(e),e.has("merchantId")&&o(this,n,u).call(this),e.has("_editingName")&&this._editingName){const t=this.shadowRoot?.querySelector(".name-input");t?.focus(),t?.select()}}render(){if(!this._merchant)return s`
+import{i as D,D as R,M as f,T as b,b as s,s as C,f as T,n as v,j as E,k as I,r as h,u as P,v as O,l as z}from"./index-E45YVAoJ.js";var A=Object.defineProperty,B=Object.getOwnPropertyDescriptor,y=e=>{throw TypeError(e)},c=(e,t,a,m)=>{for(var i=m>1?void 0:m?B(t,a):t,l=e.length-1,p;l>=0;l--)(p=e[l])&&(i=(m?p(t,a,i):p(i))||i);return m&&i&&A(t,a,i),i},k=(e,t,a)=>t.has(e)||y("Cannot "+a),d=(e,t,a)=>(k(e,t,"read from private field"),a?a.call(e):t.get(e)),q=(e,t,a)=>t.has(e)?y("Cannot add the same private member more than once"):t instanceof WeakSet?t.add(e):t.set(e,a),o=(e,t,a)=>(k(e,t,"access private method"),a),n,u,_,$,g,w,N,x,S,M;let r=class extends D{constructor(){super(),q(this,n),this.merchantId="",this._transactions=[],this._timeRange=null,this._editingName=!1,this._draftName="",new R(this,[f.subscribe,b.subscribe],()=>o(this,n,u).call(this))}updated(e){if(super.updated(e),e.has("merchantId")&&o(this,n,u).call(this),e.has("_editingName")&&this._editingName){const t=this.shadowRoot?.querySelector(".name-input");t?.focus(),t?.select()}}render(){if(!this._merchant)return s`
         <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
         <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
       `;const e=d(this,n,_);return s`
@@ -31,6 +31,7 @@ import{i as D,D as R,M as f,T as b,b as s,s as C,f as T,n as v,t as E,j as I,k a
           .items=${e}
           .defaultPageSize=${25}
           storageKey="merchant-transactions"
+          .columns=${["Date","Description","Amount"]}
           .renderRow=${t=>s`
             <tr @click=${()=>o(this,n,M).call(this,t.id)}>
               <td>${t.date}</td>
@@ -40,17 +41,9 @@ import{i as D,D as R,M as f,T as b,b as s,s as C,f as T,n as v,t as E,j as I,k a
               </td>
             </tr>
           `}
-        >
-          <thead slot="header">
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-        </paginated-table>
+        ></paginated-table>
       </div>
-    `}};n=new WeakSet;u=async function(){if(!this.merchantId)return;const[e,t]=await Promise.all([f.get(this.merchantId),b.forMerchant(this.merchantId)]);this._merchant=e,this._transactions=t};_=function(){if(this._timeRange===null)return this._transactions;const e=O.Now.plainDateISO().subtract(this._timeRange).toString();return this._transactions.filter(t=>t.date>=e)};$=function(){const e=new Map;for(const t of this._transactions){const a=t.date.slice(0,7);e.set(a,(e.get(a)??0)+t.amount)}return[...e.entries()].sort(([t],[a])=>t.localeCompare(a))};g=function(){return[...z(d(this,n,_),"month").entries()].sort(([e],[t])=>e.localeCompare(t))};w=function(e){this._timeRange=e.timeRange};N=function(){this._editingName=!0,this._draftName=this._merchant?.name??""};x=function(e){if(e.key==="Enter"){const t=this._draftName.trim();t&&this._merchant&&f.update(this._merchant.id,{name:t}),this._editingName=!1}else e.key==="Escape"&&(this._editingName=!1)};S=function(){v("/merchants")};M=function(e){v(`/transactions/${e}`)};r.styles=[E,I`
+    `}};n=new WeakSet;u=async function(){if(!this.merchantId)return;const[e,t]=await Promise.all([f.get(this.merchantId),b.forMerchant(this.merchantId)]);this._merchant=e,this._transactions=t};_=function(){if(this._timeRange===null)return this._transactions;const e=P.Now.plainDateISO().subtract(this._timeRange).toString();return this._transactions.filter(t=>t.date>=e)};$=function(){const e=new Map;for(const t of this._transactions){const a=t.date.slice(0,7);e.set(a,(e.get(a)??0)+t.amount)}return[...e.entries()].sort(([t],[a])=>t.localeCompare(a))};g=function(){return[...O(d(this,n,_),"month").entries()].sort(([e],[t])=>e.localeCompare(t))};w=function(e){this._timeRange=e.timeRange};N=function(){this._editingName=!0,this._draftName=this._merchant?.name??""};x=function(e){if(e.key==="Enter"){const t=this._draftName.trim();t&&this._merchant&&f.update(this._merchant.id,{name:t}),this._editingName=!1}else e.key==="Escape"&&(this._editingName=!1)};S=function(){v("/merchants")};M=function(e){v(`/transactions/${e}`)};r.styles=[E`
       :host {
         display: block;
       }
@@ -126,4 +119,4 @@ import{i as D,D as R,M as f,T as b,b as s,s as C,f as T,n as v,t as E,j as I,k a
       tr:hover {
         background-color: var(--budgee-bg);
       }
-    `];c([P({type:String})],r.prototype,"merchantId",2);c([h()],r.prototype,"_merchant",2);c([h()],r.prototype,"_transactions",2);c([h()],r.prototype,"_timeRange",2);c([h()],r.prototype,"_editingName",2);c([h()],r.prototype,"_draftName",2);r=c([A("merchant-detail")],r);export{r as MerchantDetail};
+    `];c([I({type:String})],r.prototype,"merchantId",2);c([h()],r.prototype,"_merchant",2);c([h()],r.prototype,"_transactions",2);c([h()],r.prototype,"_timeRange",2);c([h()],r.prototype,"_editingName",2);c([h()],r.prototype,"_draftName",2);r=c([z("merchant-detail")],r);export{r as MerchantDetail};
