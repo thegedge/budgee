@@ -10,13 +10,10 @@ import { iconButtonStyles } from "../iconButtonStyles";
 import { inputStyles } from "../inputStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { DataSubscriptionController } from "../DataSubscriptionController";
-import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/IconPicker";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail } from "../shared/PaginatedTable";
-import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -35,19 +32,9 @@ export class TagManager extends BusyMixin(LitElement) {
   @state()
   private _error = "";
 
-  #sort = new SortableListController<Tag>(this, {
-    defaultSortCol: "name",
-    defaultSortDir: "asc",
-    comparators: {
-      name: (a, b) => a.name.localeCompare(b.name),
-    },
-    filterFn: (tag, filter) => tag.name.toLowerCase().includes(filter.toLowerCase()),
-  });
-
   static styles = [
     buttonStyles,
     busyStyles,
-    tableStyles,
     iconButtonStyles,
     inputStyles,
     css`
@@ -182,17 +169,24 @@ export class TagManager extends BusyMixin(LitElement) {
             `
           : ""
       }
-      ${(() => {
-        if (this._tags.length === 0) return "";
-        const sorted = this.#sort.filterAndSort(this._tags);
-        return html`
+      ${
+        this._tags.length === 0
+          ? ""
+          : html`
           <paginated-table
-            .items=${sorted}
+            .items=${this._tags}
             .defaultPageSize=${25}
             storageKey="tags"
-            ?filterable=${true}
-            @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
-              this.#sort.onFilterChange(e.detail.filter)}
+            .columns=${[
+              { label: "Icon", class: "col-icon" },
+              { label: "Color", class: "col-color" },
+              { label: "Name", sortKey: "name" },
+              { class: "col-remove" },
+            ]}
+            .comparators=${{ name: (a: Tag, b: Tag) => a.name.localeCompare(b.name) }}
+            .filterFn=${(tag: Tag, filter: string) => tag.name.toLowerCase().includes(filter.toLowerCase())}
+            defaultSortCol="name"
+            defaultSortDir="asc"
             .renderRow=${(tag: Tag) => html`
               <tr>
                 <td class="col-icon">
@@ -221,18 +215,9 @@ export class TagManager extends BusyMixin(LitElement) {
                 </td>
               </tr>
             `}
-          >
-            <thead slot="header">
-              <tr>
-                <th class="col-icon">Icon</th>
-                <th class="col-color">Color</th>
-                <th class="sortable" @click=${() => this.#sort.onSortClick("name")}>Name${this.#sort.sortIndicator("name")}</th>
-                <th class="col-remove"></th>
-              </tr>
-            </thead>
-          </paginated-table>
-        `;
-      })()}
+          ></paginated-table>
+        `
+      }
     `;
   }
 }

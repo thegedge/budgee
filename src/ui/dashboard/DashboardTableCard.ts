@@ -14,7 +14,6 @@ import type { Transaction } from "../../models/Transaction";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { ResizableMixin, renderResizeHandles, resizableStyles } from "../shared/ResizableMixin";
 import "../shared/PaginatedTable";
-import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
 
 declare global {
@@ -63,7 +62,6 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
   }
 
   static styles = [
-    tableStyles,
     iconButtonStyles,
     resizableStyles,
     css`
@@ -139,22 +137,16 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         .items=${sorted}
         .defaultPageSize=${10}
         storageKey="dashboard-table-${this.config.id}"
+        .columns=${columns.map((col) => ({
+          label: this.#columnLabel(col),
+          class: this.#isAmountColumn(col) ? "col-amount" : "",
+        }))}
         .renderRow=${(t: Transaction) => html`
           <tr>
             ${columns.map((col) => this.#renderTransactionCell(t, col))}
           </tr>
         `}
-      >
-        <thead slot="header">
-          <tr>
-            ${columns.map(
-              (col) => html`
-              <th class=${this.#isAmountColumn(col) ? "col-amount" : ""}>${this.#columnLabel(col)}</th>
-            `,
-            )}
-          </tr>
-        </thead>
-      </paginated-table>
+      ></paginated-table>
     `;
   }
 
@@ -196,22 +188,16 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         .items=${rows}
         .defaultPageSize=${10}
         storageKey="dashboard-table-${this.config.id}"
+        .columns=${columns.map((col) => ({
+          label: this.#columnLabel(col),
+          class: this.#isAmountColumn(col) ? "col-amount" : "",
+        }))}
         .renderRow=${(row: MerchantRow) => html`
           <tr>
             ${columns.map((col) => this.#renderMerchantCell(row, col))}
           </tr>
         `}
-      >
-        <thead slot="header">
-          <tr>
-            ${columns.map(
-              (col) => html`
-              <th class=${this.#isAmountColumn(col) ? "col-amount" : ""}>${this.#columnLabel(col)}</th>
-            `,
-            )}
-          </tr>
-        </thead>
-      </paginated-table>
+      ></paginated-table>
     `;
   }
 
@@ -247,22 +233,16 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         .items=${rows}
         .defaultPageSize=${10}
         storageKey="dashboard-table-${this.config.id}"
+        .columns=${columns.map((col) => ({
+          label: this.#columnLabel(col),
+          class: this.#isAmountColumn(col) ? "col-amount" : "",
+        }))}
         .renderRow=${(row: TagRow) => html`
           <tr>
             ${columns.map((col) => this.#renderTagCell(row, col))}
           </tr>
         `}
-      >
-        <thead slot="header">
-          <tr>
-            ${columns.map(
-              (col) => html`
-              <th class=${this.#isAmountColumn(col) ? "col-amount" : ""}>${this.#columnLabel(col)}</th>
-            `,
-            )}
-          </tr>
-        </thead>
-      </paginated-table>
+      ></paginated-table>
     `;
   }
 

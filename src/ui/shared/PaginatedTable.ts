@@ -1,11 +1,19 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
+import { tableStyles } from "../tableStyles";
 
-export interface FilterChangeDetail {
-  filter: string;
-}
+export type SortDir = "asc" | "desc";
+
+export type ColumnDef =
+  | string
+  | {
+      label?: string;
+      sortKey?: string;
+      class?: string;
+      header?: TemplateResult;
+    };
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -24,8 +32,20 @@ export class PaginatedTable<T = unknown> extends LitElement {
   @property()
   storageKey = "";
 
-  @property({ type: Boolean })
-  filterable = false;
+  @property({ attribute: false })
+  columns: ColumnDef[] = [];
+
+  @property({ attribute: false })
+  comparators: Record<string, (a: T, b: T) => number> = {};
+
+  @property({ attribute: false })
+  filterFn?: (item: T, filter: string) => boolean;
+
+  @property()
+  defaultSortCol = "";
+
+  @property()
+  defaultSortDir: SortDir = "asc";
 
   /** Callback to render a single row. Receives the item and its index in the current page. */
   @property({ attribute: false })
@@ -37,11 +57,22 @@ export class PaginatedTable<T = unknown> extends LitElement {
   @state()
   private _pageSize = 0;
 
+  @state()
+  private _sortCol = "";
+
+  @state()
+  private _sortDir: SortDir = "asc";
+
+  @state()
+  private _filter = "";
+
   private _filterDebounce: ReturnType<typeof setTimeout> | null = null;
+  private _sortInitialized = false;
 
   static styles = [
     buttonStyles,
     inputStyles,
+    tableStyles,
     css`
       .pagination-bar {
         display: flex;
@@ -84,28 +115,47 @@ export class PaginatedTable<T = unknown> extends LitElement {
         // localStorage unavailable
       }
     }
+    if (!this._sortInitialized) {
+      this._sortCol = this.defaultSortCol;
+      this._sortDir = this.defaultSortDir;
+      this._sortInitialized = true;
+    }
   }
 
   private get _effectivePageSize() {
     return this._pageSize || this.defaultPageSize;
   }
 
-  private get _totalPages() {
-    return Math.max(1, Math.ceil(this.items.length / this._effectivePageSize));
+  private get _processedItems(): T[] {
+    let result = this.items;
+
+    if (this._filter && this.filterFn) {
+      result = result.filter((item) => this.filterFn!(item, this._filter));
+    }
+
+    const comparator = this._sortCol ? this.comparators[this._sortCol] : undefined;
+    if (comparator) {
+      const dir = this._sortDir === "asc" ? 1 : -1;
+      result = [...result].sort((a, b) => comparator(a, b) * dir);
+    }
+
+    return result;
   }
 
-  /** The items visible on the current page. Useful for consumers that need the current slice. */
+  private get _totalPages() {
+    return Math.max(1, Math.ceil(this._processedItems.length / this._effectivePageSize));
+  }
+
+  /** The items visible on the current page, after filtering and sorting. */
   get currentItems(): T[] {
     const size = this._effectivePageSize;
     const start = (this._currentPage - 1) * size;
-    return this.items.slice(start, start + size);
+    return this._processedItems.slice(start, start + size);
   }
 
   willUpdate(changed: Map<string, unknown>) {
     if (changed.has("items")) {
       const prev = changed.get("items") as T[] | undefined;
-      // Reset to page 1 when the dataset length changes (e.g. after filtering).
-      // Sorting the same set keeps the current page.
       if (prev === undefined || prev.length !== this.items.length) {
         this._currentPage = 1;
       }
@@ -140,27 +190,66 @@ export class PaginatedTable<T = unknown> extends LitElement {
     }
   }
 
+  #onSortClick(key: string) {
+    if (this._sortCol === key) {
+      this._sortDir = this._sortDir === "asc" ? "desc" : "asc";
+    } else {
+      this._sortCol = key;
+      this._sortDir = "asc";
+    }
+    this._currentPage = 1;
+  }
+
+  #sortIndicator(key: string): string {
+    if (this._sortCol !== key) return "";
+    return this._sortDir === "asc" ? " ▲" : " ▼";
+  }
+
   #onFilterInput(e: Event) {
-    const filter = (e.target as HTMLInputElement).value;
+    const value = (e.target as HTMLInputElement).value;
     if (this._filterDebounce !== null) {
       clearTimeout(this._filterDebounce);
     }
     this._filterDebounce = setTimeout(() => {
       this._filterDebounce = null;
+      this._filter = value;
       this._currentPage = 1;
-      this.dispatchEvent(
-        new CustomEvent<FilterChangeDetail>("filter-change", {
-          detail: { filter },
-          bubbles: true,
-          composed: true,
-        }),
-      );
     }, 200);
   }
 
+  #renderHeader() {
+    if (this.columns.length === 0) return nothing;
+
+    return html`
+      <thead>
+        <tr>
+          ${this.columns.map((col) => {
+            if (typeof col === "string") {
+              return html`<th>${col}</th>`;
+            }
+            if (col.header) {
+              return html`<th class=${col.class ?? ""}>${col.header}</th>`;
+            }
+            const sortKey = col.sortKey;
+            const isSortable = !!sortKey;
+            return html`
+              <th
+                class=${[isSortable ? "sortable" : "", col.class ?? ""].filter(Boolean).join(" ")}
+                @click=${isSortable ? () => this.#onSortClick(sortKey!) : nothing}
+              >
+                ${col.label ?? ""}${isSortable ? this.#sortIndicator(sortKey!) : ""}
+              </th>
+            `;
+          })}
+        </tr>
+      </thead>
+    `;
+  }
+
   #renderPaginationBar() {
+    const processed = this._processedItems;
     const size = this._effectivePageSize;
-    const total = this.items.length;
+    const total = processed.length;
     const start = total === 0 ? 0 : (this._currentPage - 1) * size + 1;
     const end = Math.min(this._currentPage * size, total);
 
@@ -168,7 +257,7 @@ export class PaginatedTable<T = unknown> extends LitElement {
       <div class="pagination-bar">
         <div class="pagination-controls">
           ${
-            this.filterable
+            this.filterFn
               ? html`<input
                 class="filter-input"
                 type="text"
@@ -202,7 +291,7 @@ export class PaginatedTable<T = unknown> extends LitElement {
     return html`
       ${this.#renderPaginationBar()}
       <table>
-        <slot name="header"></slot>
+        ${this.#renderHeader()}
         <tbody>
           ${pageItems.map((item, i) => this.renderRow(item, i))}
         </tbody>

@@ -10,7 +10,6 @@ import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -43,7 +42,6 @@ export class MerchantDetail extends LitElement {
   private _draftName = "";
 
   static styles = [
-    tableStyles,
     css`
       :host {
         display: block;
@@ -251,6 +249,7 @@ export class MerchantDetail extends LitElement {
           .items=${filtered}
           .defaultPageSize=${25}
           storageKey="merchant-transactions"
+          .columns=${["Date", "Description", "Amount"]}
           .renderRow=${(t: Transaction) => html`
             <tr @click=${() => this.#navigateToTransaction(t.id)}>
               <td>${t.date}</td>
@@ -260,15 +259,7 @@ export class MerchantDetail extends LitElement {
               </td>
             </tr>
           `}
-        >
-          <thead slot="header">
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-        </paginated-table>
+        ></paginated-table>
       </div>
     `;
   }

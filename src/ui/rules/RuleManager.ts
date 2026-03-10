@@ -15,13 +15,10 @@ import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { DataSubscriptionController } from "../DataSubscriptionController";
-import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/Modal";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail } from "../shared/PaginatedTable";
-import { tableStyles } from "../tableStyles";
 import "../tags/TagPills";
 import "./RuleEditor";
 import "./RuleOverlap";
@@ -63,47 +60,14 @@ export class RuleManager extends BusyMixin(LitElement) {
   private _editingMerchantName = "";
 
   @state()
-  private _unmerchantedFilter = "";
-
-  @state()
   private _unmatchedRuleIds = new Set<string>();
 
   @state()
   private _overlapData: OverlapPair[] = [];
 
-  #rulesSort = new SortableListController<MerchantRule>(this, {
-    defaultSortCol: "conditions",
-    defaultSortDir: "asc",
-    comparators: {
-      conditions: (a, b) => {
-        const aVal = a.conditions[0]?.value ?? "";
-        const bVal = b.conditions[0]?.value ?? "";
-        return aVal.localeCompare(bVal);
-      },
-      merchant: (a, b) =>
-        this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId)),
-      tags: (a, b) => {
-        const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
-        const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
-        return aNames.localeCompare(bNames);
-      },
-    },
-    filterFn: (rule, filter) => {
-      const lower = filter.toLowerCase();
-      if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
-      if (rule.merchantId) {
-        const merchant = this._merchants.find((m) => m.id === rule.merchantId);
-        if (merchant?.name.toLowerCase().includes(lower)) return true;
-      }
-      if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower))) return true;
-      return false;
-    },
-  });
-
   static styles = [
     buttonStyles,
     busyStyles,
-    tableStyles,
     iconButtonStyles,
     css`
       :host {
@@ -347,19 +311,11 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   #renderRuleTable(rules: MerchantRule[]) {
     return html`
-      <table>
-        <thead>
-          <tr>
-            <th>Conditions</th>
-            <th>Merchant</th>
-            <th>Tags</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rules.map((rule) => this.#renderRuleRow(rule))}
-        </tbody>
-      </table>
+      <paginated-table
+        .items=${rules}
+        .columns=${["Conditions", "Merchant", "Tags", {}]}
+        .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
+      ></paginated-table>
     `;
   }
 
@@ -376,35 +332,48 @@ export class RuleManager extends BusyMixin(LitElement) {
         </budgee-empty-state>
       `;
 
-    const processedRules = this.#rulesSort.filterAndSort(this._rules!);
-
     return html`
       <div class="section">
         <h3>Existing Rules</h3>
         <paginated-table
-          .items=${processedRules}
+          .items=${this._rules!}
           .defaultPageSize=${10}
           storageKey="rules"
-          ?filterable=${true}
-          @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
-            this.#rulesSort.onFilterChange(e.detail.filter)}
+          .columns=${[
+            { label: "Conditions", sortKey: "conditions" },
+            { label: "Merchant", sortKey: "merchant" },
+            { label: "Tags", sortKey: "tags" },
+            {},
+          ]}
+          .comparators=${{
+            conditions: (a: MerchantRule, b: MerchantRule) => {
+              const aVal = a.conditions[0]?.value ?? "";
+              const bVal = b.conditions[0]?.value ?? "";
+              return aVal.localeCompare(bVal);
+            },
+            merchant: (a: MerchantRule, b: MerchantRule) =>
+              this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId)),
+            tags: (a: MerchantRule, b: MerchantRule) => {
+              const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+              const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+              return aNames.localeCompare(bNames);
+            },
+          }}
+          .filterFn=${(rule: MerchantRule, filter: string) => {
+            const lower = filter.toLowerCase();
+            if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
+            if (rule.merchantId) {
+              const merchant = this._merchants.find((m) => m.id === rule.merchantId);
+              if (merchant?.name.toLowerCase().includes(lower)) return true;
+            }
+            if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower)))
+              return true;
+            return false;
+          }}
+          defaultSortCol="conditions"
+          defaultSortDir="asc"
           .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
-        >
-          <thead slot="header">
-            <tr>
-              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("conditions")}>
-                Conditions${this.#rulesSort.sortIndicator("conditions")}
-              </th>
-              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("merchant")}>
-                Merchant${this.#rulesSort.sortIndicator("merchant")}
-              </th>
-              <th class="sortable" @click=${() => this.#rulesSort.onSortClick("tags")}>
-                Tags${this.#rulesSort.sortIndicator("tags")}
-              </th>
-              <th></th>
-            </tr>
-          </thead>
-        </paginated-table>
+        ></paginated-table>
       </div>
     `;
   }
@@ -426,22 +395,16 @@ export class RuleManager extends BusyMixin(LitElement) {
   #renderUnmerchanted() {
     if (this._unmerchanted.length === 0) return nothing;
 
-    const lower = this._unmerchantedFilter.toLowerCase();
-    const filtered = lower
-      ? this._unmerchanted.filter((tx) => tx.description.toLowerCase().includes(lower))
-      : this._unmerchanted;
-
     return html`
       <div class="section">
         <h3>Unmerchanted Transactions</h3>
         <paginated-table
-          .items=${filtered}
+          .items=${this._unmerchanted}
           .defaultPageSize=${20}
           storageKey="unmerchanted"
-          ?filterable=${true}
-          @filter-change=${(e: CustomEvent<FilterChangeDetail>) => {
-            this._unmerchantedFilter = e.detail.filter;
-          }}
+          .columns=${["Date", "Description", "Amount"]}
+          .filterFn=${(tx: Transaction, filter: string) =>
+            tx.description.toLowerCase().includes(filter.toLowerCase())}
           .renderRow=${(tx: Transaction) => html`
             <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
               <td>${tx.date}</td>
@@ -449,15 +412,7 @@ export class RuleManager extends BusyMixin(LitElement) {
               <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
             </tr>
           `}
-        >
-          <thead slot="header">
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-        </paginated-table>
+        ></paginated-table>
       </div>
     `;
   }

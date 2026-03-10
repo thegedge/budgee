@@ -269,6 +269,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
           .items=${filtered}
           .defaultPageSize=${25}
           storageKey="account-transactions"
+          .columns=${["Date", "Description", "Amount"]}
           .renderRow=${(t: Transaction) => html`
             <tr @click=${() => this.#navigateToTransaction(t.id)}>
               <td>${t.date}</td>
@@ -278,15 +279,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
               </td>
             </tr>
           `}
-        >
-          <thead slot="header">
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-        </paginated-table>
+        ></paginated-table>
       </div>
     `;
   }

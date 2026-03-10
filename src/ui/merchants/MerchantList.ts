@@ -6,12 +6,9 @@ import { Merchant } from "../../models/Merchant";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
 import { DataSubscriptionController } from "../DataSubscriptionController";
-import { SortableListController } from "../SortableListController";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
-import type { FilterChangeDetail } from "../shared/PaginatedTable";
-import { tableStyles } from "../tableStyles";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -30,31 +27,11 @@ export class MerchantList extends LitElement {
   @state()
   private _rows: MerchantRow[] | null = null;
 
-  #sort = new SortableListController<MerchantRow>(this, {
-    defaultSortCol: "name",
-    defaultSortDir: "asc",
-    comparators: {
-      name: (a, b) => a.merchant.name.localeCompare(b.merchant.name),
-      count: (a, b) => (a.transactionCount ?? 0) - (b.transactionCount ?? 0),
-      spend: (a, b) => (a.totalSpend ?? 0) - (b.totalSpend ?? 0),
-    },
-    filterFn: (row, filter) => {
-      const lower = filter.toLowerCase();
-      if (row.merchant.name.toLowerCase().includes(lower)) return true;
-      if (row.transactionCount != null && String(row.transactionCount).includes(lower)) return true;
-      if (row.totalSpend != null && row.totalSpend.toFixed(2).includes(lower)) return true;
-      return false;
-    },
-  });
-
-  static styles = [
-    tableStyles,
-    css`
-      tbody tr {
-        cursor: pointer;
-      }
-    `,
-  ];
+  static styles = css`
+    .clickable-row {
+      cursor: pointer;
+    }
+  `;
 
   constructor() {
     super();
@@ -103,18 +80,34 @@ export class MerchantList extends LitElement {
       `;
     }
 
-    const processed = this.#sort.filterAndSort(this._rows);
-
     return html`
       <paginated-table
-        .items=${processed}
+        .items=${this._rows}
         .defaultPageSize=${25}
         storageKey="merchants"
-        ?filterable=${true}
-        @filter-change=${(e: CustomEvent<FilterChangeDetail>) =>
-          this.#sort.onFilterChange(e.detail.filter)}
+        .columns=${[
+          { label: "Name", sortKey: "name" },
+          { label: "Transactions", sortKey: "count" },
+          { label: "Total Spend", sortKey: "spend", class: "col-amount" },
+        ]}
+        .comparators=${{
+          name: (a: MerchantRow, b: MerchantRow) => a.merchant.name.localeCompare(b.merchant.name),
+          count: (a: MerchantRow, b: MerchantRow) =>
+            (a.transactionCount ?? 0) - (b.transactionCount ?? 0),
+          spend: (a: MerchantRow, b: MerchantRow) => (a.totalSpend ?? 0) - (b.totalSpend ?? 0),
+        }}
+        .filterFn=${(row: MerchantRow, filter: string) => {
+          const lower = filter.toLowerCase();
+          if (row.merchant.name.toLowerCase().includes(lower)) return true;
+          if (row.transactionCount != null && String(row.transactionCount).includes(lower))
+            return true;
+          if (row.totalSpend != null && row.totalSpend.toFixed(2).includes(lower)) return true;
+          return false;
+        }}
+        defaultSortCol="name"
+        defaultSortDir="asc"
         .renderRow=${(row: MerchantRow) => html`
-          <tr @click=${() => this.#navigateToMerchant(row.merchant.id)}>
+          <tr class="clickable-row" @click=${() => this.#navigateToMerchant(row.merchant.id)}>
             <td>${row.merchant.name}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
@@ -122,21 +115,7 @@ export class MerchantList extends LitElement {
             </td>
           </tr>
         `}
-      >
-        <thead slot="header">
-          <tr>
-            <th class="sortable" @click=${() => this.#sort.onSortClick("name")}>
-              Name${this.#sort.sortIndicator("name")}
-            </th>
-            <th class="sortable" @click=${() => this.#sort.onSortClick("count")}>
-              Transactions${this.#sort.sortIndicator("count")}
-            </th>
-            <th class="sortable col-amount" @click=${() => this.#sort.onSortClick("spend")}>
-              Total Spend${this.#sort.sortIndicator("spend")}
-            </th>
-          </tr>
-        </thead>
-      </paginated-table>
+      ></paginated-table>
     `;
   }
 }
