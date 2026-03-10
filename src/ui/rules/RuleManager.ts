@@ -312,100 +312,142 @@ export class RuleManager extends BusyMixin(LitElement) {
     `;
   }
 
-  #renderExistingRules() {
-    if (this._rules!.length === 0)
-      return html`
-        <budgee-empty-state
-          heading="No rules yet"
-          description="Create a rule to automatically assign merchants and tags to transactions."
-        >
-          <button @click=${() => {
-            this._showEditor = true;
-          }}>Create Rule</button>
-        </budgee-empty-state>
-      `;
+  get #loading() {
+    return this._rules === null;
+  }
 
+  #renderExistingRules() {
     return html`
       <div class="section">
         <h3>Existing Rules</h3>
-        <paginated-table
-          .items=${this._rules!}
-          .defaultPageSize=${10}
-          storageKey="rules"
-          .columns=${[
-            { label: "Conditions", sortKey: "conditions" },
-            { label: "Merchant", sortKey: "merchant" },
-            { label: "Tags", sortKey: "tags" },
-            {},
-          ]}
-          .comparators=${{
-            conditions: (a: MerchantRule, b: MerchantRule) => {
-              const aVal = a.conditions[0]?.value ?? "";
-              const bVal = b.conditions[0]?.value ?? "";
-              return aVal.localeCompare(bVal);
-            },
-            merchant: (a: MerchantRule, b: MerchantRule) =>
-              this.#merchantName(a.merchantId).localeCompare(this.#merchantName(b.merchantId)),
-            tags: (a: MerchantRule, b: MerchantRule) => {
-              const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
-              const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
-              return aNames.localeCompare(bNames);
-            },
-          }}
-          .filterFn=${(rule: MerchantRule, filter: string) => {
-            const lower = filter.toLowerCase();
-            if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower))) return true;
-            if (rule.merchantId) {
-              const merchant = this._merchants.find((m) => m.id === rule.merchantId);
-              if (merchant?.name.toLowerCase().includes(lower)) return true;
-            }
-            if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower)))
-              return true;
-            return false;
-          }}
-          defaultSortCol="conditions"
-          defaultSortDir="asc"
-          .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
-        ></paginated-table>
+        ${
+          this.#loading
+            ? html`<paginated-table
+              ?loading=${true}
+              .columns=${[
+                { label: "Conditions", sortKey: "conditions" },
+                { label: "Merchant", sortKey: "merchant" },
+                { label: "Tags", sortKey: "tags" },
+                {},
+              ]}
+            ></paginated-table>`
+            : this._rules!.length === 0
+              ? html`<budgee-empty-state
+                heading="No rules yet"
+                description="Create a rule to automatically assign merchants and tags to transactions."
+              >
+                <button @click=${() => {
+                  this._showEditor = true;
+                }}>Create Rule</button>
+              </budgee-empty-state>`
+              : html`<paginated-table
+                .items=${this._rules!}
+                .defaultPageSize=${10}
+                storageKey="rules"
+                .columns=${[
+                  { label: "Conditions", sortKey: "conditions" },
+                  { label: "Merchant", sortKey: "merchant" },
+                  { label: "Tags", sortKey: "tags" },
+                  {},
+                ]}
+                .comparators=${{
+                  conditions: (a: MerchantRule, b: MerchantRule) => {
+                    const aVal = a.conditions[0]?.value ?? "";
+                    const bVal = b.conditions[0]?.value ?? "";
+                    return aVal.localeCompare(bVal);
+                  },
+                  merchant: (a: MerchantRule, b: MerchantRule) =>
+                    this.#merchantName(a.merchantId).localeCompare(
+                      this.#merchantName(b.merchantId),
+                    ),
+                  tags: (a: MerchantRule, b: MerchantRule) => {
+                    const aNames = a.tagIds.map((id) => this.#tagName(id)).join(",");
+                    const bNames = b.tagIds.map((id) => this.#tagName(id)).join(",");
+                    return aNames.localeCompare(bNames);
+                  },
+                }}
+                .filterFn=${(rule: MerchantRule, filter: string) => {
+                  const lower = filter.toLowerCase();
+                  if (rule.conditions.some((c) => c.value.toLowerCase().includes(lower)))
+                    return true;
+                  if (rule.merchantId) {
+                    const merchant = this._merchants.find((m) => m.id === rule.merchantId);
+                    if (merchant?.name.toLowerCase().includes(lower)) return true;
+                  }
+                  if (rule.tagIds.some((id) => this.#tagName(id).toLowerCase().includes(lower)))
+                    return true;
+                  return false;
+                }}
+                defaultSortCol="conditions"
+                defaultSortDir="asc"
+                .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
+              ></paginated-table>`
+        }
       </div>
     `;
   }
 
   #renderUnmatchedRules() {
-    const unmatchedRules = this._rules!.filter((r) => this._unmatchedRuleIds.has(r.id));
-    if (unmatchedRules.length === 0) return nothing;
+    if (this.#loading) {
+      return html`
+        <div class="section">
+          <h3>Unmatched Rules</h3>
+          <paginated-table
+            ?loading=${true}
+            .columns=${["Conditions", "Merchant", "Tags", {}]}
+          ></paginated-table>
+        </div>
+      `;
+    }
 
-    const count = unmatchedRules.length;
+    const unmatchedRules = this._rules!.filter((r) => this._unmatchedRuleIds.has(r.id));
     return html`
       <div class="section">
         <h3>Unmatched Rules</h3>
-        <p>${count} rule${count === 1 ? "" : "s"} matching no transactions.</p>
-        ${this.#renderRuleTable(unmatchedRules)}
+        ${
+          unmatchedRules.length === 0
+            ? html`
+                <p>No unmatched rules found.</p>
+              `
+            : html`
+            <p>${unmatchedRules.length} rule${unmatchedRules.length === 1 ? "" : "s"} matching no transactions.</p>
+            ${this.#renderRuleTable(unmatchedRules)}
+          `
+        }
       </div>
     `;
   }
 
   #renderUnmerchanted() {
-    if (this._unmerchanted.length === 0) return nothing;
-
     return html`
       <div class="section">
         <h3>Unmerchanted Transactions</h3>
-        <paginated-table
-          .items=${this._unmerchanted}
-          .defaultPageSize=${20}
-          storageKey="unmerchanted"
-          .columns=${["Date", "Description", "Amount"]}
-          .filterFn=${(tx: Transaction, filter: string) =>
-            tx.description.toLowerCase().includes(filter.toLowerCase())}
-          .renderRow=${(tx: Transaction) => html`
-            <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
-              <td>${tx.date}</td>
-              <td>${tx.description}</td>
-              <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
-            </tr>
-          `}
-        ></paginated-table>
+        ${
+          this.#loading
+            ? html`<paginated-table
+              ?loading=${true}
+              .columns=${["Date", "Description", "Amount"]}
+            ></paginated-table>`
+            : this._unmerchanted.length === 0
+              ? html`
+                  <p>No unmerchanted transactions.</p>
+                `
+              : html`<paginated-table
+                .items=${this._unmerchanted}
+                .defaultPageSize=${20}
+                storageKey="unmerchanted"
+                .columns=${["Date", "Description", "Amount"]}
+                .filterFn=${(tx: Transaction, filter: string) =>
+                  tx.description.toLowerCase().includes(filter.toLowerCase())}
+                .renderRow=${(tx: Transaction) => html`
+                  <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
+                    <td>${tx.date}</td>
+                    <td>${tx.description}</td>
+                    <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
+                  </tr>
+                `}
+              ></paginated-table>`
+        }
       </div>
     `;
   }
@@ -440,27 +482,17 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   render() {
-    if (this._rules === null) {
-      return html`
-        <div class="sections-grid">
-          ${[0, 1, 2, 3].map(
-            () => html`
-              <div class="section">
-                <budgee-skeleton variant="table" rows="3"></budgee-skeleton>
-              </div>
-            `,
-          )}
-        </div>
-      `;
-    }
-
     const merchantLookup = new Map(this._merchants.map((m) => [m.id, m.name]));
 
     return html`
       <div class="sections-grid">
         ${this.#renderUnmerchanted()}
         ${this.#renderUnmatchedRules()}
-        <rule-overlap .overlaps=${this._overlapData} .merchants=${merchantLookup}></rule-overlap>
+        <rule-overlap
+          ?loading=${this.#loading}
+          .overlaps=${this._overlapData}
+          .merchants=${merchantLookup}
+        ></rule-overlap>
         ${this.#renderExistingRules()}
       </div>
 

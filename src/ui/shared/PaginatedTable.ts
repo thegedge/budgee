@@ -47,6 +47,9 @@ export class PaginatedTable<T = unknown> extends LitElement {
   @property()
   defaultSortDir: SortDir = "asc";
 
+  @property({ type: Boolean })
+  loading = false;
+
   /** Callback to render a single row. Receives the item and its index in the current page. */
   @property({ attribute: false })
   renderRow: (item: T, index: number) => TemplateResult = () => html``;
@@ -99,6 +102,21 @@ export class PaginatedTable<T = unknown> extends LitElement {
         border-radius: 4px;
         background: var(--budgee-surface);
         font-size: 0.875rem;
+      }
+      .skeleton-line {
+        height: 1rem;
+        background: var(--budgee-border);
+        border-radius: 4px;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
       }
     `,
   ];
@@ -263,37 +281,52 @@ export class PaginatedTable<T = unknown> extends LitElement {
                 type="text"
                 placeholder="Filter..."
                 aria-label="Filter table"
+                ?disabled=${this.loading}
                 @input=${this.#onFilterInput}
               />`
               : ""
           }
           <label>
             Rows per page:
-            <select @change=${this.#onPageSizeChange}>
+            <select ?disabled=${this.loading} @change=${this.#onPageSizeChange}>
               ${[10, 25, 50, 100].map(
                 (n) => html`<option value=${n} ?selected=${n === size}>${n}</option>`,
               )}
             </select>
           </label>
         </div>
-        <span>Showing ${start}–${end} of ${total}</span>
+        <span>${this.loading ? "Loading..." : `Showing ${start}–${end} of ${total}`}</span>
         <div class="pagination-controls">
-          <button class="secondary" aria-label="Previous page" ?disabled=${this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
-          <button class="secondary" aria-label="Next page" ?disabled=${this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
+          <button class="secondary" aria-label="Previous page" ?disabled=${this.loading || this._currentPage <= 1} @click=${this.#prevPage}>Prev</button>
+          <button class="secondary" aria-label="Next page" ?disabled=${this.loading || this._currentPage >= this._totalPages} @click=${this.#nextPage}>Next</button>
         </div>
       </div>
     `;
   }
 
   render() {
-    const pageItems = this.currentItems;
+    const pageItems = this.loading ? [] : this.currentItems;
 
     return html`
       ${this.#renderPaginationBar()}
       <table>
         ${this.#renderHeader()}
         <tbody>
-          ${pageItems.map((item, i) => this.renderRow(item, i))}
+          ${
+            this.loading
+              ? Array.from(
+                  { length: this._effectivePageSize },
+                  () =>
+                    html`<tr>${Array.from(
+                      { length: this.columns.length },
+                      () =>
+                        html`
+                          <td><div class="skeleton-line"></div></td>
+                        `,
+                    )}</tr>`,
+                )
+              : pageItems.map((item, i) => this.renderRow(item, i))
+          }
         </tbody>
       </table>
       ${this.#renderPaginationBar()}

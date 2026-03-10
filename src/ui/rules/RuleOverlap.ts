@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import type { MerchantRule } from "../../models/MerchantRule";
 import { tableStyles } from "../tableStyles";
+import "../shared/SkeletonLoader";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -23,6 +24,9 @@ export class RuleOverlap extends LitElement {
 
   @property({ attribute: false })
   merchants = new Map<string, string>();
+
+  @property({ type: Boolean })
+  loading = false;
 
   static styles = [
     tableStyles,
@@ -62,6 +66,15 @@ export class RuleOverlap extends LitElement {
   }
 
   render() {
+    if (this.loading) {
+      return html`
+        <div class="section">
+          <h3>Rule Overlap</h3>
+          <budgee-skeleton variant="table" rows="3"></budgee-skeleton>
+        </div>
+      `;
+    }
+
     if (this.overlaps.length === 0) {
       return html`
         <div class="section">

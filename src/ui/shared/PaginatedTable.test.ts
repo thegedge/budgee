@@ -252,4 +252,84 @@ describe("PaginatedTable", () => {
 
     el.remove();
   });
+
+  describe("loading state", () => {
+    function createLoadingTable(pageSize = 5): PaginatedTable<{ id: number }> {
+      const el = new PaginatedTable<{ id: number }>();
+      el.items = makeItems(20);
+      el.defaultPageSize = pageSize;
+      el.columns = ["ID", "Name"];
+      el.filterFn = (item, filter) => String(item.id).includes(filter);
+      el.renderRow = (item) => html`<tr><td>${item.id}</td></tr>`;
+      el.loading = true;
+      document.body.appendChild(el);
+      return el;
+    }
+
+    it("renders skeleton rows instead of data rows when loading is true", async () => {
+      const el = createLoadingTable(5);
+      await el.updateComplete;
+
+      const skeletons = el.shadowRoot?.querySelectorAll(".skeleton-line");
+      // 5 rows × 2 columns × 2 pagination bars = 20 skeleton-line elements, but
+      // skeleton rows are only in the tbody — the pagination bars render twice so
+      // we check there is at least one skeleton-line and no rendered data rows.
+      expect(skeletons?.length).toBeGreaterThan(0);
+
+      const tds = el.shadowRoot?.querySelectorAll("tbody td");
+      // Every td should contain a skeleton-line, not real data
+      tds?.forEach((td) => {
+        expect(td.querySelector(".skeleton-line")).not.toBeNull();
+      });
+
+      el.remove();
+    });
+
+    it("disables the filter input when loading is true", async () => {
+      const el = createLoadingTable();
+      await el.updateComplete;
+
+      const input = el.shadowRoot?.querySelector<HTMLInputElement>("input.filter-input");
+      expect(input?.disabled).toBe(true);
+
+      el.remove();
+    });
+
+    it("disables the page-size select when loading is true", async () => {
+      const el = createLoadingTable();
+      await el.updateComplete;
+
+      // Two pagination bars render, each with a select — both should be disabled.
+      const selects = el.shadowRoot?.querySelectorAll<HTMLSelectElement>("select");
+      expect(selects?.length).toBeGreaterThan(0);
+      selects?.forEach((select) => {
+        expect(select.disabled).toBe(true);
+      });
+
+      el.remove();
+    });
+
+    it("disables prev and next buttons when loading is true", async () => {
+      const el = createLoadingTable();
+      await el.updateComplete;
+
+      const buttons = el.shadowRoot?.querySelectorAll<HTMLButtonElement>("button");
+      expect(buttons?.length).toBeGreaterThan(0);
+      buttons?.forEach((btn) => {
+        expect(btn.disabled).toBe(true);
+      });
+
+      el.remove();
+    });
+
+    it("shows 'Loading...' status text instead of range when loading is true", async () => {
+      const el = createLoadingTable();
+      await el.updateComplete;
+
+      expect(el.shadowRoot?.textContent).toContain("Loading...");
+      expect(el.shadowRoot?.textContent).not.toContain("Showing");
+
+      el.remove();
+    });
+  });
 });
