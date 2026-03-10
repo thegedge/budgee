@@ -127,16 +127,14 @@ export class RuleManager extends BusyMixin(LitElement) {
   }
 
   async #refresh() {
-    this._rules = await MerchantRule.all();
-    this._tags = await Tag.all();
-    this._merchants = await Merchant.all();
-    this._accounts = await Account.all();
-    const accountMap = Account.toLookup(this._accounts);
+    const rules = await MerchantRule.all();
+    const tags = await Tag.all();
+    const merchants = await Merchant.all();
+    const accounts = await Account.all();
+    const accountMap = Account.toLookup(accounts);
     const allTx = await Transaction.all();
-    this._unmerchanted = allTx.filter((t) => t.merchantId === undefined);
+    const unmerchanted = allTx.filter((t) => t.merchantId === undefined);
 
-    // Single pass: compute unmatched rules + overlap pairs
-    const rules = this._rules;
     const matchedRuleIds = new Set<string>();
     const pairCounts = new Map<string, OverlapPair>();
     const preparedTxs = allTx.map((t) => prepareTransaction(t, accountMap));
@@ -172,6 +170,11 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
     }
 
+    this._rules = rules;
+    this._tags = tags;
+    this._merchants = merchants;
+    this._accounts = accounts;
+    this._unmerchanted = unmerchanted;
     this._unmatchedRuleIds = new Set(
       rules.filter((r) => !matchedRuleIds.has(r.id)).map((r) => r.id),
     );
@@ -449,7 +452,15 @@ export class RuleManager extends BusyMixin(LitElement) {
   render() {
     if (this._rules === null) {
       return html`
-        <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
+        <div class="sections-grid">
+          ${[0, 1, 2, 3].map(
+            () => html`
+              <div class="section">
+                <budgee-skeleton variant="table" rows="3"></budgee-skeleton>
+              </div>
+            `,
+          )}
+        </div>
       `;
     }
 

@@ -27,7 +27,7 @@ export function prepareTransaction(
 ): PreparedTransaction {
   const acct = transaction.accountId ? accounts[transaction.accountId] : undefined;
   return {
-    description: transaction.description.toLowerCase(),
+    description: (transaction.description ?? "").toLowerCase(),
     accountId: transaction.accountId,
     account: acct?.name.toLowerCase() ?? transaction.accountId?.toLowerCase(),
   };
