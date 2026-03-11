@@ -1,0 +1,89 @@
+import { LitElement, css, html } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import type { MerchantRule } from "../../models/MerchantRule";
+import { tableStyles } from "../tableStyles";
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "rule-overlap": RuleOverlap;
+  }
+}
+
+export interface OverlapPair {
+  ruleA: MerchantRule;
+  ruleB: MerchantRule;
+  count: number;
+  samples: Set<string>;
+}
+
+@customElement("rule-overlap")
+export class RuleOverlap extends LitElement {
+  @property({ attribute: false })
+  overlaps: OverlapPair[] = [];
+
+  @property({ attribute: false })
+  merchants = new Map<string, string>();
+
+  static styles = [
+    tableStyles,
+    css`
+      :host {
+        display: block;
+      }
+      .condition-summary {
+        font-size: 0.85rem;
+        color: var(--budgee-text-muted);
+      }
+      .samples {
+        font-size: 0.8rem;
+        color: var(--budgee-text-muted);
+        font-style: italic;
+        white-space: pre-wrap;
+      }
+    `,
+  ];
+
+  #formatRule(rule: MerchantRule): string {
+    const merchant = rule.merchantId ? (this.merchants.get(rule.merchantId) ?? "") : "";
+    const conditions = rule.conditions
+      .map((c) => `${c.operator} "${c.value}"`)
+      .join(rule.logic === "and" ? " AND " : " OR ");
+    return merchant ? `${merchant}: ${conditions}` : conditions;
+  }
+
+  render() {
+    if (this.overlaps.length === 0) {
+      return html`
+        <h2>Rule Overlap</h2>
+        <p>No overlapping rules found.</p>
+      `;
+    }
+
+    return html`
+      <h2>Rule Overlap</h2>
+      <p>${this.overlaps.length} overlapping rule pair${this.overlaps.length === 1 ? "" : "s"} found.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Rule A</th>
+            <th>Rule B</th>
+            <th>Overlapping Transactions</th>
+            <th>Examples</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${this.overlaps.map(
+            (o) => html`
+            <tr>
+              <td class="condition-summary">${this.#formatRule(o.ruleA)}</td>
+              <td class="condition-summary">${this.#formatRule(o.ruleB)}</td>
+              <td>${o.count}</td>
+              <td class="samples">${o.samples.values().take(3).toArray().join("\n\n")}</td>
+            </tr>
+          `,
+          )}
+        </tbody>
+      </table>
+    `;
+  }
+}

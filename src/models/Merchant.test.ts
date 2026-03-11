@@ -1,0 +1,44 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { db } from "../database/Db";
+import { clearDb } from "../test/clearDb";
+import { uuid } from "../uuid";
+import { Merchant } from "./Merchant";
+
+beforeEach(async () => {
+  await clearDb(db.merchants);
+});
+
+describe("Merchant", () => {
+  it("should return all merchants", async () => {
+    await db.merchants.bulkDocs([
+      { id: uuid(), name: "Store A" },
+      { id: uuid(), name: "Store B" },
+    ]);
+    const all = await Merchant.all();
+    expect(all).toHaveLength(2);
+  });
+
+  it("should get a merchant by id", async () => {
+    const resp = await db.merchants.put({ id: uuid(), name: "Test" });
+    const m = await Merchant.get(resp.id);
+    expect(m?.name).toBe("Test");
+  });
+
+  it("should create a merchant", async () => {
+    const { id } = await Merchant.create("New Store");
+    const m = await db.merchants.get(id);
+    expect(m?.name).toBe("New Store");
+  });
+
+  it("should remove a merchant", async () => {
+    const resp = await db.merchants.put({ id: uuid(), name: "Temp" });
+    await Merchant.remove(resp.id);
+    expect(await db.merchants.get(resp.id).catch(() => undefined)).toBeUndefined();
+  });
+
+  it("should find a merchant by name (case-insensitive)", async () => {
+    await db.merchants.put({ id: uuid(), name: "Costco" });
+    const m = await Merchant.byName("costco");
+    expect(m?.name).toBe("Costco");
+  });
+});

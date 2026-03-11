@@ -1,0 +1,379 @@
+import { LitElement, css, html, nothing } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { cardNetworkFromPrefix } from "../../cardNetwork";
+import { aggregateByPeriod } from "../../charting/aggregateBy";
+import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
+import { Account } from "../../models/Account";
+import { Transaction } from "../../models/Transaction";
+import { debounce } from "../../debounce";
+import { navigate } from "../navigate";
+import { barChartData } from "../charts/barChartData";
+import "../charts/ChartWrapper";
+import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import "../shared/PaginatedTable";
+import type { PageChangeDetail } from "../shared/PaginatedTable";
+import { tableStyles } from "../tableStyles";
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "account-detail": AccountDetail;
+  }
+}
+
+import { Temporal } from "@js-temporal/polyfill";
+import "../shared/TimeRangePicker";
+import { type TimeRange, type TimeRangeChangeEvent } from "../shared/TimeRangePicker";
+
+@customElement("account-detail")
+export class AccountDetail extends BusyMixin(LitElement) {
+  @property({ type: String })
+  accountId = "";
+
+  @state()
+  private _account?: Account;
+
+  @state()
+  private _transactions: Transaction[] | null = null;
+
+  @state()
+  private _editingName = false;
+
+  @state()
+  private _timeRange: TimeRange = null;
+
+  @state()
+  private _currentPage = 1;
+
+  @state()
+  private _pageSize = 25;
+
+  static styles = [
+    busyStyles,
+    tableStyles,
+    css`
+      :host {
+        display: block;
+      }
+      .back-link {
+        color: var(--budgee-primary);
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+      }
+      .header {
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        background: var(--budgee-surface);
+      }
+      .header h2 {
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+      }
+      .meta {
+        color: var(--budgee-text-muted);
+        font-size: 0.9rem;
+      }
+      .editable {
+        cursor: pointer;
+        border-bottom: 1px dashed var(--budgee-text-muted);
+      }
+      .editable:hover {
+        color: var(--budgee-primary);
+      }
+      .edit-input {
+        font-size: inherit;
+        font-family: inherit;
+        padding: 2px 4px;
+        border: 1px solid var(--budgee-border);
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        color: var(--budgee-text);
+      }
+      .top-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .section {
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        display: flex;
+        flex-direction: column;
+      }
+      .section h3 {
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .section-transactions {
+        border: 1px solid var(--budgee-border);
+        padding: 1rem;
+        border-radius: 4px;
+        background: var(--budgee-surface);
+        margin-bottom: 1rem;
+      }
+      .section-transactions h3 {
+        margin-top: 0;
+      }
+      time-range-picker {
+        margin-left: 0.75rem;
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background-color: var(--budgee-bg);
+      }
+      .loading {
+        color: var(--budgee-text-muted);
+        font-style: italic;
+      }
+    `,
+  ];
+
+  #subscriptions: { unsubscribe: () => void }[] = [];
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.#load();
+    const debouncedLoad = debounce(() => this.#load(), 300);
+    Promise.all([Account.subscribe(debouncedLoad), Transaction.subscribe(debouncedLoad)]).then(
+      (subs) => {
+        this.#subscriptions = subs;
+      },
+    );
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    for (const sub of this.#subscriptions) sub.unsubscribe();
+    this.#subscriptions = [];
+  }
+
+  async #load() {
+    if (!this.accountId) return;
+    this._account = await Account.get(this.accountId);
+    this.#loadTransactions();
+  }
+
+  async #loadTransactions() {
+    this._transactions = await Transaction.forAccount(this.accountId);
+  }
+
+  get #filteredTransactions(): Transaction[] | null {
+    if (!this._transactions) return null;
+    if (this._timeRange === null) return this._transactions;
+    const cutoffStr = Temporal.Now.plainDateISO().subtract(this._timeRange).toString();
+    return this._transactions.filter((t) => t.date >= cutoffStr);
+  }
+
+  get #allMonthlyTotals(): [string, number][] {
+    return [...aggregateByPeriod(this._transactions ?? [], "month").entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+  }
+
+  get #monthlyTotals(): [string, number][] {
+    return [...aggregateByPeriod(this.#filteredTransactions ?? [], "month").entries()].sort(
+      ([a], [b]) => a.localeCompare(b),
+    );
+  }
+
+  #onTimeRangeChange(e: TimeRangeChangeEvent) {
+    this._timeRange = e.timeRange;
+    this._currentPage = 1;
+  }
+
+  #onPageChange(e: CustomEvent<PageChangeDetail>) {
+    this._currentPage = e.detail.page;
+    this._pageSize = e.detail.pageSize;
+  }
+
+  #navigateBack() {
+    navigate("/accounts");
+  }
+
+  #navigateToTransaction(id: string) {
+    navigate(`/transactions/${id}`);
+  }
+
+  async #saveName(e: KeyboardEvent) {
+    if (e.key !== "Enter") return;
+    const input = e.target as HTMLInputElement;
+    await this.withBusy(async () => {
+      await Account.update(this.accountId, { name: input.value });
+      this._editingName = false;
+      await this.#load();
+    });
+  }
+
+  async #onTypeChange(e: Event) {
+    const value = (e.target as HTMLSelectElement).value;
+    await this.withBusy(async () => {
+      await Account.update(this.accountId, {
+        type: (value || undefined) as AccountType | undefined,
+      });
+      await this.#load();
+    });
+  }
+
+  #renderLoadingState() {
+    return html`
+      <div class="summary-grid">
+        ${[0, 1, 2, 3].map(
+          () => html`
+            <div class="summary-card">
+              <div class="label loading">Loading…</div>
+            </div>
+          `,
+        )}
+      </div>
+      <div class="top-row">
+        <div class="section"><p class="loading">Loading chart…</p></div>
+        <div class="section"><p class="loading">Loading summary…</p></div>
+      </div>
+      <div class="section-transactions"><p class="loading">Loading transactions…</p></div>
+    `;
+  }
+
+  #renderTransactionData(filtered: Transaction[]) {
+    const start = (this._currentPage - 1) * this._pageSize;
+    const pageTransactions = filtered.slice(start, start + this._pageSize);
+    return html`
+      <div class="top-row">
+        <div class="section">
+          <h3>
+            Monthly Activity
+            <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
+          </h3>
+          ${
+            this.#monthlyTotals.length > 0
+              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlyTotals, displayEntries: this.#monthlyTotals, label: this._account?.name ?? "Account" })}></chart-wrapper>`
+              : html`
+                  <p>No transactions in this period.</p>
+                `
+          }
+        </div>
+
+        <div class="section">
+          <h3>Summary</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.#monthlyTotals.map(
+                ([month, total]) => html`
+                <tr>
+                  <td>${month}</td>
+                  <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
+                    ${total.toFixed(2)}
+                  </td>
+                </tr>
+              `,
+              )}
+              ${
+                this.#monthlyTotals.length === 0
+                  ? html`
+                      <tr>
+                        <td colspan="2">No data</td>
+                      </tr>
+                    `
+                  : nothing
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-transactions">
+        <h3>Transactions</h3>
+        <paginated-table
+          .totalItems=${filtered.length}
+          .defaultPageSize=${25}
+          storageKey="account-transactions"
+          @page-change=${this.#onPageChange}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pageTransactions.map(
+                (t) => html`
+                <tr @click=${() => this.#navigateToTransaction(t.id)}>
+                  <td>${t.date}</td>
+                  <td>${t.description}</td>
+                  <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
+                    ${t.amount.toFixed(2)}
+                  </td>
+                </tr>
+              `,
+              )}
+            </tbody>
+          </table>
+        </paginated-table>
+      </div>
+    `;
+  }
+
+  render() {
+    if (!this._account) {
+      return html`
+        <p>Loading…</p>
+      `;
+    }
+
+    const filtered = this.#filteredTransactions;
+    const loading = filtered === null;
+
+    return html`
+      <span class="back-link" @click=${this.#navigateBack}>&larr; Back to accounts</span>
+
+      <div class="header">
+        <h2>
+          ${
+            this._editingName
+              ? html`<input
+                class="edit-input"
+                .value=${this._account.name}
+                @keydown=${this.#saveName}
+                @blur=${() => (this._editingName = false)}
+              />`
+              : html`<span class="editable" @click=${() => (this._editingName = true)}
+                >${this._account.name}</span
+              >`
+          }
+        </h2>
+        <div class="meta">
+          Type:
+          <select @change=${this.#onTypeChange}>
+            <option value="" ?selected=${!this._account.type}>Not set</option>
+            ${ACCOUNT_TYPES.map(
+              (t) =>
+                html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
+            )}
+          </select>
+          ${cardNetworkFromPrefix(this._account.name) ? html` (${cardNetworkFromPrefix(this._account.name)})` : nothing}
+        </div>
+      </div>
+
+      ${loading ? this.#renderLoadingState() : this.#renderTransactionData(filtered)}
+    `;
+  }
+}

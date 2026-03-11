@@ -1,0 +1,60 @@
+import { waitForDb } from "../database/Db";
+import type {
+  DashboardTableColumn,
+  DashboardTableModel,
+  DashboardTableRecord,
+} from "../database/types";
+import { uuid } from "../uuid";
+
+export class DashboardTable {
+  readonly id!: string;
+  readonly title!: string;
+  readonly model!: DashboardTableModel;
+  readonly columns!: DashboardTableColumn[];
+  readonly position!: number;
+  readonly colSpan?: number;
+  readonly rowSpan?: number;
+
+  constructor(data: DashboardTableRecord) {
+    Object.assign(this, data);
+  }
+
+  static async subscribe(callback: () => void) {
+    const db = await waitForDb();
+    return db.dashboardTables.subscribe(callback);
+  }
+
+  static async all(): Promise<DashboardTable[]> {
+    const db = await waitForDb();
+    const docs = await db.dashboardTables.all();
+    return docs.sort((a, b) => a.position - b.position).map((d) => new DashboardTable(d));
+  }
+
+  static async create(table: Omit<DashboardTableRecord, "id">): Promise<DashboardTable> {
+    const db = await waitForDb();
+    const data = { ...table, id: uuid() };
+    await db.dashboardTables.put(data);
+    return new DashboardTable(data);
+  }
+
+  static async update(id: string, changes: Partial<DashboardTableRecord>): Promise<void> {
+    const db = await waitForDb();
+    const doc = await db.dashboardTables.get(id);
+    await db.dashboardTables.put({ ...doc, ...changes });
+  }
+
+  static async remove(id: string): Promise<void> {
+    const db = await waitForDb();
+    await db.dashboardTables.remove(id);
+  }
+
+  static async reorder(ids: string[]): Promise<void> {
+    const db = await waitForDb();
+    await Promise.all(
+      ids.map(async (id, i) => {
+        const doc = await db.dashboardTables.get(id);
+        await db.dashboardTables.put({ ...doc, position: i });
+      }),
+    );
+  }
+}

@@ -1,0 +1,397 @@
+import {
+  type MangoQuery,
+  type RxCollection,
+  type RxDatabase,
+  type RxJsonSchema,
+  addRxPlugin,
+  createRxDatabase,
+  removeRxDatabase,
+} from "rxdb/plugins/core";
+import { RxDBMigrationSchemaPlugin } from "rxdb/plugins/migration-schema";
+import type {
+  AccountRecord,
+  DashboardChartRecord,
+  DashboardTableRecord,
+  MerchantRecord,
+  MerchantRuleRecord,
+  TagRecord,
+  TransactionRecord,
+} from "./types";
+
+addRxPlugin(RxDBMigrationSchemaPlugin);
+
+export class SchemaVersionError extends Error {
+  override cause: unknown;
+
+  constructor(message: string, cause: unknown) {
+    super(message);
+    this.name = "SchemaVersionError";
+    this.cause = cause;
+  }
+}
+
+const ID_FIELD = { type: "string" as const, maxLength: 100 };
+
+const transactionSchema: RxJsonSchema<TransactionRecord> = {
+  version: 1,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    date: { type: "string", maxLength: 10 },
+    amount: { type: "number" },
+    description: { type: "string" },
+    memo: { type: "string" },
+    merchantId: { type: "string", maxLength: 100 },
+    accountId: { type: "string", maxLength: 100 },
+    tagIds: { type: "array", items: { type: "string" } },
+  },
+  required: ["id", "date", "amount", "description", "tagIds"],
+  indexes: ["date"],
+};
+
+const tagSchema: RxJsonSchema<TagRecord> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string", maxLength: 200 },
+    icon: { type: "string" },
+    color: { type: "string" },
+  },
+  required: ["id", "name"],
+  indexes: ["name"],
+};
+
+const merchantSchema: RxJsonSchema<MerchantRecord> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string", maxLength: 200 },
+  },
+  required: ["id", "name"],
+  indexes: ["name"],
+};
+
+const accountSchema: RxJsonSchema<AccountRecord> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    name: { type: "string" },
+    type: { type: "string" },
+  },
+  required: ["id", "name"],
+};
+
+const merchantRuleSchema: RxJsonSchema<MerchantRuleRecord> = {
+  version: 1,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    logic: { type: "string" },
+    conditions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          field: { type: "string" },
+          operator: { type: "string" },
+          value: { type: "string" },
+        },
+      },
+    },
+    merchantId: { type: "string" },
+    accountId: { type: "string" },
+    tagIds: { type: "array", items: { type: "string" } },
+  },
+  required: ["id", "logic", "conditions", "tagIds"],
+};
+
+const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    title: { type: "string" },
+    chartType: { type: "string" },
+    granularity: { type: "string" },
+    startDate: { type: "string" },
+    endDate: { type: "string" },
+    tagId: { type: "string" },
+    merchantId: { type: "string" },
+    position: { type: "number" },
+    colSpan: { type: "number" },
+    rowSpan: { type: "number" },
+    excludedTagIds: { type: "array", items: { type: "string" } },
+    excludedMerchantIds: { type: "array", items: { type: "string" } },
+    direction: { type: "string" },
+    descriptionFilter: { type: "string" },
+    descriptionFilterMode: { type: "string" },
+    legendPosition: { type: "string" },
+    filters: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          field: { type: "string" },
+          operator: { type: "string" },
+          value: { type: "string" },
+        },
+      },
+    },
+  },
+  required: ["id", "title", "chartType", "granularity", "position"],
+};
+
+const dashboardTableSchema: RxJsonSchema<DashboardTableRecord> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    title: { type: "string" },
+    model: { type: "string" },
+    columns: { type: "array", items: { type: "string" } },
+    position: { type: "number" },
+    colSpan: { type: "number" },
+    rowSpan: { type: "number" },
+  },
+  required: ["id", "title", "model", "columns", "position"],
+};
+
+interface SchemaVersionDoc {
+  id: string;
+  value: number;
+}
+
+const metaSchema: RxJsonSchema<SchemaVersionDoc> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    value: { type: "number" },
+  },
+  required: ["id", "value"],
+};
+
+const backupSchema: RxJsonSchema<{ id: string; data?: string }> = {
+  version: 0,
+  primaryKey: "id",
+  type: "object",
+  properties: {
+    id: ID_FIELD,
+    data: { type: "string" },
+  },
+  required: ["id"],
+};
+
+export const collectionSchemas = {
+  transactions: transactionSchema,
+  tags: tagSchema,
+  merchants: merchantSchema,
+  accounts: accountSchema,
+  merchant_rules: merchantRuleSchema,
+  dashboard_charts: dashboardChartSchema,
+  dashboard_tables: dashboardTableSchema,
+  meta: metaSchema,
+  backups: backupSchema,
+} as const;
+
+type DatabaseCollections = {
+  transactions: RxCollection<TransactionRecord>;
+  tags: RxCollection<TagRecord>;
+  merchants: RxCollection<MerchantRecord>;
+  accounts: RxCollection<AccountRecord>;
+  merchant_rules: RxCollection<MerchantRuleRecord>;
+  dashboard_charts: RxCollection<DashboardChartRecord>;
+  dashboard_tables: RxCollection<DashboardTableRecord>;
+  meta: RxCollection<SchemaVersionDoc>;
+  backups: RxCollection<{ id: string; data?: string }>;
+};
+
+export type BudgeeDatabase = RxDatabase<DatabaseCollections>;
+
+export class Collection<T extends { id: string }> {
+  #collection: RxCollection<T>;
+
+  constructor(collection: RxCollection<T>) {
+    this.#collection = collection;
+  }
+
+  get rxCollection(): RxCollection<T> {
+    return this.#collection;
+  }
+
+  async get(id: string): Promise<T> {
+    const doc = await this.#collection.findOne(id).exec();
+    if (!doc) throw new Error(`Document not found: ${id}`);
+    return doc.toJSON(true) as T;
+  }
+
+  async put(doc: T): Promise<{ id: string }> {
+    await this.#collection.upsert(doc);
+    return { id: doc.id };
+  }
+
+  async bulkDocs(docs: T[]): Promise<void> {
+    await this.#collection.bulkUpsert(docs);
+  }
+
+  async remove(id: string): Promise<void> {
+    const doc = await this.#collection.findOne(id).exec();
+    if (doc) await doc.remove();
+  }
+
+  async find(query: MangoQuery<T>): Promise<T[]> {
+    const results = await this.#collection.find(query).exec();
+    return results.map((doc) => doc.toJSON(true) as T);
+  }
+
+  async all(): Promise<T[]> {
+    const results = await this.#collection.find().exec();
+    return results.map((doc) => doc.toJSON(true) as T);
+  }
+
+  async clear(): Promise<void> {
+    const docs = await this.#collection.find().exec();
+    await Promise.all(docs.map((doc) => doc.remove()));
+  }
+
+  async count(): Promise<number> {
+    return this.#collection.count().exec();
+  }
+
+  subscribe(callback: () => void): { unsubscribe: () => void } {
+    const sub = this.#collection.$.subscribe(callback);
+    return { unsubscribe: () => sub.unsubscribe() };
+  }
+}
+
+export type { DatabaseCollections };
+
+export interface Databases {
+  rxdb: RxDatabase<DatabaseCollections>;
+  transactions: Collection<TransactionRecord>;
+  tags: Collection<TagRecord>;
+  merchants: Collection<MerchantRecord>;
+  accounts: Collection<AccountRecord>;
+  merchantRules: Collection<MerchantRuleRecord>;
+  dashboardCharts: Collection<DashboardChartRecord>;
+  dashboardTables: Collection<DashboardTableRecord>;
+  meta: Collection<SchemaVersionDoc>;
+  backups: Collection<{ id: string; data?: string }>;
+}
+
+async function hashFunction(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+
+  if (typeof crypto !== "undefined" && crypto.subtle?.digest) {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = new Uint8Array(hashBuffer);
+    return Array.from(hashArray, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // Fallback for non-secure contexts (HTTP)
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < data.length; i++) {
+    hash ^= data[i];
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+export async function createDatabases(storage: unknown, name = "budgee"): Promise<Databases> {
+  const rxdb = await createRxDatabase<DatabaseCollections>({
+    name,
+    storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
+    hashFunction,
+  });
+
+  try {
+    await rxdb.addCollections({
+      transactions: {
+        schema: transactionSchema,
+        migrationStrategies: {
+          1: (doc: Record<string, unknown>) => {
+            doc.description = doc.originalDescription;
+            delete doc.originalDescription;
+            return doc;
+          },
+        },
+      },
+      tags: { schema: tagSchema },
+      merchants: { schema: merchantSchema },
+      accounts: { schema: accountSchema },
+      merchant_rules: {
+        schema: merchantRuleSchema,
+        migrationStrategies: {
+          // accountId field was added; no data migration needed
+          1: (doc: MerchantRuleRecord) => doc,
+        },
+      },
+      dashboard_charts: { schema: dashboardChartSchema },
+      dashboard_tables: { schema: dashboardTableSchema },
+      meta: { schema: metaSchema },
+      backups: { schema: backupSchema },
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("DB6")) {
+      throw new SchemaVersionError("Database schema version mismatch (DB6)", error);
+    }
+    throw error;
+  }
+
+  return {
+    rxdb,
+    transactions: new Collection(rxdb.transactions),
+    tags: new Collection(rxdb.tags),
+    merchants: new Collection(rxdb.merchants),
+    accounts: new Collection(rxdb.accounts),
+    merchantRules: new Collection(rxdb.merchant_rules),
+    dashboardCharts: new Collection(rxdb.dashboard_charts),
+    dashboardTables: new Collection(rxdb.dashboard_tables),
+    meta: new Collection(rxdb.meta),
+    backups: new Collection(rxdb.backups),
+  };
+}
+
+export async function destroyAll(dbs: Databases) {
+  const rxCollection = (dbs.transactions as Collection<TransactionRecord>).rxCollection;
+  const rxdb = rxCollection.database;
+  const storage = rxdb.storage;
+  const name = rxdb.name;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (rxdb as any).destroy();
+  await removeRxDatabase(name, storage);
+}
+
+async function createDefaultDatabase(): Promise<Databases> {
+  if (import.meta.env?.MODE === "test") {
+    const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
+    const testName = `budgee_test_${Math.random().toString(36).slice(2)}`;
+    return createDatabases(getRxStorageMemory(), testName);
+  }
+  const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
+  return createDatabases(getRxStorageDexie());
+}
+
+export let db: Databases;
+
+const dbReady = createDefaultDatabase().then((dbs) => {
+  db = dbs;
+  return dbs;
+});
+
+export function waitForDb(): Promise<Databases> {
+  return dbReady;
+}
