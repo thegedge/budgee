@@ -13,10 +13,6 @@ interface CompiledRoute {
   pattern: URLPattern;
 }
 
-/**
- * A minimal Lit reactive controller that provides client-side routing using URLPattern.
- * Handles pushState-based navigation and browser back/forward via popstate events.
- */
 export class Router implements ReactiveController {
   readonly #host: ReactiveControllerHost & HTMLElement;
   readonly #routes: CompiledRoute[];
@@ -32,16 +28,22 @@ export class Router implements ReactiveController {
   }
 
   hostConnected() {
-    window.addEventListener("popstate", this.#onPopState);
+    window.navigation.addEventListener("navigate", this.#onNavigate);
     void this.#resolve(window.location.pathname);
   }
 
   hostDisconnected() {
-    window.removeEventListener("popstate", this.#onPopState);
+    window.navigation.removeEventListener("navigate", this.#onNavigate);
   }
 
-  #onPopState = () => {
-    void this.#resolve(window.location.pathname);
+  #onNavigate = (event: NavigateEvent) => {
+    if (!event.canIntercept || event.hashChange || event.downloadRequest || event.formData) return;
+    const pathname = new URL(event.destination.url).pathname;
+    event.intercept({
+      handler: async () => {
+        await this.#resolve(pathname);
+      },
+    });
   };
 
   async #resolve(pathname: string) {

@@ -14,12 +14,11 @@ export function stripBasePath(pathname: string): string {
   return pathname;
 }
 
-/** Navigate to a route using the app's pushState-based router. */
+/** Navigate to a route using the Navigation API. */
 export function navigate(path: string) {
   const url = new URL(withBasePath(path), window.location.origin);
   // Preserve demo mode query param across navigations
   const demo = new URLSearchParams(window.location.search).get("demo");
   if (demo) url.searchParams.set("demo", demo);
-  window.history.pushState({}, "", url.pathname + url.search);
-  window.dispatchEvent(new PopStateEvent("popstate"));
+  window.navigation.navigate(url.pathname + url.search, { history: "push" });
 }
