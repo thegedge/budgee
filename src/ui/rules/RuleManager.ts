@@ -410,7 +410,6 @@ export class RuleManager extends BusyMixin(LitElement) {
                 <p>No unmatched rules found.</p>
               `
             : html`
-            <p>${unmatchedRules.length} rule${unmatchedRules.length === 1 ? "" : "s"} matching no transactions.</p>
             ${this.#renderRuleTable(unmatchedRules)}
           `
         }

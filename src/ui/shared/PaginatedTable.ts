@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { buttonStyles } from "../buttonStyles";
+import { iconButtonStyles } from "../iconButtonStyles";
 import { inputStyles } from "../inputStyles";
 import { tableStyles } from "../tableStyles";
 
@@ -74,6 +75,7 @@ export class PaginatedTable<T = unknown> extends LitElement {
 
   static styles = [
     buttonStyles,
+    iconButtonStyles,
     inputStyles,
     tableStyles,
     css`

@@ -15,7 +15,7 @@ export const iconButtonStyles = css`
       color 0.15s,
       background-color 0.15s;
   }
-  .icon-btn:hover {
+  .icon-btn:hover:not(:disabled) {
     color: var(--budgee-text);
     background-color: color-mix(in lch, var(--budgee-text) 10%, transparent);
   }
@@ -23,8 +23,11 @@ export const iconButtonStyles = css`
     width: 20px;
     height: 20px;
   }
-  .icon-btn--danger:hover {
+  .icon-btn--danger {
     color: var(--budgee-danger);
-    background-color: color-mix(in lch, var(--budgee-danger) 15%, transparent);
+  }
+  .icon-btn--danger:hover:not(:disabled) {
+    color: var(--budgee-danger);
+    background-color: color-mix(in lch, var(--budgee-danger) 30%, transparent);
   }
 `;
