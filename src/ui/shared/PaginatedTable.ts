@@ -109,7 +109,17 @@ export class PaginatedTable<T = unknown> extends LitElement {
         height: 1rem;
         background: var(--budgee-border);
         border-radius: 4px;
-        animation: pulse 1.5s ease-in-out infinite;
+        animation:
+          fade-in 0.15s ease-out 0.3s both,
+          pulse 1.5s ease-in-out 0.3s infinite;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
       @keyframes pulse {
         0%,

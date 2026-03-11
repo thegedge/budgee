@@ -15,6 +15,7 @@ export class SkeletonLoader extends LitElement {
   static styles = css`
     :host {
       display: block;
+      animation: fade-in 0.15s ease-out 0.3s both;
     }
     .skeleton-line {
       height: 1rem;
@@ -51,6 +52,14 @@ export class SkeletonLoader extends LitElement {
     }
     .text .skeleton-line:last-child {
       width: 70%;
+    }
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
     @keyframes pulse {
       0%,
