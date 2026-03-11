@@ -14,7 +14,7 @@
   --budgee-secondary-hover: light-dark(lch(56% 0 none), lch(60% 0 none));
   --budgee-secondary: light-dark(lch(66% 0 none), lch(50% 0 none));
   --budgee-success: lch(63.6% 33.6 180.1);
-  --budgee-warning: light-dark(lch(62% 40 72), lch(78% 38 78));
+  --budgee-warning: light-dark(lch(80% 80 85), lch(90% 80 85));
   --budgee-surface: light-dark(lch(100% 0 none), lch(18% 0 none));
   --budgee-text-muted: light-dark(lch(56.7% 0 none), lch(70% 0 none));
   --budgee-text: light-dark(lch(21.2% 0 none), lch(82% 0 none));

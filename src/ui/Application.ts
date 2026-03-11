@@ -242,8 +242,9 @@ export class Application extends LitElement {
       left: 0;
       right: 0;
       z-index: 9000;
-      background: var(--budgee-warning, #f59e0b);
-      color: #000;
+      --color: var(--budgee-warning, lch(80% 80 85));
+      color: light-dark(lch(15% 35 85), lch(85% 35 85));
+      background: color-mix(in lch, var(--color) 25%, transparent);
       text-align: center;
       padding: 0.35rem 1rem;
       font-size: 0.85rem;

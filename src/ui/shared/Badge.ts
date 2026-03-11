@@ -23,9 +23,9 @@ export class Badge extends LitElement {
       white-space: nowrap;
     }
     :host([variant="warning"]) {
-      --color: var(--budgee-warning, lch(62% 40 72));
-      color: var(--color);
-      background: color-mix(in lch, var(--color) 15%, transparent);
+      --color: var(--budgee-warning, lch(80% 80 85));
+      color: light-dark(lch(15% 35 85), lch(85% 35 85));
+      background: color-mix(in lch, var(--color) 25%, transparent);
     }
     :host([variant="danger"]) {
       --color: var(--budgee-danger, lch(72.8% 28.9 22.1));
