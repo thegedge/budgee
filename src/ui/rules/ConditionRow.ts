@@ -50,6 +50,9 @@ export class ConditionRow extends LitElement {
       input {
         padding: 4px 8px;
       }
+      autocomplete-input {
+        max-width: 220px;
+      }
     `,
   ];
 
@@ -127,6 +130,7 @@ export class ConditionRow extends LitElement {
             .items=${this.#accountNames}
             .value=${this.condition.value}
             placeholder="account name"
+            ?dropdown=${true}
             @value-changed=${this.#onAutocompleteValueChanged}
           ></autocomplete-input>`
           : html`<input

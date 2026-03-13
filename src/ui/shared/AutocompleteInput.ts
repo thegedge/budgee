@@ -19,6 +19,9 @@ export class AutocompleteInput extends LitElement {
   @property({ type: String })
   placeholder = "";
 
+  @property({ type: Boolean })
+  dropdown = false;
+
   @state()
   private _highlightIndex = -1;
 
@@ -32,8 +35,35 @@ export class AutocompleteInput extends LitElement {
         display: inline-block;
         position: relative;
       }
+      .input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
       input {
         padding: 4px 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .chevron {
+        position: absolute;
+        right: 6px;
+        pointer-events: none;
+        color: var(--budgee-text-muted, currentColor);
+        display: flex;
+        align-items: center;
+      }
+      .chevron svg {
+        width: 12px;
+        height: 12px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      :host([dropdown]) input {
+        padding-right: 22px;
       }
       .suggestions {
         position: absolute;
@@ -62,7 +92,7 @@ export class AutocompleteInput extends LitElement {
 
   get #filtered(): string[] {
     const q = this.value.toLowerCase().trim();
-    if (!q) return [];
+    if (!q) return this.dropdown ? this.items : [];
     return this.items.filter((item) => item.toLowerCase().includes(q));
   }
 
@@ -70,7 +100,7 @@ export class AutocompleteInput extends LitElement {
     const val = (e.target as HTMLInputElement).value;
     this.dispatchEvent(new CustomEvent("value-changed", { detail: { value: val } }));
     this._highlightIndex = -1;
-    this._open = val.trim().length > 0;
+    this._open = this.dropdown ? true : val.trim().length > 0;
   }
 
   #onKeyDown(e: KeyboardEvent) {
@@ -94,7 +124,7 @@ export class AutocompleteInput extends LitElement {
   }
 
   #onFocus() {
-    if (this.value.trim().length > 0) {
+    if (this.dropdown || this.value.trim().length > 0) {
       this._open = true;
     }
   }
@@ -114,20 +144,33 @@ export class AutocompleteInput extends LitElement {
   render() {
     const filtered = this.#filtered;
     const exactMatch =
+      !this.dropdown &&
       this.value.trim() &&
       filtered.some((item) => item.toLowerCase() === this.value.trim().toLowerCase());
     const showSuggestions = this._open && filtered.length > 0 && !exactMatch;
 
     return html`
-      <input
-        type="text"
-        .placeholder=${this.placeholder}
-        .value=${this.value}
-        @input=${this.#onInput}
-        @keydown=${this.#onKeyDown}
-        @focus=${this.#onFocus}
-        @blur=${this.#onBlur}
-      />
+      <div class="input-wrap">
+        <input
+          type="text"
+          .placeholder=${this.placeholder}
+          .value=${this.value}
+          @input=${this.#onInput}
+          @keydown=${this.#onKeyDown}
+          @focus=${this.#onFocus}
+          @blur=${this.#onBlur}
+        />
+        ${
+          this.dropdown
+            ? html`
+                <span class="chevron"
+                  ><svg viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline></svg
+                ></span>
+              `
+            : nothing
+        }
+      </div>
       ${
         showSuggestions
           ? html`
