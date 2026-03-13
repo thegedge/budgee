@@ -180,13 +180,30 @@ export class AccountDetail extends BusyMixin(LitElement) {
     navigate(`/transactions/${id}`);
   }
 
+  async #startEditing() {
+    this._editingName = true;
+    await this.updateComplete;
+    this.renderRoot.querySelector<HTMLInputElement>(".edit-input")?.focus();
+  }
+
+  #onNameBlur() {
+    if (this.busy) return;
+    this._editingName = false;
+  }
+
   async #saveName(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      this._editingName = false;
+      return;
+    }
     if (e.key !== "Enter") return;
     const input = e.target as HTMLInputElement;
+    const name = input.value.trim();
+    if (!name) return;
     await this.withBusy(async () => {
-      await Account.update(this.accountId, { name: input.value });
+      await Account.update(this.accountId, { name });
+      this._account = await Account.get(this.accountId);
       this._editingName = false;
-      await this.#load();
     });
   }
 
@@ -266,9 +283,9 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 class="edit-input"
                 .value=${this._account.name}
                 @keydown=${this.#saveName}
-                @blur=${() => (this._editingName = false)}
+                @blur=${this.#onNameBlur}
               />`
-              : html`<span class="editable" @click=${() => (this._editingName = true)}
+              : html`<span class="editable" @click=${this.#startEditing}
                 >${this._account.name}</span
               >`
           }
