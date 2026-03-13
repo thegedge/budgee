@@ -48,6 +48,9 @@ async function resolveAccountIds(
   const nameToId = new Map<string, string>();
   for (const account of existingAccounts) {
     nameToId.set(account.name.toLowerCase(), account.id);
+    if (account.alias) {
+      nameToId.set(account.alias.toLowerCase(), account.id);
+    }
   }
 
   const result = new Map<string, string>();

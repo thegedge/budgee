@@ -115,7 +115,10 @@ export class TransactionImporter extends BusyMixin(LitElement) {
     const name = this._accountName.trim();
     if (!name) return undefined;
 
-    const existing = this._accounts.find((a) => a.name.toLowerCase() === name.toLowerCase());
+    const lower = name.toLowerCase();
+    const existing = this._accounts.find(
+      (a) => a.name.toLowerCase() === lower || a.alias?.toLowerCase() === lower,
+    );
     if (existing) return existing.id;
 
     return (await Account.create({ name })).id;

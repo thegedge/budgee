@@ -203,8 +203,9 @@ export class GlobalSearch extends LitElement {
     }
 
     for (const a of accounts) {
-      if (a.name.toLowerCase().includes(q)) {
-        results.push({ type: "account", id: a.id, label: a.name, href: `/accounts/${a.id}` });
+      const displayName = a.alias ?? a.name;
+      if (displayName.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)) {
+        results.push({ type: "account", id: a.id, label: displayName, href: `/accounts/${a.id}` });
       }
     }
 

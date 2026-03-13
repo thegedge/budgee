@@ -149,6 +149,10 @@ export class AccountDetail extends BusyMixin(LitElement) {
     this._transactions = await Transaction.forAccount(this.accountId);
   }
 
+  get #displayName(): string {
+    return this._account?.alias ?? this._account?.name ?? "Account";
+  }
+
   get #filteredTransactions(): Transaction[] | null {
     if (!this._transactions) return null;
     if (this._timeRange === null) return this._transactions;
@@ -201,7 +205,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
     const name = input.value.trim();
     if (!name) return;
     await this.withBusy(async () => {
-      await Account.update(this.accountId, { name });
+      await Account.update(this.accountId, { alias: name });
       this._account = await Account.get(this.accountId);
       this._editingName = false;
     });
@@ -233,7 +237,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
           </h3>
           ${
             this.#monthlyTotals.length > 0
-              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlyTotals, displayEntries: this.#monthlyTotals, label: this._account?.name ?? "Account" })}></chart-wrapper>`
+              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlyTotals, displayEntries: this.#monthlyTotals, label: this.#displayName })}></chart-wrapper>`
               : html`
                   <p>No transactions in this period.</p>
                 `
@@ -281,12 +285,12 @@ export class AccountDetail extends BusyMixin(LitElement) {
             this._editingName
               ? html`<input
                 class="edit-input"
-                .value=${this._account.name}
+                .value=${this.#displayName}
                 @keydown=${this.#saveName}
                 @blur=${this.#onNameBlur}
               />`
               : html`<span class="editable" @click=${this.#startEditing}
-                >${this._account.name}</span
+                >${this.#displayName}</span
               >`
           }
         </h2>
@@ -300,6 +304,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
             )}
           </select>
           ${cardNetworkFromPrefix(this._account.name) ? html` (${cardNetworkFromPrefix(this._account.name)})` : nothing}
+          ${this._account.alias ? html`<span>Originally: ${this._account.name}</span>` : nothing}
         </div>
       </div>
 

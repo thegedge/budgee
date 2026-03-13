@@ -39,6 +39,7 @@ export interface AccountRecord {
   id: string;
   name: string;
   type?: AccountType;
+  alias?: string;
 }
 
 export type RuleOperator = "contains" | "startsWith" | "equals" | "regex" | "oneOf";

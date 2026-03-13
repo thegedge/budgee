@@ -4,6 +4,9 @@ exports[`schema snapshots > accounts schema should match snapshot 1`] = `
 {
   "indexes": undefined,
   "properties": {
+    "alias": {
+      "type": "string",
+    },
     "id": {
       "maxLength": 100,
       "type": "string",
@@ -19,7 +22,7 @@ exports[`schema snapshots > accounts schema should match snapshot 1`] = `
     "id",
     "name",
   ],
-  "version": 0,
+  "version": 1,
 }
 `;
 

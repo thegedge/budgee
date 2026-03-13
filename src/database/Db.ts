@@ -77,13 +77,14 @@ const merchantSchema: RxJsonSchema<MerchantRecord> = {
 };
 
 const accountSchema: RxJsonSchema<AccountRecord> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
     id: ID_FIELD,
     name: { type: "string" },
     type: { type: "string" },
+    alias: { type: "string" },
   },
   required: ["id", "name"],
 };
@@ -367,7 +368,12 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
       },
       tags: { schema: tagSchema },
       merchants: { schema: merchantSchema },
-      accounts: { schema: accountSchema },
+      accounts: {
+        schema: accountSchema,
+        migrationStrategies: {
+          1: (doc: AccountRecord) => doc,
+        },
+      },
       merchant_rules: {
         schema: merchantRuleSchema,
         migrationStrategies: {
