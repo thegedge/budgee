@@ -1,5 +1,8 @@
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { defineConfig, type Plugin } from "vitest/config";
+
+const inContainer = existsSync("/.dockerenv");
 
 const commitSha = execSync("git rev-parse --short HEAD").toString().trim();
 const commitDate = execSync("git log -1 --format=%cI").toString().trim();
@@ -30,6 +33,9 @@ export default defineConfig({
   define: {
     __COMMIT_SHA__: JSON.stringify(commitSha),
     __COMMIT_DATE__: JSON.stringify(commitDate),
+  },
+  server: {
+    watch: inContainer ? { usePolling: true } : undefined,
   },
   test: {
     environment: "happy-dom",
