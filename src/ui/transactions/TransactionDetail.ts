@@ -185,6 +185,7 @@ export class TransactionDetail extends BusyMixin(LitElement) {
 
     const byMonth = new Map<string, number>();
     for (const tx of all) {
+      if (tx.amount >= 0) continue;
       const month = tx.date.slice(0, 7);
       byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
     }

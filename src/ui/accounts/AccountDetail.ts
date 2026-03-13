@@ -170,15 +170,17 @@ export class AccountDetail extends BusyMixin(LitElement) {
   }
 
   get #allPeriodTotals(): [string, number][] {
-    return [...aggregateByPeriod(this._transactions ?? [], this.#granularity).entries()].sort(
-      ([a], [b]) => a.localeCompare(b),
+    const debits = (this._transactions ?? []).filter((t) => t.amount < 0);
+    return [...aggregateByPeriod(debits, this.#granularity).entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
     );
   }
 
   get #periodTotals(): [string, number][] {
-    return [
-      ...aggregateByPeriod(this.#filteredTransactions ?? [], this.#granularity).entries(),
-    ].sort(([a], [b]) => a.localeCompare(b));
+    const debits = (this.#filteredTransactions ?? []).filter((t) => t.amount < 0);
+    return [...aggregateByPeriod(debits, this.#granularity).entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
   }
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {

@@ -147,6 +147,7 @@ export class MerchantDetail extends LitElement {
   get #allMonthlySpend(): [string, number][] {
     const byMonth = new Map<string, number>();
     for (const tx of this._transactions) {
+      if (tx.amount >= 0) continue;
       const month = tx.date.slice(0, 7);
       byMonth.set(month, (byMonth.get(month) ?? 0) + tx.amount);
     }
@@ -154,9 +155,8 @@ export class MerchantDetail extends LitElement {
   }
 
   get #monthlySpend(): [string, number][] {
-    return [...aggregateByPeriod(this.#filteredTransactions, "month").entries()].sort(([a], [b]) =>
-      a.localeCompare(b),
-    );
+    const debits = this.#filteredTransactions.filter((t) => t.amount < 0);
+    return [...aggregateByPeriod(debits, "month").entries()].sort(([a], [b]) => a.localeCompare(b));
   }
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {
