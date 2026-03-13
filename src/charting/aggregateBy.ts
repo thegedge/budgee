@@ -1,6 +1,6 @@
 import type { TransactionRecord } from "../database/types";
 
-export type PeriodGranularity = "day" | "month" | "year";
+export type PeriodGranularity = "day" | "week" | "month" | "year";
 
 export type Granularity = PeriodGranularity | "byTag" | "byMerchant";
 
@@ -35,6 +35,12 @@ function periodKey(date: string, granularity: PeriodGranularity): string {
   switch (granularity) {
     case "day":
       return date.slice(0, 10);
+    case "week": {
+      const d = new Date(date.slice(0, 10) + "T00:00:00");
+      const day = d.getDay();
+      d.setDate(d.getDate() - ((day + 6) % 7));
+      return d.toISOString().slice(0, 10);
+    }
     case "month":
       return date.slice(0, 7);
     case "year":

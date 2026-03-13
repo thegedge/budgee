@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { cardNetworkFromPrefix } from "../../cardNetwork";
-import { aggregateByPeriod } from "../../charting/aggregateBy";
+import { type PeriodGranularity, aggregateByPeriod } from "../../charting/aggregateBy";
 import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
 import { formatAmount } from "../../formatAmount";
@@ -114,7 +114,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
         margin-top: 0;
       }
       chart-wrapper {
-        max-height: 250px;
+        max-height: 350px;
       }
       time-range-picker {
         margin-left: 0.75rem;
@@ -160,16 +160,25 @@ export class AccountDetail extends BusyMixin(LitElement) {
     return this._transactions.filter((t) => t.date >= cutoffStr);
   }
 
-  get #allMonthlyTotals(): [string, number][] {
-    return [...aggregateByPeriod(this._transactions ?? [], "month").entries()].sort(([a], [b]) =>
-      a.localeCompare(b),
+  get #granularity(): PeriodGranularity {
+    if (this._timeRange === null) return "month";
+    const relativeTo = Temporal.Now.plainDateISO();
+    const months = this._timeRange.total({ unit: "months", relativeTo });
+    if (months <= 1) return "day";
+    if (months <= 6) return "week";
+    return "month";
+  }
+
+  get #allPeriodTotals(): [string, number][] {
+    return [...aggregateByPeriod(this._transactions ?? [], this.#granularity).entries()].sort(
+      ([a], [b]) => a.localeCompare(b),
     );
   }
 
-  get #monthlyTotals(): [string, number][] {
-    return [...aggregateByPeriod(this.#filteredTransactions ?? [], "month").entries()].sort(
-      ([a], [b]) => a.localeCompare(b),
-    );
+  get #periodTotals(): [string, number][] {
+    return [
+      ...aggregateByPeriod(this.#filteredTransactions ?? [], this.#granularity).entries(),
+    ].sort(([a], [b]) => a.localeCompare(b));
   }
 
   #onTimeRangeChange(e: TimeRangeChangeEvent) {
@@ -232,12 +241,12 @@ export class AccountDetail extends BusyMixin(LitElement) {
     return html`
       <div class="section-chart">
           <h3>
-            Monthly Activity
+            Activity
             <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
           </h3>
           ${
-            this.#monthlyTotals.length > 0
-              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allMonthlyTotals, displayEntries: this.#monthlyTotals, label: this.#displayName })}></chart-wrapper>`
+            this.#periodTotals.length > 0
+              ? html`<chart-wrapper chartType="bar" .data=${barChartData({ allEntries: this.#allPeriodTotals, displayEntries: this.#periodTotals, label: this.#displayName })} .options=${{ plugins: { legend: { display: false } } }}></chart-wrapper>`
               : html`
                   <p>No transactions in this period.</p>
                 `

@@ -116,6 +116,21 @@ describe("aggregateByPeriod", () => {
     expect(result.size).toBe(5);
   });
 
+  it("should aggregate by week (keys are Monday dates)", () => {
+    const result = aggregateByPeriod(transactions, "week");
+    // 2024-01-05 is a Friday → Monday is 2024-01-01
+    // 2024-01-15 is a Monday → Monday is 2024-01-15
+    // 2024-02-01 is a Thursday → Monday is 2024-01-29
+    // 2024-02-10 is a Saturday → Monday is 2024-02-05
+    // 2025-01-01 is a Wednesday → Monday is 2024-12-30
+    expect(result.get("2024-01-01")).toBe(-50);
+    expect(result.get("2024-01-15")).toBe(-25);
+    expect(result.get("2024-01-29")).toBe(-30);
+    expect(result.get("2024-02-05")).toBe(2500);
+    expect(result.get("2024-12-30")).toBe(-60);
+    expect(result.size).toBe(5);
+  });
+
   it("should aggregate by month", () => {
     const result = aggregateByPeriod(transactions, "month");
     expect(result.get("2024-01")).toBe(-75);
