@@ -196,11 +196,13 @@ export class TransactionList extends BusyMixin(LitElement) {
     const { data, mapping, accountId, importMode } = e.detail;
     this._showImporter = false;
     this._importFile = undefined;
+    this._transactions = null;
 
     showLoadingOverlay("Importing transactions...");
     try {
       await importTransactions(data, mapping, { accountId, importMode });
       await this.#refresh();
+      await this.updateComplete;
     } finally {
       hideLoadingOverlay();
     }
