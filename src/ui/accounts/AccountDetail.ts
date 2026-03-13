@@ -88,21 +88,16 @@ export class AccountDetail extends BusyMixin(LitElement) {
         background: var(--budgee-surface);
         color: var(--budgee-text);
       }
-      .top-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-      .section {
+      .section-chart {
         border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
         background: var(--budgee-surface);
         display: flex;
         flex-direction: column;
+        margin-bottom: 1rem;
       }
-      .section h3 {
+      .section-chart h3 {
         margin-top: 0;
         display: flex;
         align-items: center;
@@ -117,6 +112,9 @@ export class AccountDetail extends BusyMixin(LitElement) {
       }
       .section-transactions h3 {
         margin-top: 0;
+      }
+      chart-wrapper {
+        max-height: 250px;
       }
       time-range-picker {
         margin-left: 0.75rem;
@@ -204,18 +202,14 @@ export class AccountDetail extends BusyMixin(LitElement) {
 
   #renderLoadingState() {
     return html`
-      <div class="top-row">
-        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
-        <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
-      </div>
+      <budgee-skeleton variant="card" rows="3"></budgee-skeleton>
       <budgee-skeleton variant="table" rows="5"></budgee-skeleton>
     `;
   }
 
   #renderTransactionData(filtered: Transaction[]) {
     return html`
-      <div class="top-row">
-        <div class="section">
+      <div class="section-chart">
           <h3>
             Monthly Activity
             <time-range-picker .value=${this._timeRange} @time-range-change=${this.#onTimeRangeChange}></time-range-picker>
@@ -228,40 +222,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 `
           }
         </div>
-
-        <div class="section">
-          <h3>Summary</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${this.#monthlyTotals.map(
-                ([month, total]) => html`
-                <tr>
-                  <td>${month}</td>
-                  <td class=${total < 0 ? "amount-negative" : "amount-positive"}>
-                    ${formatAmount(total)}
-                  </td>
-                </tr>
-              `,
-              )}
-              ${
-                this.#monthlyTotals.length === 0
-                  ? html`
-                      <tr>
-                        <td colspan="2">No data</td>
-                      </tr>
-                    `
-                  : nothing
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       <div class="section-transactions">
         <h3>Transactions</h3>
