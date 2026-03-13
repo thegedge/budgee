@@ -1,9 +1,7 @@
 import { LitElement, type PropertyValues, css, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { unsafeSVG } from "lit/directives/unsafe-svg.js";
-import birdIcon from "lucide-static/icons/bird.svg?raw";
 import { Account } from "../../models/Account";
-import { type ImportMode, importTransactions } from "../../import/importTransactions";
+import type { ImportMode } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
@@ -48,9 +46,6 @@ export class TransactionImporter extends BusyMixin(LitElement) {
   @state()
   private _importMode: ImportMode = "append";
 
-  @state()
-  private _importing = false;
-
   static styles = [
     buttonStyles,
     inputStyles,
@@ -72,36 +67,6 @@ export class TransactionImporter extends BusyMixin(LitElement) {
       }
       button {
         padding: 0.5rem 1rem;
-      }
-      .importing {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        padding: 2rem 0;
-      }
-      .importing .icon {
-        animation: pulse 1.2s ease-in-out infinite;
-      }
-      .importing .icon svg {
-        width: 2.5rem;
-        height: 2.5rem;
-        color: var(--budgee-text-muted);
-      }
-      .importing .message {
-        font-size: 1rem;
-        color: var(--budgee-text-muted);
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 0.7;
-        }
-        50% {
-          transform: scale(1.15);
-          opacity: 1;
-        }
       }
     `,
   ];
@@ -163,22 +128,16 @@ export class TransactionImporter extends BusyMixin(LitElement) {
     const accountId = await this.#resolveAccountId();
     if (needsAccount && accountId === undefined) return;
 
-    this._importing = true;
-    try {
-      const count = await importTransactions(this._result!.data, this._mapping, {
-        accountId,
-        importMode: this._importMode,
-      });
-
-      this.dispatchEvent(new CustomEvent("imported", { detail: { count } }));
-      this._step = "upload";
-      this._result = undefined;
-      this._mapping = {};
-      this._accountName = "";
-      this._importMode = "append";
-    } finally {
-      this._importing = false;
-    }
+    this.dispatchEvent(
+      new CustomEvent("import-start", {
+        detail: {
+          data: this._result.data,
+          mapping: this._mapping,
+          accountId,
+          importMode: this._importMode,
+        },
+      }),
+    );
   }
 
   render() {
@@ -195,15 +154,6 @@ export class TransactionImporter extends BusyMixin(LitElement) {
   }
 
   #renderMapping() {
-    if (this._importing) {
-      return html`
-        <div class="importing">
-          <div class="icon">${unsafeSVG(birdIcon)}</div>
-          <div class="message">Importing transactions...</div>
-        </div>
-      `;
-    }
-
     if (!this._result) return nothing;
 
     const headers = this._result.meta.fields ?? [];

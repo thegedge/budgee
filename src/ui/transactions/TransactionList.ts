@@ -6,7 +6,9 @@ import { formatAmount } from "../../formatAmount";
 import { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
 import { inputStyles } from "../inputStyles";
+import { importTransactions } from "../../import/importTransactions";
 import { ConfirmDialog } from "../shared/ConfirmDialog";
+import { hideLoadingOverlay, showLoadingOverlay } from "../shared/LoadingOverlay";
 import { showToast } from "../shared/toast";
 import { navigate } from "../navigate";
 import "../merchants/MerchantAutocomplete";
@@ -190,12 +192,18 @@ export class TransactionList extends BusyMixin(LitElement) {
     this._showImporter = true;
   };
 
-  async #onImported() {
-    await this.withBusy(async () => {
-      this._showImporter = false;
-      this._importFile = undefined;
+  async #onImportStart(e: CustomEvent) {
+    const { data, mapping, accountId, importMode } = e.detail;
+    this._showImporter = false;
+    this._importFile = undefined;
+
+    showLoadingOverlay("Importing transactions...");
+    try {
+      await importTransactions(data, mapping, { accountId, importMode });
       await this.#refresh();
-    });
+    } finally {
+      hideLoadingOverlay();
+    }
   }
 
   async #refresh() {
@@ -461,7 +469,7 @@ export class TransactionList extends BusyMixin(LitElement) {
             ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
                 this._showImporter = false;
                 this._importFile = undefined;
-              }}><transaction-importer .file=${this._importFile} @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+              }}><transaction-importer .file=${this._importFile} @import-start=${this.#onImportStart}></transaction-importer></budgee-modal>`
             : ""
         }
       `;
@@ -502,7 +510,7 @@ export class TransactionList extends BusyMixin(LitElement) {
         this._showImporter
           ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
               this._showImporter = false;
-            }}><transaction-importer .file=${this._importFile} @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+            }}><transaction-importer .file=${this._importFile} @import-start=${this.#onImportStart}></transaction-importer></budgee-modal>`
           : nothing
       }
       ${this.#renderFilterBar()}
