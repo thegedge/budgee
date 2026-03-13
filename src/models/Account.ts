@@ -11,7 +11,7 @@ export class Account {
     this.id = data.id;
     this.name = data.name;
     this.type = data.type;
-    this.alias = data.alias;
+    this.alias = data.alias || undefined;
   }
 
   static async subscribe(callback: () => void) {

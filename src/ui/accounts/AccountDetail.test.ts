@@ -47,8 +47,8 @@ describe("account-detail", () => {
     document.body.appendChild(el);
 
     await waitFor(() => {
-      const name = el.shadowRoot!.querySelector(".editable")!;
-      expect(name.textContent).toBe("Checking");
+      const accountName = el.shadowRoot!.querySelector(".editable account-name")!;
+      expect(accountName.shadowRoot!.textContent).toContain("Checking");
       const tableEl = el.shadowRoot!.querySelector(".section-transactions paginated-table")!;
       const rows = tableEl.shadowRoot!.querySelectorAll("tbody tr");
       expect(rows).toHaveLength(2);

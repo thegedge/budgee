@@ -7,6 +7,7 @@ import { Merchant } from "../../models/Merchant";
 import { Tag } from "../../models/Tag";
 import { Account } from "../../models/Account";
 import { navigate } from "../navigate";
+import "./AccountName";
 
 interface SearchResult {
   type: "transaction" | "merchant" | "tag" | "account";
@@ -14,6 +15,8 @@ interface SearchResult {
   label: string;
   detail?: string;
   href: string;
+  accountName?: string;
+  accountAlias?: string;
 }
 
 declare global {
@@ -203,9 +206,15 @@ export class GlobalSearch extends LitElement {
     }
 
     for (const a of accounts) {
-      const displayName = a.alias ?? a.name;
-      if (displayName.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)) {
-        results.push({ type: "account", id: a.id, label: displayName, href: `/accounts/${a.id}` });
+      if (a.name.toLowerCase().includes(q) || a.alias?.toLowerCase().includes(q)) {
+        results.push({
+          type: "account",
+          id: a.id,
+          label: a.alias ?? a.name,
+          href: `/accounts/${a.id}`,
+          accountName: a.name,
+          accountAlias: a.alias,
+        });
       }
     }
 
@@ -310,7 +319,7 @@ export class GlobalSearch extends LitElement {
                         this._activeIndex = idx;
                       }}
                     >
-                      <span class="result-label">${r.label}</span>
+                      <span class="result-label">${r.accountName ? html`<account-name .name=${r.accountName} .alias=${r.accountAlias}></account-name>` : r.label}</span>
                       ${r.detail ? html`<span class="result-detail">${r.detail}</span>` : ""}
                     </div>
                   `;

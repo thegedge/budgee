@@ -13,6 +13,7 @@ import type { Tag } from "../../models/Tag";
 import type { Transaction } from "../../models/Transaction";
 import { iconButtonStyles } from "../iconButtonStyles";
 import { ResizableMixin, renderResizeHandles, resizableStyles } from "../shared/ResizableMixin";
+import "../shared/AccountName";
 import "../shared/PaginatedTable";
 import "../tags/TagPills";
 
@@ -104,11 +105,6 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
     return this.merchants.find((m) => m.id === merchantId)?.name ?? "";
   }
 
-  #accountName(accountId: string | undefined): string {
-    if (!accountId) return "";
-    return this.accounts.find((a) => a.id === accountId)?.name ?? "";
-  }
-
   #columnLabel(col: DashboardTableColumn): string {
     const labels: Record<DashboardTableColumn, string> = {
       date: "Date",
@@ -162,8 +158,10 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         return html`<td>${this.#merchantName(t.merchantId)}</td>`;
       case "tags":
         return html`<td><tag-pills .tags=${this.tags} .tagIds=${t.tagIds}></tag-pills></td>`;
-      case "account":
-        return html`<td>${this.#accountName(t.accountId)}</td>`;
+      case "account": {
+        const acct = this.accounts.find((a) => a.id === t.accountId);
+        return html`<td><account-name .name=${acct?.name ?? ""} .alias=${acct?.alias}></account-name></td>`;
+      }
       default:
         return html`
           <td></td>

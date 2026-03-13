@@ -7,6 +7,7 @@ import { Account } from "../../models/Account";
 import { Transaction } from "../../models/Transaction";
 import { navigate } from "../navigate";
 import { DataSubscriptionController } from "../DataSubscriptionController";
+import "../shared/AccountName";
 import "../shared/EmptyState";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
@@ -97,7 +98,8 @@ export class AccountList extends LitElement {
         }}
         .filterFn=${(row: AccountRow, filter: string) => {
           const lower = filter.toLowerCase();
-          if ((row.account.alias ?? row.account.name).toLowerCase().includes(lower)) return true;
+          if (row.account.name.toLowerCase().includes(lower)) return true;
+          if (row.account.alias?.toLowerCase().includes(lower)) return true;
           if (row.account.type?.toLowerCase().includes(lower)) return true;
           if (row.transactionCount != null && String(row.transactionCount).includes(lower))
             return true;
@@ -108,7 +110,7 @@ export class AccountList extends LitElement {
         defaultSortDir="asc"
         .renderRow=${(row: AccountRow) => html`
           <tr class="clickable-row" @click=${() => this.#navigateToAccount(row.account.id)}>
-            <td>${row.account.alias ?? row.account.name}</td>
+            <td><account-name .name=${row.account.name} .alias=${row.account.alias}></account-name></td>
             <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td

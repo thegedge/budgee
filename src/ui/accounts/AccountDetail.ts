@@ -1,6 +1,5 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, css, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { cardNetworkFromPrefix } from "../../cardNetwork";
 import { type PeriodGranularity, aggregateByPeriod } from "../../charting/aggregateBy";
 import { ACCOUNT_TYPES, type AccountType, accountTypeLabel } from "../../database/types";
 import { Account } from "../../models/Account";
@@ -11,6 +10,7 @@ import { DataSubscriptionController } from "../DataSubscriptionController";
 import { barChartData } from "../charts/barChartData";
 import "../charts/ChartWrapper";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
+import "../shared/AccountName";
 import "../shared/PaginatedTable";
 import "../shared/SkeletonLoader";
 import { tableStyles } from "../tableStyles";
@@ -300,9 +300,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 @keydown=${this.#saveName}
                 @blur=${this.#onNameBlur}
               />`
-              : html`<span class="editable" @click=${this.#startEditing}
-                >${this.#displayName}</span
-              >`
+              : html`<span class="editable" @click=${this.#startEditing}><account-name .name=${this._account.name} .alias=${this._account.alias}></account-name></span>`
           }
         </h2>
         <div class="meta">
@@ -314,8 +312,6 @@ export class AccountDetail extends BusyMixin(LitElement) {
                 html`<option value=${t} ?selected=${this._account!.type === t}>${accountTypeLabel(t)}</option>`,
             )}
           </select>
-          ${cardNetworkFromPrefix(this._account.name) ? html` (${cardNetworkFromPrefix(this._account.name)})` : nothing}
-          ${this._account.alias ? html`<span>Originally: ${this._account.name}</span>` : nothing}
         </div>
       </div>
 
