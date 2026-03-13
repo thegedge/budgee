@@ -165,7 +165,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
     const relativeTo = Temporal.Now.plainDateISO();
     const months = this._timeRange.total({ unit: "months", relativeTo });
     if (months <= 1) return "day";
-    if (months <= 6) return "week";
+    if (months <= 12) return "week";
     return "month";
   }
 
