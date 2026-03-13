@@ -13,6 +13,7 @@ interface PreparedCondition {
   operator: RuleCondition["operator"];
   value: string;
   regex?: RegExp;
+  values?: string[];
 }
 
 export interface PreparedTransaction {
@@ -44,6 +45,8 @@ function matchesCondition(value: string | undefined, c: PreparedCondition): bool
       return value === c.value;
     case "regex":
       return c.regex!.test(value);
+    case "oneOf":
+      return c.values!.some((v) => value === v);
   }
 }
 
@@ -69,6 +72,13 @@ export class MerchantRule {
       operator: c.operator,
       value: c.value.toLowerCase(),
       regex: c.operator === "regex" ? new RegExp(c.value, "i") : undefined,
+      values:
+        c.operator === "oneOf"
+          ? c.value
+              .split(",")
+              .map((v) => v.trim().toLowerCase())
+              .filter(Boolean)
+          : undefined,
     }));
   }
 

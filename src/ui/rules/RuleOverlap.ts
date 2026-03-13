@@ -60,7 +60,7 @@ export class RuleOverlap extends LitElement {
   #formatRule(rule: MerchantRule): string {
     const merchant = rule.merchantId ? (this.merchants.get(rule.merchantId) ?? "") : "";
     const conditions = rule.conditions
-      .map((c) => `${c.operator} "${c.value}"`)
+      .map((c) => (c.operator === "oneOf" ? `one of [${c.value}]` : `${c.operator} "${c.value}"`))
       .join(rule.logic === "and" ? " AND " : " OR ");
     return merchant ? `${merchant}: ${conditions}` : conditions;
   }

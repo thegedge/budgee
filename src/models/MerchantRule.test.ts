@@ -167,5 +167,57 @@ describe("MerchantRule", () => {
         expect(accountRule("equals", "acc99").matches(tx("coffee", "acc99", {}))).toBe(true);
       });
     });
+
+    describe("oneOf operator", () => {
+      const accounts: Record<string, AccountRecord> = {
+        acc1: { id: "acc1", name: "My Chequing" },
+        acc2: { id: "acc2", name: "Savings Account" },
+        acc3: { id: "acc3", name: "Credit Card" },
+      };
+
+      const oneOfRule = (field: "description" | "account", value: string) =>
+        new MerchantRule({
+          id: "r1",
+          logic: "and",
+          conditions: [{ field, operator: "oneOf", value }],
+          tagIds: [],
+        });
+
+      it("should match description against a list", () => {
+        const rule = oneOfRule("description", "coffee shop, grocery store");
+        expect(rule.matches(tx("coffee shop"))).toBe(true);
+        expect(rule.matches(tx("grocery store"))).toBe(true);
+        expect(rule.matches(tx("gas station"))).toBe(false);
+      });
+
+      it("should match account name against a list", () => {
+        const rule = oneOfRule("account", "My Chequing, Credit Card");
+        expect(rule.matches(tx("coffee", "acc1", accounts))).toBe(true);
+        expect(rule.matches(tx("coffee", "acc3", accounts))).toBe(true);
+        expect(rule.matches(tx("coffee", "acc2", accounts))).toBe(false);
+      });
+
+      it("should be case-insensitive", () => {
+        const rule = oneOfRule("description", "COFFEE SHOP, GROCERY");
+        expect(rule.matches(tx("coffee shop"))).toBe(true);
+      });
+
+      it("should trim whitespace around values", () => {
+        const rule = oneOfRule("description", "  coffee shop , grocery store  ");
+        expect(rule.matches(tx("coffee shop"))).toBe(true);
+        expect(rule.matches(tx("grocery store"))).toBe(true);
+      });
+
+      it("should ignore empty entries", () => {
+        const rule = oneOfRule("description", "coffee shop,,, grocery store");
+        expect(rule.matches(tx("coffee shop"))).toBe(true);
+        expect(rule.matches(tx(""))).toBe(false);
+      });
+
+      it("should not match when value is not in the list", () => {
+        const rule = oneOfRule("description", "coffee shop, grocery store");
+        expect(rule.matches(tx("coffee"))).toBe(false);
+      });
+    });
   });
 });
