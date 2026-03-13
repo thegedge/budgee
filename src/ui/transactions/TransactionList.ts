@@ -58,6 +58,9 @@ export class TransactionList extends BusyMixin(LitElement) {
   @state()
   private _showImporter = false;
 
+  @state()
+  private _importFile?: File;
+
   static styles = [
     buttonStyles,
     busyStyles,
@@ -183,18 +186,14 @@ export class TransactionList extends BusyMixin(LitElement) {
 
   #onCsvDrop = (e: Event) => {
     const file = (e as CustomEvent).detail.file as File;
+    this._importFile = file;
     this._showImporter = true;
-    this.updateComplete.then(() => {
-      const importer = this.shadowRoot?.querySelector("transaction-importer");
-      if (importer) {
-        (importer as import("./TransactionImporter").TransactionImporter).loadFile(file);
-      }
-    });
   };
 
   async #onImported() {
     await this.withBusy(async () => {
       this._showImporter = false;
+      this._importFile = undefined;
       await this.#refresh();
     });
   }
@@ -461,7 +460,8 @@ export class TransactionList extends BusyMixin(LitElement) {
           this._showImporter
             ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
                 this._showImporter = false;
-              }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+                this._importFile = undefined;
+              }}><transaction-importer .file=${this._importFile} @imported=${this.#onImported}></transaction-importer></budgee-modal>`
             : ""
         }
       `;
@@ -502,7 +502,7 @@ export class TransactionList extends BusyMixin(LitElement) {
         this._showImporter
           ? html`<budgee-modal heading="Import Transactions" @modal-close=${() => {
               this._showImporter = false;
-            }}><transaction-importer @imported=${this.#onImported}></transaction-importer></budgee-modal>`
+            }}><transaction-importer .file=${this._importFile} @imported=${this.#onImported}></transaction-importer></budgee-modal>`
           : nothing
       }
       ${this.#renderFilterBar()}

@@ -1,5 +1,5 @@
-import { LitElement, css, html, nothing } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { LitElement, type PropertyValues, css, html, nothing } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
 import { Account } from "../../models/Account";
 import { type ImportMode, importTransactions } from "../../import/importTransactions";
 import { type ColumnMapping, type CsvParseResult, parseCsv } from "../../import/parseCsv";
@@ -25,6 +25,10 @@ const MAPPING_FIELDS: { key: keyof ColumnMapping; label: string }[] = [
 
 @customElement("transaction-importer")
 export class TransactionImporter extends BusyMixin(LitElement) {
+  /** When set, skips the upload step and loads this file directly. */
+  @property({ attribute: false })
+  file?: File;
+
   @state()
   private _step: "upload" | "mapping" = "upload";
 
@@ -68,7 +72,14 @@ export class TransactionImporter extends BusyMixin(LitElement) {
     `,
   ];
 
-  async loadFile(file: File) {
+  willUpdate(changed: PropertyValues) {
+    if (changed.has("file") && this.file) {
+      this._step = "mapping";
+      this.#loadFile(this.file);
+    }
+  }
+
+  async #loadFile(file: File) {
     await this.withBusy(async () => {
       this._accounts = await Account.all();
       this._result = await parseCsv(file);
@@ -82,7 +93,7 @@ export class TransactionImporter extends BusyMixin(LitElement) {
     if (!input.files || input.files.length === 0) {
       return;
     }
-    await this.loadFile(input.files[0]);
+    await this.#loadFile(input.files[0]);
   }
 
   #onAccountNameInput(e: Event) {
