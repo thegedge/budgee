@@ -12,6 +12,7 @@ import type { Merchant } from "../../models/Merchant";
 import type { Tag } from "../../models/Tag";
 import type { Transaction } from "../../models/Transaction";
 import { iconButtonStyles } from "../iconButtonStyles";
+import { navigate } from "../navigate";
 import { ResizableMixin, renderResizeHandles, resizableStyles } from "../shared/ResizableMixin";
 import "../shared/AccountName";
 import "../shared/PaginatedTable";
@@ -170,7 +171,11 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         return html`<td><tag-pills .tags=${this.tags} .tagIds=${t.tagIds}></tag-pills></td>`;
       case "account": {
         const acct = this.accounts.find((a) => a.id === t.accountId);
-        return html`<td><account-name .name=${acct?.name ?? ""} .alias=${acct?.alias}></account-name></td>`;
+        return acct
+          ? html`<td><a class="entity-link" @click=${() => navigate(`/accounts/${acct.id}`)}><account-name .name=${acct.name} .alias=${acct.alias}></account-name></a></td>`
+          : html`
+              <td></td>
+            `;
       }
       default:
         return html`

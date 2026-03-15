@@ -13,6 +13,8 @@ import { Transaction } from "../../models/Transaction";
 import { buttonStyles } from "../buttonStyles";
 import { showToast } from "../shared/toast";
 import { iconButtonStyles } from "../iconButtonStyles";
+import { navigate } from "../navigate";
+import "../shared/AccountName";
 import { BusyMixin, busyStyles } from "../shared/BusyMixin";
 import { DataSubscriptionController } from "../DataSubscriptionController";
 import "../shared/Badge";
@@ -420,9 +422,9 @@ export class RuleManager extends BusyMixin(LitElement) {
     `;
   }
 
-  #accountName(accountId?: string): string {
-    if (!accountId) return "";
-    return this._accounts.find((a) => a.id === accountId)?.name ?? "";
+  #account(accountId?: string) {
+    if (!accountId) return undefined;
+    return this._accounts.find((a) => a.id === accountId);
   }
 
   #renderUnmerchanted() {
@@ -449,7 +451,15 @@ export class RuleManager extends BusyMixin(LitElement) {
                 .renderRow=${(tx: Transaction) => html`
                   <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
                     <td>${tx.date}</td>
-                    <td>${this.#accountName(tx.accountId)}</td>
+                    <td>${(() => {
+                      const acct = this.#account(tx.accountId);
+                      return acct
+                        ? html`<a class="entity-link" @click=${(e: Event) => {
+                            e.stopPropagation();
+                            navigate(`/accounts/${acct.id}`);
+                          }}><account-name .name=${acct.name} .alias=${acct.alias}></account-name></a>`
+                        : "";
+                    })()}</td>
                     <td class="col-grow">${tx.description}</td>
                     <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
                   </tr>

@@ -68,11 +68,6 @@ export class TransactionList extends BusyMixin(LitElement) {
     busyStyles,
     inputStyles,
     css`
-      .merchant-link {
-        color: var(--budgee-primary);
-        cursor: pointer;
-        text-decoration: underline;
-      }
       .col-amount {
         width: 8rem;
       }
@@ -562,7 +557,7 @@ export class TransactionList extends BusyMixin(LitElement) {
             <td class="col-date">${this.#humanizeDate(t.date)}</td>
             <td>${
               t.merchantId && this._merchants.has(t.merchantId)
-                ? html`<a class="merchant-link" @click=${(e: Event) => {
+                ? html`<a class="entity-link" @click=${(e: Event) => {
                     e.stopPropagation();
                     this.#navigateToMerchant(t.merchantId!);
                   }}>${this._merchants.get(t.merchantId!)}</a>`

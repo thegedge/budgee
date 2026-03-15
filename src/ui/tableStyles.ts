@@ -36,6 +36,11 @@ export const tableStyles = css`
   .clickable-row {
     cursor: pointer;
   }
+  .entity-link {
+    color: var(--budgee-primary);
+    cursor: pointer;
+    text-decoration: underline;
+  }
   .col-grow {
     width: auto;
     white-space: normal;
