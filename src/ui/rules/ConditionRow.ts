@@ -68,6 +68,7 @@ export class ConditionRow extends LitElement {
         border-radius: 4px;
         background: var(--budgee-surface);
         cursor: pointer;
+        font-family: inherit;
         font-size: inherit;
         color: inherit;
         width: 100%;
@@ -154,6 +155,16 @@ export class ConditionRow extends LitElement {
   @state()
   private _multiSelectOpen = false;
 
+  override updated(changed: Map<PropertyKey, unknown>) {
+    if (changed.has("_multiSelectOpen")) {
+      if (this._multiSelectOpen) {
+        document.addEventListener("click", this.#onDocumentClick);
+      } else {
+        document.removeEventListener("click", this.#onDocumentClick);
+      }
+    }
+  }
+
   get #useAccountAutocomplete(): boolean {
     return this.condition.field === "account" && this.condition.operator === "equals";
   }
@@ -190,10 +201,15 @@ export class ConditionRow extends LitElement {
     );
   }
 
-  #onMultiSelectBlur() {
-    setTimeout(() => {
+  #onDocumentClick = (e: MouseEvent) => {
+    if (!e.composedPath().includes(this)) {
       this._multiSelectOpen = false;
-    }, 150);
+    }
+  };
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("click", this.#onDocumentClick);
   }
 
   #renderAccountMultiSelect() {
@@ -204,7 +220,7 @@ export class ConditionRow extends LitElement {
         : `${selected.size} account${selected.size === 1 ? "" : "s"}`;
 
     return html`
-      <div class="multi-select" tabindex="0" @blur=${this.#onMultiSelectBlur}>
+      <div class="multi-select">
         <button
           type="button"
           class="multi-select-toggle"
