@@ -497,7 +497,7 @@ export class TransactionList extends BusyMixin(LitElement) {
       },
       { label: "Date", sortKey: "date", class: "col-date" },
       { label: "Merchant", sortKey: "merchant" },
-      { label: "Description", sortKey: "description" },
+      { label: "Description", sortKey: "description", class: "col-grow" },
       { label: "Amount", sortKey: "amount", class: "col-amount" },
       { label: "Tags", sortKey: "tags", class: "col-tags" },
     ];
@@ -568,7 +568,7 @@ export class TransactionList extends BusyMixin(LitElement) {
                   }}>${this._merchants.get(t.merchantId!)}</a>`
                 : ""
             }</td>
-            <td>${t.description}</td>
+            <td class="col-grow">${t.description}</td>
             <td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">
               ${formatAmount(t.amount)}
             </td>

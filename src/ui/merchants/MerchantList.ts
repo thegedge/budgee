@@ -86,7 +86,7 @@ export class MerchantList extends LitElement {
         .defaultPageSize=${25}
         storageKey="merchants"
         .columns=${[
-          { label: "Name", sortKey: "name" },
+          { label: "Name", sortKey: "name", class: "col-grow" },
           { label: "Transactions", sortKey: "count" },
           { label: "Total Spend", sortKey: "spend", class: "col-amount" },
         ]}
@@ -108,7 +108,7 @@ export class MerchantList extends LitElement {
         defaultSortDir="asc"
         .renderRow=${(row: MerchantRow) => html`
           <tr class="clickable-row" @click=${() => this.#navigateToMerchant(row.merchant.id)}>
-            <td>${row.merchant.name}</td>
+            <td class="col-grow">${row.merchant.name}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td class="col-amount ${row.totalSpend != null && row.totalSpend < 0 ? "amount-negative" : "amount-positive"}">
               ${row.totalSpend != null ? formatAmount(row.totalSpend) : "…"}

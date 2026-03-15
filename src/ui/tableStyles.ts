@@ -10,6 +10,8 @@ export const tableStyles = css`
     border: 1px solid var(--budgee-border);
     padding: 8px;
     text-align: left;
+    white-space: nowrap;
+    width: 0;
   }
   th {
     background-color: var(--budgee-primary);
@@ -33,6 +35,10 @@ export const tableStyles = css`
   }
   .clickable-row {
     cursor: pointer;
+  }
+  .col-grow {
+    width: auto;
+    white-space: normal;
   }
   .col-amount {
     text-align: right;

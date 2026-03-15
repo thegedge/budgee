@@ -289,7 +289,7 @@ export class RuleManager extends BusyMixin(LitElement) {
   #renderRuleRow(rule: MerchantRule) {
     return html`
       <tr>
-        <td class="condition-summary">
+        <td class="condition-summary col-grow">
           ${this.#formatConditions(rule)}
           ${this._unmatchedRuleIds.has(rule.id) ? html`<ui-badge variant="warning" title="This rule matches no transactions">${unsafeSVG(alertTriangleIcon)} No matches</ui-badge>` : nothing}
         </td>
@@ -309,7 +309,7 @@ export class RuleManager extends BusyMixin(LitElement) {
     return html`
       <paginated-table
         .items=${rules}
-        .columns=${["Conditions", "Merchant", "Tags", {}]}
+        .columns=${[{ label: "Conditions", class: "col-grow" }, "Merchant", "Tags", {}]}
         .renderRow=${(rule: MerchantRule) => this.#renderRuleRow(rule)}
       ></paginated-table>
     `;
@@ -328,7 +328,7 @@ export class RuleManager extends BusyMixin(LitElement) {
             ? html`<paginated-table
               ?loading=${true}
               .columns=${[
-                { label: "Conditions", sortKey: "conditions" },
+                { label: "Conditions", sortKey: "conditions", class: "col-grow" },
                 { label: "Merchant", sortKey: "merchant" },
                 { label: "Tags", sortKey: "tags" },
                 {},
@@ -348,7 +348,7 @@ export class RuleManager extends BusyMixin(LitElement) {
                 .defaultPageSize=${10}
                 storageKey="rules"
                 .columns=${[
-                  { label: "Conditions", sortKey: "conditions" },
+                  { label: "Conditions", sortKey: "conditions", class: "col-grow" },
                   { label: "Merchant", sortKey: "merchant" },
                   { label: "Tags", sortKey: "tags" },
                   {},
@@ -397,7 +397,7 @@ export class RuleManager extends BusyMixin(LitElement) {
           <h3>Unmatched Rules</h3>
           <paginated-table
             ?loading=${true}
-            .columns=${["Conditions", "Merchant", "Tags", {}]}
+            .columns=${[{ label: "Conditions", class: "col-grow" }, "Merchant", "Tags", {}]}
           ></paginated-table>
         </div>
       `;
@@ -433,7 +433,7 @@ export class RuleManager extends BusyMixin(LitElement) {
           this.#loading
             ? html`<paginated-table
               ?loading=${true}
-              .columns=${["Date", "Account", "Description", "Amount"]}
+              .columns=${["Date", "Account", { label: "Description", class: "col-grow" }, "Amount"]}
             ></paginated-table>`
             : this._unmerchanted.length === 0
               ? html`
@@ -443,14 +443,14 @@ export class RuleManager extends BusyMixin(LitElement) {
                 .items=${this._unmerchanted}
                 .defaultPageSize=${20}
                 storageKey="unmerchanted"
-                .columns=${["Date", "Account", "Description", "Amount"]}
+                .columns=${["Date", "Account", { label: "Description", class: "col-grow" }, "Amount"]}
                 .filterFn=${(tx: Transaction, filter: string) =>
                   tx.description.toLowerCase().includes(filter.toLowerCase())}
                 .renderRow=${(tx: Transaction) => html`
                   <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
                     <td>${tx.date}</td>
                     <td>${this.#accountName(tx.accountId)}</td>
-                    <td>${tx.description}</td>
+                    <td class="col-grow">${tx.description}</td>
                     <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
                   </tr>
                 `}

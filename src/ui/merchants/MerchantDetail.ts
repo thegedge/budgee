@@ -249,11 +249,11 @@ export class MerchantDetail extends LitElement {
           .items=${filtered}
           .defaultPageSize=${25}
           storageKey="merchant-transactions"
-          .columns=${["Date", "Description", "Amount"]}
+          .columns=${["Date", { label: "Description", class: "col-grow" }, "Amount"]}
           .renderRow=${(t: Transaction) => html`
             <tr @click=${() => this.#navigateToTransaction(t.id)}>
               <td>${t.date}</td>
-              <td>${t.description}</td>
+              <td class="col-grow">${t.description}</td>
               <td class=${t.amount < 0 ? "amount-negative" : "amount-positive"}>
                 ${formatAmount(t.amount)}
               </td>

@@ -82,7 +82,7 @@ export class AccountList extends LitElement {
         .defaultPageSize=${25}
         storageKey="accounts"
         .columns=${[
-          { label: "Name", sortKey: "name" },
+          { label: "Name", sortKey: "name", class: "col-grow" },
           { label: "Type", sortKey: "type" },
           { label: "Transactions", sortKey: "count" },
           { label: "Balance", sortKey: "balance", class: "col-amount" },
@@ -110,7 +110,7 @@ export class AccountList extends LitElement {
         defaultSortDir="asc"
         .renderRow=${(row: AccountRow) => html`
           <tr class="clickable-row" @click=${() => this.#navigateToAccount(row.account.id)}>
-            <td><account-name .name=${row.account.name} .alias=${row.account.alias}></account-name></td>
+            <td class="col-grow"><account-name .name=${row.account.name} .alias=${row.account.alias}></account-name></td>
             <td>${row.account.type ? accountTypeLabel(row.account.type) : ""}</td>
             <td>${row.transactionCount ?? "…"}</td>
             <td

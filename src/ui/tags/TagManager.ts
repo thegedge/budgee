@@ -180,7 +180,7 @@ export class TagManager extends BusyMixin(LitElement) {
             .columns=${[
               { label: "Icon", class: "col-icon" },
               { label: "Color", class: "col-color" },
-              { label: "Name", sortKey: "name" },
+              { label: "Name", sortKey: "name", class: "col-grow" },
               { class: "col-remove" },
             ]}
             .comparators=${{ name: (a: Tag, b: Tag) => a.name.localeCompare(b.name) }}
@@ -205,7 +205,7 @@ export class TagManager extends BusyMixin(LitElement) {
                       this.#saveTagColor(tag, (e.target as HTMLInputElement).value)}
                   />
                 </td>
-                <td>
+                <td class="col-grow">
                   ${tag.name}
                 </td>
                 <td class="col-remove">

@@ -94,7 +94,7 @@ export class RuleOverlap extends LitElement {
             <th>Rule A</th>
             <th>Rule B</th>
             <th>Overlapping Transactions</th>
-            <th>Examples</th>
+            <th class="col-grow">Examples</th>
           </tr>
         </thead>
         <tbody>
@@ -104,7 +104,7 @@ export class RuleOverlap extends LitElement {
               <td class="condition-summary">${this.#formatRule(o.ruleA)}</td>
               <td class="condition-summary">${this.#formatRule(o.ruleB)}</td>
               <td>${o.count}</td>
-              <td class="samples">${o.samples.values().take(3).toArray().join("\n\n")}</td>
+              <td class="samples col-grow">${o.samples.values().take(3).toArray().join("\n\n")}</td>
             </tr>
           `,
           )}

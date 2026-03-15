@@ -124,6 +124,16 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
     return col === "amount" || col === "totalAmount";
   }
 
+  #isGrowColumn(col: DashboardTableColumn): boolean {
+    return col === "description" || col === "name";
+  }
+
+  #columnClass(col: DashboardTableColumn): string {
+    if (this.#isAmountColumn(col)) return "col-amount";
+    if (this.#isGrowColumn(col)) return "col-grow";
+    return "";
+  }
+
   #renderTransactionsTable() {
     const sorted = [...this.transactions].sort((a, b) => b.date.localeCompare(a.date));
     const columns = this.config.columns;
@@ -135,7 +145,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         storageKey="dashboard-table-${this.config.id}"
         .columns=${columns.map((col) => ({
           label: this.#columnLabel(col),
-          class: this.#isAmountColumn(col) ? "col-amount" : "",
+          class: this.#columnClass(col),
         }))}
         .renderRow=${(t: Transaction) => html`
           <tr>
@@ -153,7 +163,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
       case "amount":
         return html`<td class="col-amount ${t.amount < 0 ? "amount-negative" : "amount-positive"}">${formatAmount(t.amount)}</td>`;
       case "description":
-        return html`<td>${t.description}</td>`;
+        return html`<td class="col-grow">${t.description}</td>`;
       case "merchant":
         return html`<td>${this.#merchantName(t.merchantId)}</td>`;
       case "tags":
@@ -188,7 +198,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         storageKey="dashboard-table-${this.config.id}"
         .columns=${columns.map((col) => ({
           label: this.#columnLabel(col),
-          class: this.#isAmountColumn(col) ? "col-amount" : "",
+          class: this.#columnClass(col),
         }))}
         .renderRow=${(row: MerchantRow) => html`
           <tr>
@@ -202,7 +212,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
   #renderMerchantCell(row: MerchantRow, col: DashboardTableColumn) {
     switch (col) {
       case "name":
-        return html`<td>${row.merchant.name}</td>`;
+        return html`<td class="col-grow">${row.merchant.name}</td>`;
       case "transactionCount":
         return html`<td>${row.transactionCount}</td>`;
       case "totalAmount":
@@ -233,7 +243,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
         storageKey="dashboard-table-${this.config.id}"
         .columns=${columns.map((col) => ({
           label: this.#columnLabel(col),
-          class: this.#isAmountColumn(col) ? "col-amount" : "",
+          class: this.#columnClass(col),
         }))}
         .renderRow=${(row: TagRow) => html`
           <tr>
@@ -247,7 +257,7 @@ export class DashboardTableCard extends ResizableMixin(LitElement) {
   #renderTagCell(row: TagRow, col: DashboardTableColumn) {
     switch (col) {
       case "name":
-        return html`<td>${row.tag.name}</td>`;
+        return html`<td class="col-grow">${row.tag.name}</td>`;
       case "transactionCount":
         return html`<td>${row.transactionCount}</td>`;
       case "totalAmount":
