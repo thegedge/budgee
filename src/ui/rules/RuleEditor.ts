@@ -428,7 +428,7 @@ export class RuleEditor extends LitElement {
         </div>
       </div>
       ${hasExistingRules ? this.#renderExistingRules() : this.#renderExistingRulesPlaceholder()}
-      ${this._previewCount !== null ? html`<p class="preview">${this._previewCount} transaction${this._previewCount === 1 ? "" : "s"} would match</p>` : ""}
+      <p class="preview" style=${this._previewCount === null ? "visibility: hidden" : ""}>${this._previewCount ?? 0} transaction${this._previewCount === 1 ? "" : "s"} would match</p>
       <div class="save-row">
         <button class="secondary" ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(false)}>${this.editingRule ? "Save" : "Create"}</button>
         <button ?disabled=${!this.#hasAction()} @click=${() => this.#onSave(true)}>${this.editingRule ? "Save" : "Create"} and apply</button>
