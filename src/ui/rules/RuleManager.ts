@@ -80,8 +80,8 @@ export class RuleManager extends BusyMixin(LitElement) {
         border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
-        margin-bottom: 1rem;
         background: var(--budgee-surface);
+        box-sizing: border-box;
       }
       .section h3 {
         margin-top: 0;
@@ -323,7 +323,7 @@ export class RuleManager extends BusyMixin(LitElement) {
 
   #renderExistingRules() {
     return html`
-      <div class="section">
+      <div class="section full-width">
         <h3>Existing Rules</h3>
         ${
           this.#loading

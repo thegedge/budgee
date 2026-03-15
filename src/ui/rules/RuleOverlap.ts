@@ -38,8 +38,9 @@ export class RuleOverlap extends LitElement {
         border: 1px solid var(--budgee-border);
         padding: 1rem;
         border-radius: 4px;
-        margin-bottom: 1rem;
         background: var(--budgee-surface);
+        box-sizing: border-box;
+        height: 100%;
       }
       .section h3 {
         margin-top: 0;
