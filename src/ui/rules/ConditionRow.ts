@@ -70,8 +70,8 @@ export class ConditionRow extends LitElement {
         background: var(--budgee-surface);
         cursor: pointer;
         font-family: inherit;
-        font-size: inherit;
         color: inherit;
+        -webkit-font-smoothing: antialiased;
         width: 100%;
         box-sizing: border-box;
       }
