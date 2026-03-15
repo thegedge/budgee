@@ -56,8 +56,6 @@ export class ConditionRow extends LitElement {
       }
       .multi-select {
         position: relative;
-        display: inline-block;
-        max-width: 220px;
         font-family: -apple-system, system-ui, sans-serif;
       }
       .multi-select-toggle {
@@ -70,7 +68,7 @@ export class ConditionRow extends LitElement {
         background: var(--budgee-surface);
         cursor: pointer;
         font-family: inherit;
-        color: inherit;
+        color: var(--budgee-text);
         -webkit-font-smoothing: antialiased;
         width: 100%;
         box-sizing: border-box;
