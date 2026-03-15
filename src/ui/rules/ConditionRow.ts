@@ -51,8 +51,13 @@ export class ConditionRow extends LitElement {
       input {
         padding: 4px 8px;
       }
-      autocomplete-input {
-        max-width: 220px;
+      select,
+      input,
+      autocomplete-input,
+      .multi-select {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
       }
       .multi-select {
         position: relative;
