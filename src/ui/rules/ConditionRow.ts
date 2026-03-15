@@ -58,6 +58,7 @@ export class ConditionRow extends LitElement {
         position: relative;
         display: inline-block;
         max-width: 220px;
+        font-family: -apple-system, system-ui, sans-serif;
       }
       .multi-select-toggle {
         display: flex;
