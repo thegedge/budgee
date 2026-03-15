@@ -38,6 +38,7 @@ export class Router implements ReactiveController {
 
   #onNavigate = (event: NavigateEvent) => {
     if (!event.canIntercept || event.hashChange || event.downloadRequest || event.formData) return;
+    if (event.navigationType === "reload") return;
     const pathname = new URL(event.destination.url).pathname;
     event.intercept({
       handler: async () => {

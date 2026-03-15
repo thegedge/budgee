@@ -12,6 +12,7 @@ interface NavigateEvent extends Event {
   readonly downloadRequest: string | null;
   readonly formData: FormData | null;
   readonly destination: NavigationDestination;
+  readonly navigationType: "push" | "replace" | "reload" | "traverse";
   readonly signal: AbortSignal;
   intercept(options?: NavigationInterceptOptions): void;
 }
