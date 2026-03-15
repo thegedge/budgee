@@ -103,6 +103,9 @@ export class RuleManager extends BusyMixin(LitElement) {
         .sections-grid {
           grid-template-columns: 1fr 1fr;
         }
+        .full-width {
+          grid-column: 1 / -1;
+        }
       }
     `,
   ];
@@ -417,15 +420,20 @@ export class RuleManager extends BusyMixin(LitElement) {
     `;
   }
 
+  #accountName(accountId?: string): string {
+    if (!accountId) return "";
+    return this._accounts.find((a) => a.id === accountId)?.name ?? "";
+  }
+
   #renderUnmerchanted() {
     return html`
-      <div class="section">
+      <div class="section full-width">
         <h3>Unmerchanted Transactions</h3>
         ${
           this.#loading
             ? html`<paginated-table
               ?loading=${true}
-              .columns=${["Date", "Description", "Amount"]}
+              .columns=${["Date", "Account", "Description", "Amount"]}
             ></paginated-table>`
             : this._unmerchanted.length === 0
               ? html`
@@ -435,12 +443,13 @@ export class RuleManager extends BusyMixin(LitElement) {
                 .items=${this._unmerchanted}
                 .defaultPageSize=${20}
                 storageKey="unmerchanted"
-                .columns=${["Date", "Description", "Amount"]}
+                .columns=${["Date", "Account", "Description", "Amount"]}
                 .filterFn=${(tx: Transaction, filter: string) =>
                   tx.description.toLowerCase().includes(filter.toLowerCase())}
                 .renderRow=${(tx: Transaction) => html`
                   <tr class="clickable-row" @click=${() => this.#selectTransaction(tx)}>
                     <td>${tx.date}</td>
+                    <td>${this.#accountName(tx.accountId)}</td>
                     <td>${tx.description}</td>
                     <td class=${tx.amount < 0 ? "amount-negative" : "amount-positive"}>${formatAmount(tx.amount)}</td>
                   </tr>
