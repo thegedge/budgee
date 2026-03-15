@@ -95,6 +95,7 @@ export class AccountDetail extends BusyMixin(LitElement) {
         background: var(--budgee-surface);
         display: flex;
         flex-direction: column;
+        min-width: 0;
         margin-bottom: 1rem;
       }
       .section-chart h3 {
