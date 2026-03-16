@@ -199,6 +199,7 @@ export class RuleEditor extends LitElement {
       this._selectedTagIds = [...this.editingRule.tagIds];
       this._merchantName = this.editingMerchantName;
       this._pendingTagNames = [];
+      this.#computePreview();
     } else if (changed.has("prefillDescription") && this.prefillDescription) {
       this._conditions = [
         { field: "description", operator: "equals", value: this.prefillDescription },
@@ -207,6 +208,7 @@ export class RuleEditor extends LitElement {
       this._merchantName = extractMerchant(this.prefillDescription);
       this._prefillPristine = true;
       this._pendingTagNames = [];
+      this.#computePreview();
     }
   }
 
