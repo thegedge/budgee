@@ -1,7 +1,18 @@
-import { BehaviorSubject, type Observable, combineLatest, map, merge, of, switchMap } from "rxjs";
+import {
+  BehaviorSubject,
+  type Observable,
+  combineLatest,
+  filter,
+  firstValueFrom,
+  map,
+  merge,
+  of,
+  switchMap,
+} from "rxjs";
 import type { RxCollection } from "rxdb/plugins/core";
-import type { RxReplicationState } from "rxdb/plugins/replication";
-import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
+import { replicateRxCollection, type RxReplicationState } from "rxdb/plugins/replication";
+import { createWebSocketClient, type WebsocketClient } from "rxdb/plugins/replication-websocket";
+import { randomToken } from "rxdb/plugins/utils";
 import type { DatabaseCollections } from "./Db";
 import { clearAllCollections, db } from "./Db";
 
@@ -101,23 +112,93 @@ export async function startReplication(
     localStorage.setItem(GENERATION_KEY, String(serverGeneration));
   }
 
-  const replications = await Promise.all(
+  const batchSize = 1000;
+  const connections: {
+    replication: RxReplicationState<unknown, unknown>;
+    client: WebsocketClient;
+  }[] = await Promise.all(
     wsTopics.map(async (wsTopic, i) => {
       const collection: RxCollection = rxdb[SYNCABLE_COLLECTIONS[i]];
-      return replicateWithWebsocketServer({
+      const url = `${wsBaseUrl}/${wsTopic}?gen=${serverGeneration}`;
+      const client = await createWebSocketClient({
+        collection,
+        url,
+        replicationIdentifier: `${wsTopic}:gen${serverGeneration}`,
+      });
+      const requestFlag = randomToken(10);
+      let requestCounter = 0;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const messages$ = client.message$ as Observable<any>;
+
+      function sendRequest(method: string, params: unknown[]): Promise<unknown> {
+        const id = `${collection.database.token}|${requestFlag}|${requestCounter++}`;
+        client.socket.send(JSON.stringify({ id, collection: collection.name, method, params }));
+        return firstValueFrom(
+          messages$.pipe(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            filter((msg: any) => msg.id === id),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            map((msg: any) => msg.result),
+          ),
+        );
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const replication: RxReplicationState<any, any> = replicateRxCollection({
         collection,
         replicationIdentifier: `${wsTopic}:gen${serverGeneration}`,
-        url: `${wsBaseUrl}/${wsTopic}?gen=${serverGeneration}`,
-        batchSize: 1000,
         live: true,
+        pull: {
+          batchSize,
+          stream$: messages$.pipe(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            filter((msg: any) => msg.id === "stream" && msg.collection === collection.name),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            map((msg: any) => msg.result),
+          ),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          handler: (checkpoint, pullBatchSize) =>
+            sendRequest("masterChangesSince", [checkpoint, pullBatchSize]) as any,
+        },
+        push: {
+          batchSize,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          handler: (docs) => sendRequest("masterWrite", [docs]) as any,
+        },
       });
+
+      client.error$.subscribe((err) => replication.subjects.error.next(err));
+      client.connected$.subscribe((isConnected) => {
+        if (isConnected) {
+          replication.reSync();
+          client.socket.send(
+            JSON.stringify({
+              id: "stream",
+              collection: collection.name,
+              method: "masterChangeStream$",
+              params: [],
+            }),
+          );
+        }
+      });
+
+      return { replication, client };
     }),
   );
 
-  replicationStatus$.next({ state: "connected", replications });
+  replicationStatus$.next({
+    state: "connected",
+    replications: connections.map((c) => c.replication),
+  });
 
   return async () => {
     replicationStatus$.next({ state: "not-configured" });
-    await Promise.all(replications.map((r) => r.cancel().catch(console.error)));
+    await Promise.all(
+      connections.map(async ({ replication, client }) => {
+        await replication.cancel().catch(console.error);
+        client.socket.close();
+      }),
+    );
   };
 }
