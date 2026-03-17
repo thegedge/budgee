@@ -331,9 +331,11 @@ export class Application extends LitElement {
     if (!isDemoMode) {
       this.#connectReplication();
       this.#syncSub = syncStatus$.subscribe((status) => {
-        if (status === "error") {
-          clearTimeout(this.#reconnectTimer);
-          this.#reconnectTimer = setTimeout(() => this.#connectReplication(), 5000);
+        if (status === "error" && !this.#reconnectTimer) {
+          this.#reconnectTimer = setTimeout(() => {
+            this.#reconnectTimer = undefined;
+            this.#connectReplication();
+          }, 5000);
         }
       });
     }
