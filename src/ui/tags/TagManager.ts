@@ -79,11 +79,9 @@ export class TagManager extends BusyMixin(LitElement) {
 
   constructor() {
     super();
-    new DataSubscriptionController(this, [Tag.subscribe], () => this.#refreshTags());
-  }
-
-  async #refreshTags() {
-    this._tags = await Tag.all();
+    new DataSubscriptionController(this, [Tag.subscribe], async () => {
+      this._tags = await Tag.all();
+    });
   }
 
   async #addTag() {
