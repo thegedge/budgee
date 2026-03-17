@@ -3,7 +3,7 @@ import type { RxCollection } from "rxdb/plugins/core";
 import type { RxReplicationState } from "rxdb/plugins/replication";
 import { replicateWithWebsocketServer } from "rxdb/plugins/replication-websocket";
 import type { DatabaseCollections } from "./Db";
-import { db } from "./Db";
+import { clearAllCollections, db } from "./Db";
 
 export type SyncStatus = "not-configured" | "connecting" | "syncing" | "synced" | "error";
 
@@ -65,7 +65,9 @@ export async function startReplication(
 
   const wsBaseUrl = serverUrl.replace(/^http/, "ws") + "/ws";
 
-  const replications = await Promise.all(
+  let serverGeneration = 0;
+
+  const wsTopics = await Promise.all(
     SYNCABLE_COLLECTIONS.map(async (collectionName) => {
       const collection: RxCollection = rxdb[collectionName];
       const unNamespacedTopic = `budgee--${collectionName}`;
@@ -78,17 +80,34 @@ export async function startReplication(
           body: JSON.stringify({ topic: unNamespacedTopic, schema: collection.schema.jsonSchema }),
         });
         if (response.ok) {
-          const data = (await response.json()) as { topic?: string };
+          const data = (await response.json()) as { topic?: string; generation?: unknown };
           if (data.topic) wsTopic = data.topic;
+          if (serverGeneration === 0 && typeof data.generation === "number") {
+            serverGeneration = data.generation;
+          }
         }
       } catch (e) {
         console.warn(`Failed to register schema for ${collectionName}:`, e);
       }
 
+      return wsTopic;
+    }),
+  );
+
+  const GENERATION_KEY = `budgee-sync-generation:${serverUrl}`;
+  const stored = parseInt(localStorage.getItem(GENERATION_KEY) ?? "0", 10);
+  if (serverGeneration !== stored) {
+    await clearAllCollections(dbs);
+    localStorage.setItem(GENERATION_KEY, String(serverGeneration));
+  }
+
+  const replications = await Promise.all(
+    wsTopics.map(async (wsTopic, i) => {
+      const collection: RxCollection = rxdb[SYNCABLE_COLLECTIONS[i]];
       return replicateWithWebsocketServer({
         collection,
-        replicationIdentifier: wsTopic,
-        url: `${wsBaseUrl}/${wsTopic}`,
+        replicationIdentifier: `${wsTopic}:gen${serverGeneration}`,
+        url: `${wsBaseUrl}/${wsTopic}?gen=${serverGeneration}`,
         live: true,
       });
     }),

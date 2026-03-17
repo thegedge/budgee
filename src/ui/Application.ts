@@ -1,11 +1,12 @@
 import { LitElement, css, html, nothing } from "lit";
+import type { Subscription } from "rxjs";
 import { customElement, state } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { db, isDemoMode } from "../database/Db";
 import { importDatabase } from "../database/importDb";
-import { startReplication } from "../database/replication";
+import { startReplication, syncStatus$ } from "../database/replication";
 import { SchemaVersionError } from "../database/Db";
 import { fetchIdentity, type User } from "../identity";
 import { ConfirmDialog } from "./shared/ConfirmDialog";
@@ -53,6 +54,8 @@ export class Application extends LitElement {
 
   #dragCounter = 0;
   #cancelReplication?: () => void;
+  #syncSub?: Subscription;
+  #reconnectTimer?: ReturnType<typeof setTimeout>;
 
   private _router = new Router(this, [
     {
@@ -325,7 +328,15 @@ export class Application extends LitElement {
         showErrorOverlay(message, { isDatabaseError });
       });
     })();
-    if (!isDemoMode) this.#connectReplication();
+    if (!isDemoMode) {
+      this.#connectReplication();
+      this.#syncSub = syncStatus$.subscribe((status) => {
+        if (status === "error") {
+          clearTimeout(this.#reconnectTimer);
+          this.#reconnectTimer = setTimeout(() => this.#connectReplication(), 5000);
+        }
+      });
+    }
   }
 
   disconnectedCallback() {
@@ -336,6 +347,8 @@ export class Application extends LitElement {
     this.removeEventListener("dragleave", this.#onDragLeave);
     this.removeEventListener("drop", this.#onDrop);
     this.#cancelReplication?.();
+    this.#syncSub?.unsubscribe();
+    clearTimeout(this.#reconnectTimer);
   }
 
   async #connectReplication() {
