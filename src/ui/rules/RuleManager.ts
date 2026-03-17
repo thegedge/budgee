@@ -215,7 +215,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
 
       showToast({ message: id ? "Rule updated" : "Rule created", type: "success" });
-      await this.#refresh();
     });
   }
 
@@ -245,7 +244,6 @@ export class RuleManager extends BusyMixin(LitElement) {
       }
 
       showToast({ message: "Rules merged", type: "success" });
-      await this.#refresh();
     });
   }
 
@@ -253,7 +251,6 @@ export class RuleManager extends BusyMixin(LitElement) {
     await this.withBusy(async () => {
       await MerchantRule.remove(id);
       showToast({ message: "Rule deleted", type: "success" });
-      await this.#refresh();
     });
   }
 

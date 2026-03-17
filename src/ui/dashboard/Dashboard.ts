@@ -225,7 +225,6 @@ export class Dashboard extends LitElement {
     } else {
       await DashboardTable.reorder(ids);
     }
-    await this.#refresh();
   }
 
   async #onChartSaved(e: CustomEvent) {
@@ -247,7 +246,6 @@ export class Dashboard extends LitElement {
     }
     this._showChartConfigurator = false;
     this._editingChart = undefined;
-    await this.#refresh();
   }
 
   get #filteredTransactions(): Transaction[] | null {
@@ -272,12 +270,10 @@ export class Dashboard extends LitElement {
       ...(colSpan !== undefined && { colSpan }),
       ...(rowSpan !== undefined && { rowSpan }),
     });
-    await this.#refresh();
   }
 
   async #onChartDeleted(e: CustomEvent) {
     await DashboardChart.remove(e.detail.id);
-    await this.#refresh();
   }
 
   async #onTableSaved(e: CustomEvent) {
@@ -298,7 +294,6 @@ export class Dashboard extends LitElement {
     }
     this._showTableConfigurator = false;
     this._editingTable = undefined;
-    await this.#refresh();
   }
 
   #onTableEdit(e: CustomEvent) {
@@ -312,12 +307,10 @@ export class Dashboard extends LitElement {
       ...(colSpan !== undefined && { colSpan }),
       ...(rowSpan !== undefined && { rowSpan }),
     });
-    await this.#refresh();
   }
 
   async #onTableDeleted(e: CustomEvent) {
     await DashboardTable.remove(e.detail.id);
-    await this.#refresh();
   }
 
   render() {

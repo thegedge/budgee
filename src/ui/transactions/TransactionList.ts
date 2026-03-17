@@ -293,7 +293,6 @@ export class TransactionList extends BusyMixin(LitElement) {
       }
       showToast({ message: `Tag applied to ${toUpdate.length} transaction(s)`, type: "success" });
       this.#clearSelection();
-      await this.#refresh();
     });
   }
 
@@ -319,7 +318,6 @@ export class TransactionList extends BusyMixin(LitElement) {
         type: "success",
       });
       this.#clearSelection();
-      await this.#refresh();
     });
   }
 
@@ -339,7 +337,6 @@ export class TransactionList extends BusyMixin(LitElement) {
       await Transaction.bulkRemove(ids);
       showToast({ message: `${ids.length} transaction(s) deleted`, type: "success" });
       this.#clearSelection();
-      await this.#refresh();
     });
   }
 
