@@ -54,6 +54,7 @@ import puzzle from "lucide-static/icons/puzzle.svg?raw";
 import receipt from "lucide-static/icons/receipt.svg?raw";
 import scale from "lucide-static/icons/scale.svg?raw";
 import scissors from "lucide-static/icons/scissors.svg?raw";
+import shieldAlert from "lucide-static/icons/shield-alert.svg?raw";
 import shieldCheck from "lucide-static/icons/shield-check.svg?raw";
 import shirt from "lucide-static/icons/shirt.svg?raw";
 import shoppingBag from "lucide-static/icons/shopping-bag.svg?raw";
@@ -128,6 +129,7 @@ export const ICON_MAP: Record<string, string> = {
   receipt: receipt,
   scale: scale,
   scissors: scissors,
+  "shield-alert": shieldAlert,
   "shield-check": shieldCheck,
   shirt: shirt,
   "shopping-bag": shoppingBag,
