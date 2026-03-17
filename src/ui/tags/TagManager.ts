@@ -102,7 +102,6 @@ export class TagManager extends BusyMixin(LitElement) {
       await Tag.create(name);
       this._newTagName = "";
       showToast({ message: "Tag created", type: "success" });
-      await this.#refreshTags();
     });
   }
 
@@ -110,14 +109,12 @@ export class TagManager extends BusyMixin(LitElement) {
     await this.withBusy(async () => {
       await Tag.remove(id);
       showToast({ message: "Tag deleted", type: "success" });
-      await this.#refreshTags();
     });
   }
 
   async #saveTagIcon(tag: Tag, icon: string) {
     await this.withBusy(async () => {
       await Tag.update(tag.id, { icon: icon || undefined });
-      await this.#refreshTags();
     });
   }
 
@@ -128,7 +125,6 @@ export class TagManager extends BusyMixin(LitElement) {
   async #saveTagColor(tag: Tag, color: string) {
     await this.withBusy(async () => {
       await Tag.update(tag.id, { color });
-      await this.#refreshTags();
     });
   }
 
