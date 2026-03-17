@@ -108,6 +108,7 @@ export async function startReplication(
         collection,
         replicationIdentifier: `${wsTopic}:gen${serverGeneration}`,
         url: `${wsBaseUrl}/${wsTopic}?gen=${serverGeneration}`,
+        batchSize: 1000,
         live: true,
       });
     }),
