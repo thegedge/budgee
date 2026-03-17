@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { backupDates, createSnapshot, restoreBackup } from "./backup";
 
+const { mockMeta } = vi.hoisted(() => ({
+  mockMeta: { put: vi.fn().mockResolvedValue(undefined) },
+}));
 vi.mock("./Db", () => ({
-  db: vi.fn().mockResolvedValue({}),
+  db: vi.fn().mockResolvedValue({ meta: mockMeta }),
   clearAllCollections: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -115,6 +118,11 @@ describe("restoreBackup", () => {
     const { clearAllCollections } = await import("./Db");
     await restoreBackup("http://localhost:3000", "2025-03-01");
     expect(clearAllCollections).toHaveBeenCalled();
+  });
+
+  it("sets schema_version after clearing collections", async () => {
+    await restoreBackup("http://localhost:3000", "2025-03-01");
+    expect(mockMeta.put).toHaveBeenCalledWith({ id: "schema_version", value: 1 });
   });
 
   it("returns the restore result", async () => {

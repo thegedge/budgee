@@ -1,4 +1,5 @@
 import { clearAllCollections, db } from "./Db";
+import { LATEST_VERSION } from "./migrations";
 
 export interface RestoreResult {
   generation: number;
@@ -43,6 +44,7 @@ export async function restoreBackup(serverUrl: string, date: string): Promise<Re
 
   const dbs = await db();
   await clearAllCollections(dbs);
+  await dbs.meta.put({ id: "schema_version", value: LATEST_VERSION });
 
   return data;
 }
