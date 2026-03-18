@@ -15,6 +15,7 @@ import { createWebSocketClient, type WebsocketClient } from "rxdb/plugins/replic
 import { randomToken } from "rxdb/plugins/utils";
 import type { DatabaseCollections } from "./Db";
 import { clearAllCollections, db } from "./Db";
+import { startMygardReplication } from "./mygard-replication";
 
 export type SyncStatus = "not-configured" | "connecting" | "syncing" | "synced" | "error";
 
@@ -65,6 +66,21 @@ export function buildTopic(collectionName: string, userLogin?: string | null): s
   return `budgee--${collectionName}`;
 }
 
+async function detectMygardServer(serverUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${serverUrl}/.well-known/mygard-server`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (response.ok) {
+      const data = (await response.json()) as { server?: unknown };
+      return !!data?.server;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function startReplication(
   serverUrl: string,
   userLogin?: string | null,
@@ -73,6 +89,17 @@ export async function startReplication(
 
   const dbs = await db();
   const rxdb = dbs.rxdb;
+
+  // Detect MyGard server and use its custom replication protocol
+  const isMygard = await detectMygardServer(serverUrl);
+  if (isMygard) {
+    const cancel = await startMygardReplication(serverUrl, rxdb);
+    replicationStatus$.next({ state: "connected", replications: [] });
+    return async () => {
+      replicationStatus$.next({ state: "not-configured" });
+      await cancel();
+    };
+  }
 
   const wsBaseUrl = serverUrl.replace(/^http/, "ws") + "/ws";
 
