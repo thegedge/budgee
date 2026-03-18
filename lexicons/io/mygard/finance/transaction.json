@@ -1,0 +1,28 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.transaction",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A financial transaction",
+      "record": {
+        "type": "object",
+        "required": ["date", "amount", "description", "tagIds"],
+        "properties": {
+          "date": { "type": "string", "description": "ISO 8601 date (YYYY-MM-DD)" },
+          "amount": { "type": "number", "description": "Transaction amount (negative for debits)" },
+          "description": { "type": "string", "description": "Transaction description" },
+          "memo": { "type": "string", "description": "Optional memo or notes" },
+          "merchantId": { "type": "string", "description": "Reference to merchant record TID" },
+          "accountId": { "type": "string", "description": "Reference to account record TID" },
+          "tagIds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of tag record TIDs"
+          }
+        }
+      }
+    }
+  }
+}

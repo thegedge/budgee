@@ -1,7 +1,7 @@
 import { db } from "../database/Db";
 import { Repository } from "../database/Repository";
 import type { TransactionRecord } from "../database/types";
-import { uuid } from "../uuid";
+import { tid } from "../tid";
 
 export class Transaction {
   readonly id: string;
@@ -43,11 +43,11 @@ export class Transaction {
   }
 
   static async bulkPut(txs: TransactionRecord[]): Promise<void> {
-    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: t.id ?? uuid() })));
+    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: t.id ?? tid() })));
   }
 
   static async bulkAdd(txs: Omit<TransactionRecord, "id">[]): Promise<void> {
-    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: uuid() }) as TransactionRecord));
+    await transactions.bulkDocs(txs.map((t) => ({ ...t, id: tid() }) as TransactionRecord));
   }
 
   static async forMerchant(merchantId: string): Promise<Transaction[]> {

@@ -1,0 +1,23 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.account",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A financial account",
+      "record": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "description": "Account display name" },
+          "type": {
+            "type": "string",
+            "description": "Account type (chequing, savings, credit_card, investment)"
+          },
+          "alias": { "type": "string", "description": "Optional short alias" }
+        }
+      }
+    }
+  }
+}

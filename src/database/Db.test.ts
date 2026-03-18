@@ -1,4 +1,4 @@
-import { uuid } from "../uuid";
+import { tid as uuid } from "../tid";
 import { describe, expect, it } from "vitest";
 import { collectionSchemas, db } from "./Db";
 

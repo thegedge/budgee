@@ -1,0 +1,20 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.tag",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A categorization tag for transactions",
+      "record": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "description": "Tag display name" },
+          "icon": { "type": "string", "description": "Optional icon identifier" },
+          "color": { "type": "string", "description": "Optional CSS color value" }
+        }
+      }
+    }
+  }
+}

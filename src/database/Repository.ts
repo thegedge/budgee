@@ -1,6 +1,6 @@
 import type { MangoQuery } from "rxdb/plugins/core";
 import { db, type Collection, type Databases } from "./Db";
-import { uuid } from "../uuid";
+import { tid } from "../tid";
 
 type CollectionAccessor<T extends { id: string }> = (dbs: Databases) => Collection<T>;
 
@@ -62,7 +62,7 @@ export class Repository<T extends { id: string }> {
 
   async create(data: Omit<T, "id">): Promise<T> {
     const col = await this.#collection();
-    const doc = { ...data, id: uuid() } as T;
+    const doc = { ...data, id: tid() } as T;
     await col.put(doc);
     return doc;
   }

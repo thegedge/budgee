@@ -1,0 +1,53 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.merchantRule",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A rule for automatically categorizing transactions",
+      "record": {
+        "type": "object",
+        "required": ["logic", "conditions", "tagIds"],
+        "properties": {
+          "logic": {
+            "type": "string",
+            "description": "Logical operator for combining conditions (and, or)"
+          },
+          "conditions": {
+            "type": "array",
+            "description": "List of match conditions",
+            "items": {
+              "type": "object",
+              "required": ["field", "operator", "value"],
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field to match (description, account)"
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "Match operator (contains, startsWith, equals, regex, oneOf)"
+                },
+                "value": { "type": "string", "description": "Value to match against" }
+              }
+            }
+          },
+          "merchantId": {
+            "type": "string",
+            "description": "Reference to merchant record TID to assign"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Reference to account record TID to assign"
+          },
+          "tagIds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of tag record TIDs to assign"
+          }
+        }
+      }
+    }
+  }
+}

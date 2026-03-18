@@ -1,0 +1,30 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.dashboardTable",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A dashboard table widget",
+      "record": {
+        "type": "object",
+        "required": ["title", "model", "columns", "position"],
+        "properties": {
+          "title": { "type": "string", "description": "Table title" },
+          "model": {
+            "type": "string",
+            "description": "Data model (transactions, merchants, tags)"
+          },
+          "columns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Visible column names"
+          },
+          "position": { "type": "number", "description": "Sort position on the dashboard" },
+          "colSpan": { "type": "number", "description": "Number of grid columns to span" },
+          "rowSpan": { "type": "number", "description": "Number of grid rows to span" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.dashboardChart",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A dashboard chart widget",
+      "record": {
+        "type": "object",
+        "required": ["title", "chartType", "granularity", "position"],
+        "properties": {
+          "title": { "type": "string", "description": "Chart title" },
+          "chartType": { "type": "string", "description": "Chart type (bar, line, pie, doughnut)" },
+          "granularity": {
+            "type": "string",
+            "description": "Data granularity (day, month, year, byTag, byMerchant)"
+          },
+          "position": { "type": "number", "description": "Sort position on the dashboard" },
+          "startDate": { "type": "string", "description": "Optional start date filter (ISO 8601)" },
+          "endDate": { "type": "string", "description": "Optional end date filter (ISO 8601)" },
+          "colSpan": { "type": "number", "description": "Number of grid columns to span" },
+          "rowSpan": { "type": "number", "description": "Number of grid rows to span" },
+          "legendPosition": {
+            "type": "string",
+            "description": "Legend position (top, bottom, left, right, hidden)"
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional filter conditions",
+            "items": {
+              "type": "object",
+              "required": ["field", "operator", "value"],
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Filter field (tag, merchant, amount, description)"
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "Filter operator (is, isNot, contains, excludes, lt, gt, lte, gte)"
+                },
+                "value": { "type": "string", "description": "Filter value" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

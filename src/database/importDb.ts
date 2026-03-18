@@ -1,5 +1,5 @@
 import { db as getDb, type Databases } from "./Db";
-import { uuid } from "../uuid";
+import { tid } from "../tid";
 import type {
   AccountRecord,
   DashboardChartRecord,
@@ -121,7 +121,7 @@ function ensureIds<T extends { id: string }>(
     if (doc.id) return doc;
     const raw = doc as Record<string, unknown>;
     const oldId = String(raw._id ?? "");
-    const newId = uuid();
+    const newId = tid();
     if (oldId) idMap.set(oldId, newId);
     return { ...doc, id: newId };
   });

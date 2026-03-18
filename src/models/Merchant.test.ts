@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "../database/Db";
-import { uuid } from "../uuid";
+import { tid as uuid } from "../tid";
 import { Merchant } from "./Merchant";
 
 describe("Merchant", () => {

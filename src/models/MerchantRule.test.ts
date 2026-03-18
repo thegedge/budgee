@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AccountRecord, MerchantRuleRecord } from "../database/types";
 import { db } from "../database/Db";
-import { uuid } from "../uuid";
+import { tid as uuid } from "../tid";
 import { MerchantRule, prepareTransaction } from "./MerchantRule";
 
 describe("MerchantRule", () => {

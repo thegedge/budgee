@@ -1,0 +1,18 @@
+{
+  "lexicon": 1,
+  "id": "io.mygard.finance.merchant",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A merchant or payee",
+      "record": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "description": "Merchant display name" }
+        }
+      }
+    }
+  }
+}

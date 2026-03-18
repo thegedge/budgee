@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "../database/Db";
-import { uuid } from "../uuid";
+import { tid as uuid } from "../tid";
 import { importTransactions } from "./importTransactions";
 import type { ColumnMapping } from "./parseCsv";
 
