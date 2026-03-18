@@ -15,23 +15,26 @@
     "format:fix": "oxfmt --write",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "tc": "tsc --noEmit",
+    "tc": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "chart.js": "^4.5.1",
-    "lit": "^3.3.2",
     "lucide-static": "^0.564.0",
     "papaparse": "^5.5.3",
     "rxdb": "^16.21.1",
     "rxjs": "^7.8.2",
     "simple-icons": "^16.11.0",
     "sortablejs": "^1.15.7",
+    "svelte": "^5.54.0",
     "urlpattern-polyfill": "^10.1.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/svelte": "^5.3.1",
     "@types/papaparse": "^5.5.2",
     "@types/sortablejs": "^1.15.9",
     "@vitest/ui": "^4.0.18",
@@ -39,6 +42,7 @@
     "oxfmt": "^0.31.0",
     "oxlint": "^1.46.0",
     "patch-package": "^8.0.1",
+    "svelte-check": "^4.4.5",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"

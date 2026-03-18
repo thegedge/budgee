@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig, type Plugin } from "vitest/config";
 
 const inContainer = existsSync("/.dockerenv");
@@ -29,7 +30,7 @@ const basePath = process.env.VITE_BASE_URL ? new URL(process.env.VITE_BASE_URL).
 
 export default defineConfig({
   base: basePath,
-  plugins: [baseUrlPlugin()],
+  plugins: [baseUrlPlugin(), svelte()],
   define: {
     __COMMIT_SHA__: JSON.stringify(commitSha),
     __COMMIT_DATE__: JSON.stringify(commitDate),

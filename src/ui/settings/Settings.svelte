@@ -1,0 +1,184 @@
+<script lang="ts">
+  import { exportDatabase } from "../../database/exportDb";
+  import { importDatabase } from "../../database/importDb";
+  import { testConnection } from "../../database/replication";
+  import { showConfirmDialog } from "../shared/confirmDialog";
+  import { showLoadingOverlay, hideLoadingOverlay } from "../shared/loadingOverlay";
+  import { showToast } from "../shared/toast";
+  import { isDemoMode } from "../../database/Db";
+  import "../styles/button.css";
+
+  let { onSyncSettingsChanged }: { onSyncSettingsChanged?: () => void } = $props();
+
+  let url = $state("");
+  let testResult = $state<"success" | "error" | "testing" | null>(null);
+  let testError = $state("");
+  let testedUrl = $state("");
+  let theme = $state<"system" | "light" | "dark">("system");
+
+  $effect(() => {
+    url = localStorage.getItem("budgee-sync-url") ?? "";
+    const stored = localStorage.getItem("budgee-theme");
+    theme = stored === "light" || stored === "dark" ? stored : "system";
+  });
+
+  function onThemeChange(e: Event) {
+    const value = (e.target as HTMLSelectElement).value as "system" | "light" | "dark";
+    theme = value;
+    if (value === "system") {
+      localStorage.removeItem("budgee-theme");
+      delete document.documentElement.dataset.theme;
+    } else {
+      localStorage.setItem("budgee-theme", value);
+      document.documentElement.dataset.theme = value;
+    }
+  }
+
+  function onUrlChange(e: Event) {
+    url = (e.target as HTMLInputElement).value;
+    testResult = null;
+    testError = "";
+    testedUrl = "";
+  }
+
+  async function onTestConnection() {
+    testResult = "testing";
+    testError = "";
+    try {
+      await testConnection(url);
+      testResult = "success";
+      testedUrl = url;
+      showToast({ message: "Connection successful", type: "success" });
+    } catch (e) {
+      testResult = "error";
+      testError = e instanceof Error ? e.message : String(e);
+      showToast({ message: "Connection failed", type: "error" });
+      testedUrl = "";
+    }
+  }
+
+  let canSave = $derived.by(() => {
+    const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
+    if (url === savedUrl) return false;
+    if (!url) return true;
+    return testResult === "success" && testedUrl === url;
+  });
+
+  function onSave() {
+    localStorage.setItem("budgee-sync-url", url);
+    localStorage.removeItem("budgee-ice-server");
+    localStorage.removeItem("budgee-turn-server");
+    onSyncSettingsChanged?.();
+    showToast({ message: "Sync settings saved", type: "success" });
+  }
+
+  async function onDatabaseImport(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const confirmed = await showConfirmDialog({
+      heading: "Import Database",
+      message: "This will replace all existing data. Are you sure?",
+      confirmLabel: "Import",
+      danger: true,
+    });
+    if (!confirmed) { input.value = ""; return; }
+    showLoadingOverlay("Importing database...");
+    try {
+      await importDatabase(input.files[0]);
+      input.value = "";
+      window.location.reload();
+    } finally {
+      hideLoadingOverlay();
+    }
+  }
+</script>
+
+<section>
+  <h2>Appearance</h2>
+  <div class="field">
+    <label for="theme-select">Theme</label>
+    <select id="theme-select" onchange={onThemeChange}>
+      <option value="system" selected={theme === "system"}>System</option>
+      <option value="light" selected={theme === "light"}>Light</option>
+      <option value="dark" selected={theme === "dark"}>Dark</option>
+    </select>
+  </div>
+</section>
+
+<section>
+  <h2>Import / Export</h2>
+  <h3>Import Database</h3>
+  <p>Restore from a full JSON backup. This will replace all existing data.</p>
+  <input type="file" accept=".json" onchange={onDatabaseImport} />
+  <h3>Export Database</h3>
+  <p>Download a full backup of your data as JSON.</p>
+  <button onclick={exportDatabase}>Export</button>
+</section>
+
+{#if isDemoMode}
+  <section>
+    <h2>Sync</h2>
+    <p class="hint">Sync is disabled in demo mode.</p>
+  </section>
+{:else}
+  <section>
+    <h2>Sync</h2>
+    <p class="hint">Sync your data across devices using a sync server. Save a valid URL to enable sync; clear it to disable.</p>
+    <div class="field">
+      <label for="sync-url">Server URL</label>
+      <input type="url" id="sync-url" value={url} onchange={onUrlChange} placeholder="http://your-server:3001" />
+      <p class="hint">The URL of your sync server.</p>
+    </div>
+    {#if url}
+      <div class="field">
+        <button disabled={testResult === "testing"} onclick={onTestConnection}>
+          {testResult === "testing" ? "Testing..." : "Test Connection"}
+        </button>
+        {#if testResult === "success"}
+          <p class="test-result success">Connection successful.</p>
+        {:else if testResult === "error"}
+          <p class="test-result error">Connection failed: {testError}</p>
+        {/if}
+      </div>
+    {/if}
+    <div class="field">
+      <button disabled={!canSave} onclick={onSave}>Save</button>
+    </div>
+  </section>
+{/if}
+
+<style>
+  section {
+    border: 1px solid var(--budgee-border);
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    background: var(--budgee-surface);
+  }
+  h2 { margin-top: 0; }
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+  select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--budgee-border);
+    border-radius: 4px;
+    background: var(--budgee-surface);
+    color: var(--budgee-text);
+    font-size: 0.9rem;
+  }
+  input[type="url"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--budgee-border);
+    border-radius: 4px;
+    background: var(--budgee-surface);
+    color: var(--budgee-text);
+    font-size: 0.9rem;
+  }
+  .hint { font-size: 0.8rem; color: var(--budgee-text-muted); margin-top: 0.25rem; }
+  button { padding: 0.5rem 1rem; }
+  .test-result { font-size: 0.85rem; margin-top: 0.25rem; }
+  .test-result.success { color: var(--budgee-positive, green); }
+  .test-result.error { color: var(--budgee-negative, red); }
+</style>

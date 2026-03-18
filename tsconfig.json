@@ -5,7 +5,6 @@
     "module": "ESNext",
     "moduleResolution": "Node",
 
-    "useDefineForClassFields": false,
     "strict": true,
     "sourceMap": true,
     "resolveJsonModule": true,
@@ -16,7 +15,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "experimentalDecorators": true,
     "erasableSyntaxOnly": true,
     "noImplicitAny": true
   },

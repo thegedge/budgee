@@ -7,6 +7,7 @@ import {
   createRxDatabase,
   removeRxDatabase,
 } from "rxdb/plugins/core";
+import { RxDBCleanupPlugin } from "rxdb/plugins/cleanup";
 import { RxDBMigrationSchemaPlugin } from "rxdb/plugins/migration-schema";
 import type {
   AccountRecord,
@@ -18,6 +19,7 @@ import type {
   TransactionRecord,
 } from "./types";
 
+addRxPlugin(RxDBCleanupPlugin);
 addRxPlugin(RxDBMigrationSchemaPlugin);
 
 export class SchemaVersionError extends Error {
@@ -352,6 +354,13 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
     name,
     storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
     hashFunction,
+    cleanupPolicy: {
+      minimumDeletedTime: 1000 * 60 * 60, // 1 hour
+      minimumCollectionAge: 1000 * 60, // 1 minute
+      runEach: 1000 * 60 * 5, // every 5 minutes
+      awaitReplicationsInSync: true,
+      waitForLeadership: true,
+    },
   });
 
   try {
