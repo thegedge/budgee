@@ -233,6 +233,8 @@
     padding: 1rem;
     border-radius: 4px;
     background: var(--budgee-surface);
+    height: 100%;
+    box-sizing: border-box;
   }
 
   .header {

@@ -21,8 +21,9 @@ export const resizable: Action<HTMLElement, ResizableConfig> = (node, config) =>
     const handle = e.currentTarget as HTMLElement;
     handle.setPointerCapture(e.pointerId);
 
-    const grid = node.closest(".chart-grid") ?? node.closest(".table-grid") ?? node.parentElement;
-    if (!grid) return;
+    const gridItem = node.parentElement;
+    const grid = node.closest(".chart-grid") ?? node.closest(".table-grid") ?? gridItem;
+    if (!grid || !gridItem) return;
 
     const gridRect = grid.getBoundingClientRect();
     const gridStyle = getComputedStyle(grid);
@@ -51,7 +52,7 @@ export const resizable: Action<HTMLElement, ResizableConfig> = (node, config) =>
         const hostLeft = node.getBoundingClientRect().left - gridRect.left;
         const startCol = Math.round((hostLeft / gridRect.width) * gridColumns);
         currentColSpan = Math.max(1, Math.min(gridColumns - startCol, rawSpan - startCol));
-        node.style.gridColumn = `span ${currentColSpan}`;
+        gridItem.style.gridColumn = `span ${currentColSpan}`;
         current.onLiveColSpan?.(currentColSpan);
       }
       if (vertical) {
@@ -59,7 +60,7 @@ export const resizable: Action<HTMLElement, ResizableConfig> = (node, config) =>
         const bottomEdge = ev.clientY - gridRect.top;
         const spannedHeight = bottomEdge - hostTop;
         currentRowSpan = Math.max(1, Math.round((spannedHeight + gap) / (rowHeight + gap)));
-        node.style.gridRow = `span ${currentRowSpan}`;
+        gridItem.style.gridRow = `span ${currentRowSpan}`;
       }
     };
 
