@@ -132,7 +132,7 @@ export async function startMygardReplication(
     });
   }
 
-  function createReplications(epoch: string): void {
+  function createReplications(epoch: string, initialSeq: number): void {
     for (const collectionName of SYNCABLE_COLLECTIONS) {
       const nsid = COLLECTION_TO_NSID[collectionName];
       const collection: RxCollection = rxdb[collectionName];
@@ -154,8 +154,12 @@ export async function startMygardReplication(
             checkpoint: MygardCheckpoint | undefined,
             batchSize: number,
           ): Promise<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }> {
+            // On first pull, start from the server's current seq to avoid
+            // pulling back records we're about to push (CBOR round-trip
+            // can strip undefined fields, corrupting local records)
+            const effectiveCheckpoint = checkpoint ?? { seq: initialSeq };
             const result = (await sendRpc("pull", [
-              checkpoint ?? null,
+              effectiveCheckpoint,
               batchSize,
               nsid,
             ])) as PullResult;
@@ -199,9 +203,10 @@ export async function startMygardReplication(
 
   async function onOpen(): Promise<void> {
     try {
-      const result = (await subscribe()) as { ok: boolean; epoch?: string };
+      const result = (await subscribe()) as { ok: boolean; epoch?: string; seq?: number };
       const epoch = result.epoch ?? "unknown";
-      console.log(`[mygard] connected, epoch=${epoch}`);
+      const seq = result.seq ?? 0;
+      console.log(`[mygard] connected, epoch=${epoch}, seq=${seq}`);
 
       if (epoch !== currentEpoch) {
         // Epoch changed (or first connect) — recreate replications with new identifier
@@ -212,7 +217,7 @@ export async function startMygardReplication(
           await teardownReplications();
         }
         currentEpoch = epoch;
-        createReplications(epoch);
+        createReplications(epoch, seq);
         onReplications?.(replications);
       } else {
         // Same epoch — just resync existing replications
