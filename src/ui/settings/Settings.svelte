@@ -11,12 +11,14 @@
   let { onSyncSettingsChanged }: { onSyncSettingsChanged?: () => void } = $props();
 
   let url = $state("");
+  let token = $state("");
   let saving = $state(false);
   let saveError = $state("");
   let theme = $state<"system" | "light" | "dark">("system");
 
   $effect(() => {
     url = localStorage.getItem("budgee-sync-url") ?? "";
+    token = localStorage.getItem("budgee-sync-token") ?? "";
     const stored = localStorage.getItem("budgee-theme");
     theme = stored === "light" || stored === "dark" ? stored : "system";
   });
@@ -38,7 +40,15 @@
     saveError = "";
   }
 
-  let canSave = $derived(url !== (localStorage.getItem("budgee-sync-url") ?? ""));
+  function onTokenChange(e: Event) {
+    token = (e.target as HTMLInputElement).value;
+    saveError = "";
+  }
+
+  let canSave = $derived(
+    url !== (localStorage.getItem("budgee-sync-url") ?? "") ||
+    token !== (localStorage.getItem("budgee-sync-token") ?? ""),
+  );
 
   async function onSave() {
     if (url) {
@@ -56,6 +66,11 @@
     }
 
     localStorage.setItem("budgee-sync-url", url);
+    if (token) {
+      localStorage.setItem("budgee-sync-token", token);
+    } else {
+      localStorage.removeItem("budgee-sync-token");
+    }
     localStorage.removeItem("budgee-ice-server");
     localStorage.removeItem("budgee-turn-server");
     onSyncSettingsChanged?.();
@@ -119,6 +134,11 @@
       <input type="url" id="sync-url" value={url} oninput={onUrlChange} placeholder="http://your-server:3001" />
       <p class="hint">The URL of your sync server. Clear to disable sync.</p>
     </div>
+    <div class="field">
+      <label for="sync-token">Token</label>
+      <input type="password" id="sync-token" value={token} oninput={onTokenChange} placeholder="Paste your auth token" />
+      <p class="hint">From <code>cli register</code> or <code>cli pair-redeem</code>. Leave blank for Tailscale auth.</p>
+    </div>
     {#if saveError}
       <p class="test-result error">Connection failed: {saveError}</p>
     {/if}
@@ -149,7 +169,7 @@
     color: var(--budgee-text);
     font-size: 0.9rem;
   }
-  input[type="url"] {
+  input[type="url"], input[type="password"] {
     width: 100%;
     max-width: 400px;
     padding: 0.4rem 0.6rem;

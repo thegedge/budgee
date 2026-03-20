@@ -95,8 +95,14 @@ export async function startReplication(
   // Detect MyGard server and use its custom replication protocol
   const isMygard = await detectMygardServer(serverUrl);
   if (isMygard) {
-    const cancel = await startMygardReplication(serverUrl, rxdb, (replications) => {
-      replicationStatus$.next({ state: "connected", replications });
+    const token = localStorage.getItem("budgee-sync-token") ?? undefined;
+    const cancel = await startMygardReplication({
+      serverUrl,
+      token,
+      rxdb,
+      onReplications: (replications) => {
+        replicationStatus$.next({ state: "connected", replications });
+      },
     });
     replicationStatus$.next({ state: "connected", replications: [] });
     return async () => {

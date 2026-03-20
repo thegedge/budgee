@@ -55,7 +55,7 @@ describe("fetchIdentity", () => {
 
     await fetchIdentity();
 
-    expect(fetchSpy).toHaveBeenCalledWith("/whoami");
+    expect(fetchSpy).toHaveBeenCalledWith("/whoami", { headers: {} });
   });
 
   it("returns cached identity on 401 response", async () => {

@@ -45,13 +45,16 @@ function nextId(): string {
   return `rpc-${++rpcCounter}`;
 }
 
-export async function startMygardReplication(
-  serverUrl: string,
-  rxdb: RxDatabase<DatabaseCollections>,
+export async function startMygardReplication(opts: {
+  serverUrl: string;
+  token?: string;
+  rxdb: RxDatabase<DatabaseCollections>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onReplications?: (replications: RxReplicationState<any, any>[]) => void,
-): Promise<() => Promise<void>> {
-  const wsUrl = serverUrl.replace(/^http/, "ws") + "/ws";
+  onReplications?: (replications: RxReplicationState<any, any>[]) => void;
+}): Promise<() => Promise<void>> {
+  const { serverUrl, token, rxdb, onReplications } = opts;
+  let wsUrl = serverUrl.replace(/^http/, "ws") + "/ws";
+  if (token) wsUrl += `?token=${encodeURIComponent(token)}`;
 
   // Pending RPC responses keyed by message id
   const pending = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
