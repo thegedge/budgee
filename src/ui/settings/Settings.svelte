@@ -116,7 +116,7 @@
     <p class="hint">Sync your data across devices using a sync server. Save a valid URL to enable sync; clear it to disable.</p>
     <div class="field">
       <label for="sync-url">Server URL</label>
-      <input type="url" id="sync-url" value={url} onchange={onUrlChange} placeholder="http://your-server:3001" />
+      <input type="url" id="sync-url" value={url} oninput={onUrlChange} placeholder="http://your-server:3001" />
       <p class="hint">The URL of your sync server. Clear to disable sync.</p>
     </div>
     {#if saveError}
