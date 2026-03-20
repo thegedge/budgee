@@ -48,6 +48,8 @@ function nextId(): string {
 export async function startMygardReplication(
   serverUrl: string,
   rxdb: RxDatabase<DatabaseCollections>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onReplications?: (replications: RxReplicationState<any, any>[]) => void,
 ): Promise<() => Promise<void>> {
   const wsUrl = serverUrl.replace(/^http/, "ws") + "/ws";
 
@@ -61,10 +63,11 @@ export async function startMygardReplication(
   >();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const replications: RxReplicationState<any, any>[] = [];
+  let replications: RxReplicationState<any, any>[] = [];
   let ws: WebSocket;
   let closed = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+  let currentEpoch: string | undefined;
 
   function onMessage(event: MessageEvent): void {
     let msg: RpcResponse;
@@ -75,7 +78,7 @@ export async function startMygardReplication(
     }
 
     // Stream event from server
-    if (msg.id === "stream") {
+    if (msg.id === "stream" && !("ok" in ((msg.result as Record<string, unknown>) ?? {}))) {
       const result = msg.result as PullResult | undefined;
       if (!result) return;
       for (const [nsid, subject] of streamSubjects) {
@@ -116,9 +119,110 @@ export async function startMygardReplication(
     });
   }
 
-  function subscribe(): void {
+  function subscribe(): Promise<unknown> {
     const id = "subscribe";
-    ws.send(JSON.stringify({ id, method: "stream", params: [] }));
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
+      try {
+        ws.send(JSON.stringify({ id, method: "stream", params: [] }));
+      } catch (err) {
+        pending.delete(id);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    });
+  }
+
+  function createReplications(epoch: string): void {
+    for (const collectionName of SYNCABLE_COLLECTIONS) {
+      const nsid = COLLECTION_TO_NSID[collectionName];
+      const collection: RxCollection = rxdb[collectionName];
+
+      const streamSubject = new Subject<{
+        documents: Record<string, unknown>[];
+        checkpoint: MygardCheckpoint;
+      }>();
+      streamSubjects.set(nsid, streamSubject);
+
+      const replication = replicateRxCollection({
+        collection,
+        replicationIdentifier: `mygard-${nsid}-${epoch}`,
+        live: true,
+        pull: {
+          batchSize: 100,
+          stream$: streamSubject.asObservable(),
+          async handler(
+            checkpoint: MygardCheckpoint | undefined,
+            batchSize: number,
+          ): Promise<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }> {
+            const result = (await sendRpc("pull", [
+              checkpoint ?? null,
+              batchSize,
+              nsid,
+            ])) as PullResult;
+            const documents = result.documents.map((d) => {
+              const { collection: _, ...rest } = d;
+              return rest;
+            });
+            return { documents, checkpoint: result.checkpoint };
+          },
+        },
+        push: {
+          batchSize: 100,
+          async handler(
+            docs: {
+              newDocumentState: Record<string, unknown>;
+              assumedMasterState?: Record<string, unknown>;
+            }[],
+          ): Promise<Record<string, unknown>[]> {
+            const enriched = docs.map((d) => ({
+              ...d.newDocumentState,
+              collection: nsid,
+            }));
+            const conflicts = (await sendRpc("push", [enriched])) as Record<string, unknown>[];
+            return conflicts;
+          },
+        },
+      });
+
+      replications.push(replication);
+    }
+  }
+
+  async function teardownReplications(): Promise<void> {
+    await Promise.all(replications.map((r) => r.cancel().catch(console.error)));
+    for (const subject of streamSubjects.values()) {
+      subject.complete();
+    }
+    streamSubjects.clear();
+    replications = [];
+  }
+
+  async function onOpen(): Promise<void> {
+    try {
+      const result = (await subscribe()) as { ok: boolean; epoch?: string };
+      const epoch = result.epoch ?? "unknown";
+      console.log(`[mygard] connected, epoch=${epoch}`);
+
+      if (epoch !== currentEpoch) {
+        // Epoch changed (or first connect) — recreate replications with new identifier
+        if (replications.length > 0) {
+          console.log(
+            `[mygard] epoch changed (${currentEpoch} -> ${epoch}), resetting replications`,
+          );
+          await teardownReplications();
+        }
+        currentEpoch = epoch;
+        createReplications(epoch);
+        onReplications?.(replications);
+      } else {
+        // Same epoch — just resync existing replications
+        for (const rep of replications) {
+          rep.reSync();
+        }
+      }
+    } catch (err) {
+      console.error("[mygard] subscribe failed:", err);
+    }
   }
 
   function connect(): void {
@@ -127,16 +231,11 @@ export async function startMygardReplication(
     ws.addEventListener("message", onMessage);
 
     ws.addEventListener("open", () => {
-      // Re-subscribe to stream and resync all replications
-      subscribe();
-      for (const rep of replications) {
-        rep.reSync();
-      }
+      onOpen().catch((err) => console.error("[mygard] open handler error:", err));
     });
 
     ws.addEventListener("close", () => {
       if (!closed) {
-        // Reject all pending RPCs
         for (const [, entry] of pending) {
           entry.reject(new Error("WebSocket closed"));
         }
@@ -158,63 +257,7 @@ export async function startMygardReplication(
     }, 5000);
   }
 
-  // Set up per-collection replications before connecting
-  for (const collectionName of SYNCABLE_COLLECTIONS) {
-    const nsid = COLLECTION_TO_NSID[collectionName];
-    const collection: RxCollection = rxdb[collectionName];
-
-    const streamSubject = new Subject<{
-      documents: Record<string, unknown>[];
-      checkpoint: MygardCheckpoint;
-    }>();
-    streamSubjects.set(nsid, streamSubject);
-
-    const replication = replicateRxCollection({
-      collection,
-      replicationIdentifier: `mygard-${nsid}`,
-      live: true,
-      pull: {
-        batchSize: 100,
-        stream$: streamSubject.asObservable(),
-        async handler(
-          checkpoint: MygardCheckpoint | undefined,
-          batchSize: number,
-        ): Promise<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }> {
-          const result = (await sendRpc("pull", [
-            checkpoint ?? null,
-            batchSize,
-            nsid,
-          ])) as PullResult;
-          // Strip the collection field from each document
-          const documents = result.documents.map((d) => {
-            const { collection: _, ...rest } = d;
-            return rest;
-          });
-          return { documents, checkpoint: result.checkpoint };
-        },
-      },
-      push: {
-        batchSize: 100,
-        async handler(
-          docs: {
-            newDocumentState: Record<string, unknown>;
-            assumedMasterState?: Record<string, unknown>;
-          }[],
-        ): Promise<Record<string, unknown>[]> {
-          const enriched = docs.map((d) => ({
-            ...d.newDocumentState,
-            collection: nsid,
-          }));
-          const conflicts = (await sendRpc("push", [enriched])) as Record<string, unknown>[];
-          return conflicts;
-        },
-      },
-    });
-
-    replications.push(replication);
-  }
-
-  // Now connect the WebSocket (replications are ready to handle events)
+  // Connect — replications are created after we receive the epoch
   connect();
 
   // Return cleanup function
@@ -223,10 +266,7 @@ export async function startMygardReplication(
     if (reconnectTimer !== undefined) {
       clearTimeout(reconnectTimer);
     }
-    await Promise.all(replications.map((r) => r.cancel().catch(console.error)));
-    for (const subject of streamSubjects.values()) {
-      subject.complete();
-    }
+    await teardownReplications();
     ws.close();
   };
 }

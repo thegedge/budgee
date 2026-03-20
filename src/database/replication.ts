@@ -50,6 +50,8 @@ export const syncStatus$: Observable<SyncStatus> = replicationStatus$.pipe(
     if (status.state === "connecting") return of("connecting" as const);
 
     const { replications } = status;
+    if (replications.length === 0) return of("synced" as const);
+
     const errors$ = merge(...replications.map((r) => r.error$)).pipe(map(() => "error" as const));
     const active$ = combineLatest(replications.map((r) => r.active$)).pipe(
       map((actives) => (actives.some(Boolean) ? ("syncing" as const) : ("synced" as const))),
@@ -93,7 +95,9 @@ export async function startReplication(
   // Detect MyGard server and use its custom replication protocol
   const isMygard = await detectMygardServer(serverUrl);
   if (isMygard) {
-    const cancel = await startMygardReplication(serverUrl, rxdb);
+    const cancel = await startMygardReplication(serverUrl, rxdb, (replications) => {
+      replicationStatus$.next({ state: "connected", replications });
+    });
     replicationStatus$.next({ state: "connected", replications: [] });
     return async () => {
       replicationStatus$.next({ state: "not-configured" });
