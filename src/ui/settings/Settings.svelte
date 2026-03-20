@@ -11,9 +11,8 @@
   let { onSyncSettingsChanged }: { onSyncSettingsChanged?: () => void } = $props();
 
   let url = $state("");
-  let testResult = $state<"success" | "error" | "testing" | null>(null);
-  let testError = $state("");
-  let testedUrl = $state("");
+  let saving = $state(false);
+  let saveError = $state("");
   let theme = $state<"system" | "light" | "dark">("system");
 
   $effect(() => {
@@ -36,35 +35,26 @@
 
   function onUrlChange(e: Event) {
     url = (e.target as HTMLInputElement).value;
-    testResult = null;
-    testError = "";
-    testedUrl = "";
+    saveError = "";
   }
 
-  async function onTestConnection() {
-    testResult = "testing";
-    testError = "";
-    try {
-      await testConnection(url);
-      testResult = "success";
-      testedUrl = url;
-      showToast({ message: "Connection successful", type: "success" });
-    } catch (e) {
-      testResult = "error";
-      testError = e instanceof Error ? e.message : String(e);
-      showToast({ message: "Connection failed", type: "error" });
-      testedUrl = "";
+  let canSave = $derived(url !== (localStorage.getItem("budgee-sync-url") ?? ""));
+
+  async function onSave() {
+    if (url) {
+      saving = true;
+      saveError = "";
+      try {
+        await testConnection(url);
+      } catch (e) {
+        saving = false;
+        saveError = e instanceof Error ? e.message : String(e);
+        showToast({ message: "Connection failed", type: "error" });
+        return;
+      }
+      saving = false;
     }
-  }
 
-  let canSave = $derived.by(() => {
-    const savedUrl = localStorage.getItem("budgee-sync-url") ?? "";
-    if (url === savedUrl) return false;
-    if (!url) return true;
-    return testResult === "success" && testedUrl === url;
-  });
-
-  function onSave() {
     localStorage.setItem("budgee-sync-url", url);
     localStorage.removeItem("budgee-ice-server");
     localStorage.removeItem("budgee-turn-server");
@@ -127,22 +117,15 @@
     <div class="field">
       <label for="sync-url">Server URL</label>
       <input type="url" id="sync-url" value={url} onchange={onUrlChange} placeholder="http://your-server:3001" />
-      <p class="hint">The URL of your sync server.</p>
+      <p class="hint">The URL of your sync server. Clear to disable sync.</p>
     </div>
-    {#if url}
-      <div class="field">
-        <button disabled={testResult === "testing"} onclick={onTestConnection}>
-          {testResult === "testing" ? "Testing..." : "Test Connection"}
-        </button>
-        {#if testResult === "success"}
-          <p class="test-result success">Connection successful.</p>
-        {:else if testResult === "error"}
-          <p class="test-result error">Connection failed: {testError}</p>
-        {/if}
-      </div>
+    {#if saveError}
+      <p class="test-result error">Connection failed: {saveError}</p>
     {/if}
     <div class="field">
-      <button disabled={!canSave} onclick={onSave}>Save</button>
+      <button disabled={!canSave || saving} onclick={onSave}>
+        {saving ? "Connecting..." : "Save"}
+      </button>
     </div>
   </section>
 {/if}
@@ -179,6 +162,5 @@
   .hint { font-size: 0.8rem; color: var(--budgee-text-muted); margin-top: 0.25rem; }
   button { padding: 0.5rem 1rem; }
   .test-result { font-size: 0.85rem; margin-top: 0.25rem; }
-  .test-result.success { color: var(--budgee-positive, green); }
   .test-result.error { color: var(--budgee-negative, red); }
 </style>
