@@ -167,7 +167,7 @@ export async function startMygardReplication(
           },
         },
         push: {
-          batchSize: 100,
+          batchSize: 1000,
           async handler(
             docs: {
               newDocumentState: Record<string, unknown>;

@@ -63,11 +63,11 @@ export class MerchantRule {
   constructor(data: MerchantRuleRecord) {
     this.id = data.id;
     this.logic = data.logic;
-    this.conditions = data.conditions;
+    this.conditions = data.conditions ?? [];
     this.merchantId = data.merchantId;
     this.accountId = data.accountId;
-    this.tagIds = data.tagIds;
-    this.#prepared = data.conditions.map((c) => ({
+    this.tagIds = data.tagIds ?? [];
+    this.#prepared = this.conditions.map((c) => ({
       field: c.field,
       operator: c.operator,
       value: c.value.toLowerCase(),
