@@ -1,0 +1,17 @@
+name: Build and push
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: kaniko
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push image
+        run: >-
+          /data/kaniko --dockerfile=Dockerfile --context=.
+          --destination=git.dwelf-stargazer.ts.net/gedge/${{ github.event.repository.name }}:${{
+          github.sha }} --destination=git.dwelf-stargazer.ts.net/gedge/${{
+          github.event.repository.name }}:latest
