@@ -11,7 +11,8 @@ jobs:
 
       - name: Build and push image
         run: >-
-          /data/kaniko --dockerfile=Dockerfile --context=.
+          /data/kaniko --dockerfile=Dockerfile --context=. --build-arg=COMMIT_SHA=${{ github.sha }}
+          --build-arg=COMMIT_DATE=${{ github.event.head_commit.timestamp }}
           --destination=git.dwelf-stargazer.ts.net/gedge/${{ github.event.repository.name }}:${{
           github.sha }} --destination=git.dwelf-stargazer.ts.net/gedge/${{
           github.event.repository.name }}:latest

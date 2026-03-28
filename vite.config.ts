@@ -5,8 +5,9 @@ import { defineConfig, type Plugin } from "vitest/config";
 
 const inContainer = existsSync("/.dockerenv");
 
-const commitSha = execSync("git rev-parse --short HEAD").toString().trim();
-const commitDate = execSync("git log -1 --format=%cI").toString().trim();
+const commitSha =
+  process.env.COMMIT_SHA?.slice(0, 7) ?? execSync("git rev-parse --short HEAD").toString().trim();
+const commitDate = process.env.COMMIT_DATE ?? execSync("git log -1 --format=%cI").toString().trim();
 
 function baseUrlPlugin(): Plugin {
   return {
