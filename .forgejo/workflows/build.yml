@@ -13,6 +13,6 @@ jobs:
         run: >-
           /data/kaniko --dockerfile=Dockerfile --context=. --build-arg=COMMIT_SHA=${{ github.sha }}
           --build-arg=COMMIT_DATE=${{ github.event.head_commit.timestamp }}
-          --destination=git.dwelf-stargazer.ts.net/gedge/${{ github.event.repository.name }}:${{
-          github.sha }} --destination=git.dwelf-stargazer.ts.net/gedge/${{
-          github.event.repository.name }}:latest
+          --destination=app.forgejo.svc:3000/gedge/${{ github.event.repository.name }}:${{
+          github.sha }} --destination=app.forgejo.svc:3000/gedge/${{ github.event.repository.name
+          }}:latest
