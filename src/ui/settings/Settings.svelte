@@ -8,7 +8,7 @@
   import { isDemoMode } from "../../database/Db";
   import "../styles/button.css";
 
-  let { onSyncSettingsChanged }: { onSyncSettingsChanged?: () => void } = $props();
+  // No props needed — save triggers a full page reload to reset the database singleton.
 
   let url = $state("");
   let token = $state("");
@@ -73,8 +73,7 @@
     }
     localStorage.removeItem("budgee-ice-server");
     localStorage.removeItem("budgee-turn-server");
-    onSyncSettingsChanged?.();
-    showToast({ message: "Sync settings saved", type: "success" });
+    window.location.reload();
   }
 
   async function onDatabaseImport(e: Event) {

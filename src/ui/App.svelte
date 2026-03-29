@@ -195,21 +195,21 @@
           : error instanceof Error ? error.message : String(error);
         showErrorOverlay(message, { isDatabaseError });
       });
+
+      if (!isDemoMode) {
+        connectReplication();
+        syncSub = syncStatus$.subscribe((status) => {
+          if (status === "error" && !reconnectTimer) {
+            reconnectTimer = setTimeout(() => {
+              reconnectTimer = undefined;
+              connectReplication();
+            }, 5000);
+          }
+        });
+      }
     })();
 
     const stopRouter = startRouter();
-
-    if (!isDemoMode) {
-      connectReplication();
-      syncSub = syncStatus$.subscribe((status) => {
-        if (status === "error" && !reconnectTimer) {
-          reconnectTimer = setTimeout(() => {
-            reconnectTimer = undefined;
-            connectReplication();
-          }, 5000);
-        }
-      });
-    }
 
     return () => {
       document.removeEventListener("keydown", onGlobalKeydown);
@@ -269,7 +269,7 @@
       {:else if route.config.path === "/rules" && RuleManager}
         <RuleManager />
       {:else if route.config.path === "/settings" && Settings}
-        <Settings onSyncSettingsChanged={connectReplication} />
+        <Settings />
       {/if}
     {/if}
   </main>
