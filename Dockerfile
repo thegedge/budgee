@@ -2,7 +2,8 @@ FROM node:lts-slim AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json patches/ ./patches/
+COPY package.json package-lock.json ./
+COPY patches/ patches/
 RUN npm ci
 
 ARG COMMIT_SHA
