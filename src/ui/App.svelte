@@ -184,10 +184,7 @@
     setupGlobalErrorHandler();
 
     void (async () => {
-      const user = await fetchIdentity();
-      identity = user;
-      if (user) console.info("Identified as:", user.login);
-      db(user?.login).catch((error: unknown) => {
+      db().catch((error: unknown) => {
         console.error(error);
         const isDatabaseError = error instanceof SchemaVersionError;
         const message = isDatabaseError
@@ -195,6 +192,9 @@
           : error instanceof Error ? error.message : String(error);
         showErrorOverlay(message, { isDatabaseError });
       });
+      const user = await fetchIdentity();
+      identity = user;
+      if (user) console.info("Identified as:", user.login);
 
       if (!isDemoMode) {
         connectReplication();
