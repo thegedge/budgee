@@ -234,19 +234,21 @@
     <div class="demo-banner">Demo Mode — changes won't be saved <a href={demoExitHref()} onclick={onDemoExit}>Exit demo</a></div>
   {/if}
 
-  <h1 class="app-name">{@html birdIcon} Budgee</h1>
+  <div class="sidebar">
+    <h1 class="app-name">{@html birdIcon} Budgee</h1>
 
-  <nav>
-    <a href={navHref("/")} class:active={isActive("/")}>{@html chartBarIcon} Dashboard</a>
-    <a href={navHref("/transactions")} class:active={isActive("/transactions")}>{@html banknotesIcon} Transactions</a>
-    <a href={navHref("/accounts")} class:active={isActive("/accounts")}>{@html landmarkIcon} Accounts</a>
-    <a href={navHref("/merchants")} class:active={isActive("/merchants")}>{@html buildingStorefrontIcon} Merchants</a>
-    <a href={navHref("/tags")} class:active={isActive("/tags")}>{@html tagIcon} Tags</a>
-    <a href={navHref("/rules")} class:active={isActive("/rules")}>{@html listFilterIcon} Rules</a>
-    <a href={navHref("/settings")} class:active={isActive("/settings")}>{@html adjustmentsHorizontalIcon} Settings</a>
-    <div style="flex:1"></div>
-    <SyncStatusIndicator />
-  </nav>
+    <nav>
+      <a href={navHref("/")} class:active={isActive("/")}>{@html chartBarIcon} Dashboard</a>
+      <a href={navHref("/transactions")} class:active={isActive("/transactions")}>{@html banknotesIcon} Transactions</a>
+      <a href={navHref("/accounts")} class:active={isActive("/accounts")}>{@html landmarkIcon} Accounts</a>
+      <a href={navHref("/merchants")} class:active={isActive("/merchants")}>{@html buildingStorefrontIcon} Merchants</a>
+      <a href={navHref("/tags")} class:active={isActive("/tags")}>{@html tagIcon} Tags</a>
+      <a href={navHref("/rules")} class:active={isActive("/rules")}>{@html listFilterIcon} Rules</a>
+      <a href={navHref("/settings")} class:active={isActive("/settings")}>{@html adjustmentsHorizontalIcon} Settings</a>
+      <div style="flex:1"></div>
+      <SyncStatusIndicator />
+    </nav>
+  </div>
 
   <main>
     {#if route}
@@ -301,10 +303,9 @@
     min-height: 100vh;
     display: grid;
     grid-template-areas:
-      "app-name main"
-      "nav main";
+      "sidebar main";
     grid-template-columns: auto 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 1fr;
     gap: 0;
     color: var(--budgee-text);
     font-family: sans-serif;
@@ -316,8 +317,20 @@
     height: 1rem;
   }
 
+  .sidebar {
+    grid-area: sidebar;
+    display: flex;
+    flex-direction: column;
+    background: var(--budgee-surface);
+    border-right: 1px solid var(--budgee-border);
+    width: 220px;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
   .app-name {
-    grid-area: app-name;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -325,23 +338,18 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--budgee-text);
-    background: var(--budgee-surface);
     margin: 0;
-    width: stretch;
     padding-block: 1rem;
     padding-inline-end: 0.5rem;
-    border-right: 1px solid var(--budgee-border);
+    flex-shrink: 0;
   }
   .app-name :global(svg.lucide) { width: 1.5rem; height: 1.5rem; }
 
   nav {
-    grid-area: nav;
     display: flex;
     flex-direction: column;
-    background: var(--budgee-surface);
-    border-right: 1px solid var(--budgee-border);
-    width: 220px;
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
   }
 
   nav a {
@@ -402,21 +410,27 @@
   @media (max-width: 1024px) {
     .app {
       grid-template-areas:
-        "app-name nav"
-        "main main";
+        "sidebar"
+        "main";
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: auto;
+      position: static;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--budgee-border);
     }
     .app-name {
       width: auto;
-      height: stretch;
       padding: 1rem;
-      border-bottom: 1px solid var(--budgee-border);
     }
     nav {
       flex-direction: row;
       flex-wrap: wrap;
-      width: auto;
-      border-right: none;
-      border-bottom: 1px solid var(--budgee-border);
+      flex: initial;
       padding: 0 0.5rem;
     }
     nav a {
