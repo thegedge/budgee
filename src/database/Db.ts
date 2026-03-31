@@ -18,6 +18,7 @@ import type {
   TagRecord,
   TransactionRecord,
 } from "./types";
+import { getCachedIdentity } from "../identity";
 
 addRxPlugin(RxDBCleanupPlugin);
 addRxPlugin(RxDBMigrationSchemaPlugin);
@@ -510,7 +511,10 @@ let cachedDb: Promise<Databases> | undefined;
 
 export function db(login?: string | null): Promise<Databases> {
   if (!cachedDb) {
-    cachedDb = createDefaultDatabase(login).then(async (dbs) => {
+    // Resolve login from cached identity if not explicitly provided,
+    // so callers don't need to pass it and can't race with identity fetch.
+    const resolvedLogin = login ?? getCachedIdentity()?.login ?? null;
+    cachedDb = createDefaultDatabase(resolvedLogin).then(async (dbs) => {
       const { migrateDatabase } = await import("./migrations");
       await migrateDatabase(dbs);
       if (isDemoMode) {
