@@ -26,6 +26,7 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
 
 interface MygardCheckpoint {
   seq: number;
+  epoch?: string;
 }
 
 interface RpcResponse {
@@ -37,6 +38,7 @@ interface RpcResponse {
 interface PullResult {
   documents: Record<string, unknown>[];
   checkpoint: MygardCheckpoint;
+  epoch?: string;
 }
 
 let rpcCounter = 0;
@@ -135,7 +137,7 @@ export async function startMygardReplication(opts: {
     });
   }
 
-  function createReplications(epoch: string, initialSeq: number): void {
+  function createReplications(epoch: string): void {
     for (const collectionName of SYNCABLE_COLLECTIONS) {
       const nsid = COLLECTION_TO_NSID[collectionName];
       const collection: RxCollection = rxdb[collectionName];
@@ -157,10 +159,7 @@ export async function startMygardReplication(opts: {
             checkpoint: MygardCheckpoint | undefined,
             batchSize: number,
           ): Promise<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }> {
-            // On first pull, start from the server's current seq to avoid
-            // pulling back records we're about to push (CBOR round-trip
-            // can strip undefined fields, corrupting local records)
-            const effectiveCheckpoint = checkpoint ?? { seq: initialSeq };
+            const effectiveCheckpoint = checkpoint ?? { seq: 0, epoch };
             const result = (await sendRpc("pull", [
               effectiveCheckpoint,
               batchSize,
@@ -170,7 +169,10 @@ export async function startMygardReplication(opts: {
               const { collection: _, ...rest } = d;
               return rest;
             });
-            return { documents, checkpoint: result.checkpoint };
+            return {
+              documents,
+              checkpoint: { ...result.checkpoint, epoch: result.epoch ?? epoch },
+            };
           },
         },
         push: {
@@ -208,8 +210,7 @@ export async function startMygardReplication(opts: {
     try {
       const result = (await subscribe()) as { ok: boolean; epoch?: string; seq?: number };
       const epoch = result.epoch ?? "unknown";
-      const seq = result.seq ?? 0;
-      console.log(`[mygard] connected, epoch=${epoch}, seq=${seq}`);
+      console.log(`[mygard] connected, epoch=${epoch}`);
 
       if (epoch !== currentEpoch) {
         // Epoch changed (or first connect) — recreate replications with new identifier
@@ -220,7 +221,7 @@ export async function startMygardReplication(opts: {
           await teardownReplications();
         }
         currentEpoch = epoch;
-        createReplications(epoch, seq);
+        createReplications(epoch);
         onReplications?.(replications);
       } else {
         // Same epoch — just resync existing replications
