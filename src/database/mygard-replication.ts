@@ -187,6 +187,7 @@ export async function startMygardReplication(opts: {
     while (true) {
       const result = (await sendRpc("pull", [checkpoint, batchSize, nsid])) as PullResult;
       for (const doc of result.documents) {
+        if (doc._deleted) continue; // Skip tombstones — only live records matter
         const { collection: _, ...rest } = doc;
         allDocs.push(rest);
       }
