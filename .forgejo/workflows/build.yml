@@ -9,7 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract commit subject
+        id: commit
+        run: |
+          echo "subject=$(echo "${{ github.event.head_commit.message }}" | head -1)" >> "$GITHUB_OUTPUT"
+
       - name: Build and push image
         run: >-
           /data/docker-build --build-arg=COMMIT_SHA=${{ github.sha }} --build-arg=COMMIT_DATE=${{
-          github.event.head_commit.timestamp }}
+          github.event.head_commit.timestamp }} "--build-arg=COMMIT_SUBJECT=${{
+          steps.commit.outputs.subject }}"

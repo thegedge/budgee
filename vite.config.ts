@@ -10,7 +10,13 @@ const commitSha =
 const commitDate = process.env.COMMIT_DATE ?? execSync("git log -1 --format=%cI").toString().trim();
 const commitSubject =
   process.env.COMMIT_SUBJECT ?? execSync("git log -1 --format=%s").toString().trim();
-const commitBody = process.env.COMMIT_BODY ?? execSync("git log -1 --format=%b").toString().trim();
+
+let commitBody = "";
+try {
+  commitBody = process.env.COMMIT_BODY ?? execSync("git log -1 --format=%b").toString().trim();
+} catch {
+  // Body is optional — may not be available in CI
+}
 
 function baseUrlPlugin(): Plugin {
   return {
