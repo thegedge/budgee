@@ -27,6 +27,7 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
 interface OwnerCheckpoint {
   seq: number;
   epoch?: string;
+  v?: number;
 }
 
 interface MygardCheckpoint {
@@ -143,7 +144,11 @@ export async function startMygardReplication(opts: {
             }
             return rest;
           });
-          subject.next({ documents: stripped, checkpoint: ownCheckpoint });
+          const hasSharedDocs = stripped.some((d) => d._owner);
+          const checkpoint: OwnerCheckpoint = hasSharedDocs
+            ? { ...ownCheckpoint, v: (ownCheckpoint.v ?? 0) + 1 }
+            : ownCheckpoint;
+          subject.next({ documents: stripped, checkpoint });
         }
       }
       return;
@@ -410,9 +415,16 @@ export async function startMygardReplication(opts: {
               return rest;
             });
 
+            const hasSharedDocs = documents.some((d) => d._owner);
+            const prevV = ownCheckpoint.v ?? 0;
+
             return {
               documents,
-              checkpoint: { ...ownResult, epoch: result.epoch ?? epoch },
+              checkpoint: {
+                ...ownResult,
+                epoch: result.epoch ?? epoch,
+                v: hasSharedDocs ? prevV + 1 : prevV,
+              },
             };
           },
         },
