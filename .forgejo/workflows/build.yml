@@ -10,9 +10,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build and push image
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: >-
           /data/docker-build --build-arg=COMMIT_SHA=${{ github.sha }} --build-arg=COMMIT_DATE=${{
-          github.event.head_commit.timestamp }} "--build-arg=COMMIT_SUBJECT=$(echo "$COMMIT_MSG" |
-          head -1)"
+          github.event.head_commit.timestamp }}
