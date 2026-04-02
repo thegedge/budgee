@@ -8,6 +8,8 @@ const inContainer = existsSync("/.dockerenv");
 const commitSha =
   process.env.COMMIT_SHA?.slice(0, 7) ?? execSync("git rev-parse --short HEAD").toString().trim();
 const commitDate = process.env.COMMIT_DATE ?? execSync("git log -1 --format=%cI").toString().trim();
+const commitSubject = execSync("git log -1 --format=%s").toString().trim();
+const commitBody = execSync("git log -1 --format=%b").toString().trim();
 
 function baseUrlPlugin(): Plugin {
   return {
@@ -35,6 +37,8 @@ export default defineConfig({
   define: {
     __COMMIT_SHA__: JSON.stringify(commitSha),
     __COMMIT_DATE__: JSON.stringify(commitDate),
+    __COMMIT_SUBJECT__: JSON.stringify(commitSubject),
+    __COMMIT_BODY__: JSON.stringify(commitBody),
   },
   server: {
     watch: inContainer ? { usePolling: true } : undefined,
