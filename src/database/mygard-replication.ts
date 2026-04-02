@@ -24,9 +24,14 @@ const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
   "dashboard_tables",
 ];
 
-interface MygardCheckpoint {
+interface OwnerCheckpoint {
   seq: number;
   epoch?: string;
+}
+
+interface MygardCheckpoint {
+  own: OwnerCheckpoint;
+  shared?: Record<string, OwnerCheckpoint>;
 }
 
 interface RpcResponse {
@@ -39,7 +44,7 @@ interface RpcResponse {
 
 interface PullResult {
   documents: Record<string, unknown>[];
-  checkpoint: MygardCheckpoint;
+  checkpoint: MygardCheckpoint | OwnerCheckpoint;
   epoch?: string;
 }
 
@@ -91,8 +96,10 @@ export async function startMygardReplication(opts: {
   // Per-collection stream subjects
   const streamSubjects = new Map<
     string,
-    Subject<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }>
+    Subject<{ documents: Record<string, unknown>[]; checkpoint: OwnerCheckpoint }>
   >();
+
+  let sharedCheckpoints: Record<string, OwnerCheckpoint> = {};
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let replications: RxReplicationState<any, any>[] = [];
@@ -124,14 +131,19 @@ export async function startMygardReplication(opts: {
     if (msg.id === "stream" && !("ok" in ((msg.result as Record<string, unknown>) ?? {}))) {
       const result = msg.result as PullResult | undefined;
       if (!result) return;
+      const serverCheckpoint = result.checkpoint;
+      const ownCheckpoint = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
       for (const [nsid, subject] of streamSubjects) {
         const filtered = result.documents.filter((d) => d.collection === nsid);
         if (filtered.length > 0) {
           const stripped = filtered.map((d) => {
             const { collection: _, ...rest } = d;
+            if (rest._owner) {
+              rest.id = `${rest._owner}/${rest.id}`;
+            }
             return rest;
           });
-          subject.next({ documents: stripped, checkpoint: result.checkpoint });
+          subject.next({ documents: stripped, checkpoint: ownCheckpoint });
         }
       }
       return;
@@ -182,17 +194,19 @@ export async function startMygardReplication(opts: {
     batchSize = 100,
   ): Promise<Record<string, unknown>[]> {
     const allDocs: Record<string, unknown>[] = [];
-    let checkpoint: MygardCheckpoint = { seq: 0, epoch };
+    let checkpoint: MygardCheckpoint = { own: { seq: 0, epoch } };
 
     while (true) {
       const result = (await sendRpc("pull", [checkpoint, batchSize, nsid])) as PullResult;
       for (const doc of result.documents) {
-        if (doc._deleted) continue; // Skip tombstones — only live records matter
+        if (doc._deleted) continue;
         const { collection: _, ...rest } = doc;
         allDocs.push(rest);
       }
       if (result.documents.length < batchSize) break;
-      checkpoint = { ...result.checkpoint, epoch: result.epoch ?? epoch };
+      const serverCheckpoint = result.checkpoint;
+      const ownCheckpoint = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
+      checkpoint = { own: { ...ownCheckpoint, epoch: result.epoch ?? epoch } };
     }
 
     return allDocs;
@@ -360,7 +374,7 @@ export async function startMygardReplication(opts: {
 
       const streamSubject = new Subject<{
         documents: Record<string, unknown>[];
-        checkpoint: MygardCheckpoint;
+        checkpoint: OwnerCheckpoint;
       }>();
       streamSubjects.set(nsid, streamSubject);
 
@@ -372,22 +386,33 @@ export async function startMygardReplication(opts: {
           batchSize: 100,
           stream$: streamSubject.asObservable(),
           async handler(
-            checkpoint: MygardCheckpoint | undefined,
+            checkpoint: OwnerCheckpoint | undefined,
             batchSize: number,
-          ): Promise<{ documents: Record<string, unknown>[]; checkpoint: MygardCheckpoint }> {
-            const effectiveCheckpoint = checkpoint ?? { seq: 0, epoch };
-            const result = (await sendRpc("pull", [
-              effectiveCheckpoint,
-              batchSize,
-              nsid,
-            ])) as PullResult;
+          ): Promise<{ documents: Record<string, unknown>[]; checkpoint: OwnerCheckpoint }> {
+            const ownCheckpoint = checkpoint ?? { seq: 0, epoch };
+            const compound: MygardCheckpoint = { own: ownCheckpoint, shared: sharedCheckpoints };
+            const result = (await sendRpc("pull", [compound, batchSize, nsid])) as PullResult;
+
+            const serverCheckpoint = result.checkpoint;
+            if ("own" in serverCheckpoint) {
+              if (serverCheckpoint.shared) {
+                sharedCheckpoints = { ...sharedCheckpoints, ...serverCheckpoint.shared };
+              }
+            }
+
+            const ownResult = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
+
             const documents = result.documents.map((d) => {
               const { collection: _, ...rest } = d;
+              if (rest._owner) {
+                rest.id = `${rest._owner}/${rest.id}`;
+              }
               return rest;
             });
+
             return {
               documents,
-              checkpoint: { ...result.checkpoint, epoch: result.epoch ?? epoch },
+              checkpoint: { ...ownResult, epoch: result.epoch ?? epoch },
             };
           },
         },
@@ -399,10 +424,12 @@ export async function startMygardReplication(opts: {
               assumedMasterState?: Record<string, unknown>;
             }[],
           ): Promise<Record<string, unknown>[]> {
-            const enriched = docs.map((d) => ({
+            const ownDocs = docs.filter((d) => !d.newDocumentState._owner);
+            const enriched = ownDocs.map((d) => ({
               ...d.newDocumentState,
               collection: nsid,
             }));
+            if (enriched.length === 0) return [];
             const conflicts = (await sendRpc("push", [enriched])) as Record<string, unknown>[];
             return conflicts;
           },
