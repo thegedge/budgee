@@ -9,14 +9,7 @@
 
   const commitSha = __COMMIT_SHA__;
   const commitDate = __COMMIT_DATE__;
-  const commitSubject = __COMMIT_SUBJECT__;
-  const commitBody = __COMMIT_BODY__;
-
-  let commitTooltip = $derived.by(() => {
-    let tip = commitSubject;
-    if (commitBody) tip += "\n\n" + commitBody;
-    return tip;
-  });
+  const commitMessage = __COMMIT_MESSAGE__;
 
   let identityLogin = $state<string | null>(null);
 
@@ -62,7 +55,7 @@
   {#if identityLogin}
     {@html userIcon} <span>{identityLogin}</span>
   {/if}
-  <a href="{GITHUB_REPO}/commit/{commitSha}" target="_blank" rel="noopener" title={commitTooltip}>{@html githubIcon} <span>{commitSha}</span></a>
+  <a href="{GITHUB_REPO}/commit/{commitSha}" target="_blank" rel="noopener" title={commitMessage}>{@html githubIcon} <span>{commitSha}</span></a>
   {@html clockIcon} <span class="published">published {timeAgo(commitDate)}</span>
   {#if status !== "not-configured"}
     <span class="dot {status}"></span> {LABELS[status]}
