@@ -12,6 +12,7 @@ export class Transaction {
   readonly merchantId?: string;
   readonly accountId?: string;
   readonly tagIds: string[];
+  readonly _owner?: string;
 
   constructor(data: TransactionRecord) {
     this.id = data.id;
@@ -22,6 +23,7 @@ export class Transaction {
     this.merchantId = data.merchantId;
     this.accountId = data.accountId;
     this.tagIds = data.tagIds;
+    this._owner = data._owner;
   }
 
   static async subscribe(callback: () => void) {

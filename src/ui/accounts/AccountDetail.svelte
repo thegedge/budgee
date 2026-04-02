@@ -10,9 +10,12 @@
   import { useSubscription } from "../../lib/subscribe.svelte";
   import { useBusy } from "../../lib/busy.svelte";
   import { barChartData } from "../charts/barChartData";
+  import { cachedDid } from "../../identity";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import AccountName from "../shared/AccountName.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
+  import ShareModal from "../shared/ShareModal.svelte";
+  import SharedBadge from "../shared/SharedBadge.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TimeRangePicker from "../shared/TimeRangePicker.svelte";
   import type { TimeRange } from "../shared/TimeRangePicker.svelte";
@@ -25,6 +28,7 @@
   let editingName = $state(false);
   let timeRange = $state<TimeRange>(null);
   let editInput = $state<HTMLInputElement | null>(null);
+  let showShareModal = $state(false);
 
   const { busy, withBusy } = useBusy();
 
@@ -125,7 +129,7 @@
 
     <div class="header">
       <h2>
-        {#if editingName}
+        {#if !account._owner && editingName}
           <input
             class="edit-input"
             bind:this={editInput}
@@ -133,22 +137,40 @@
             onkeydown={saveName}
             onblur={onNameBlur}
           />
-        {:else}
+        {:else if !account._owner}
           <span class="editable" role="button" tabindex="0" onclick={startEditing} onkeydown={(e) => e.key === "Enter" && startEditing()}>
             <AccountName name={account.name} alias={account.alias} />
           </span>
+        {:else}
+          <AccountName name={account.name} alias={account.alias} />
         {/if}
       </h2>
-      <div class="meta">
-        Type:
-        <select onchange={onTypeChange}>
-          <option value="" selected={!account.type}>Not set</option>
-          {#each ACCOUNT_TYPES as t}
-            <option value={t} selected={account.type === t}>{accountTypeLabel(t)}</option>
-          {/each}
-        </select>
-      </div>
+      {#if !account._owner}
+        <div class="meta">
+          Type:
+          <select onchange={onTypeChange}>
+            <option value="" selected={!account.type}>Not set</option>
+            {#each ACCOUNT_TYPES as t}
+              <option value={t} selected={account.type === t}>{accountTypeLabel(t)}</option>
+            {/each}
+          </select>
+        </div>
+        <button class="share-btn" onclick={() => { showShareModal = true; }}>Share</button>
+      {/if}
     </div>
+
+    {#if account._owner}
+      <div class="shared-badge-row">
+        <SharedBadge ownerDid={account._owner} />
+      </div>
+    {/if}
+
+    {#if showShareModal}
+      <ShareModal
+        objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}"
+        onClose={() => { showShareModal = false; }}
+      />
+    {/if}
 
     {#if filteredTransactions === null}
       <SkeletonLoader variant="card" rows={3} />
@@ -236,6 +258,15 @@
     border-radius: 4px;
     background: var(--budgee-surface);
     color: var(--budgee-text);
+  }
+  .share-btn {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .shared-badge-row {
+    margin-bottom: 0.75rem;
   }
   .section-chart {
     border: 1px solid var(--budgee-border);

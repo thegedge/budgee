@@ -21,6 +21,7 @@
   import TransactionImporter from "./TransactionImporter.svelte";
   import "../styles/button.css";
   import "../styles/input.css";
+  import lockIcon from "lucide-static/icons/lock.svg?raw";
 
   type ImportDetail = {
     data: Record<string, string>[];
@@ -76,7 +77,7 @@
 
   function merchantName(merchantId: string | undefined): string {
     if (!merchantId) return "";
-    return merchants.get(merchantId) ?? "";
+    return merchants.get(merchantId) ?? "Unknown merchant";
   }
 
   function humanizeDate(dateStr: string): string {
@@ -366,6 +367,7 @@
               type="checkbox"
               checked={selectedIds.has(t.id)}
               onchange={() => toggleSelection(t.id)}
+              disabled={!!t._owner}
             />
           </td>
           <td class="col-date">{humanizeDate(t.date)}</td>
@@ -376,9 +378,16 @@
                 href="/merchants/{t.merchantId}"
                 onclick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/merchants/${t.merchantId}`); }}
               >{merchants.get(t.merchantId!)}</a>
+            {:else if t.merchantId}
+              <span class="unknown-merchant">Unknown merchant</span>
             {/if}
           </td>
-          <td class="col-grow">{t.description}</td>
+          <td class="col-grow">
+            {t.description}
+            {#if t._owner}
+              <span class="shared-lock" aria-label="Shared record">{@html lockIcon}</span>
+            {/if}
+          </td>
           <td class="col-amount {t.amount < 0 ? 'amount-negative' : 'amount-positive'}">
             {formatAmount(t.amount)}
           </td>
@@ -484,5 +493,21 @@
     padding: 0.4rem 0.8rem;
     margin-bottom: 0.5rem;
     font-size: 0.85rem;
+  }
+  .unknown-merchant {
+    color: var(--budgee-text-muted);
+    font-style: italic;
+    font-size: 0.875rem;
+  }
+  .shared-lock {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+    color: var(--budgee-primary, lch(72.1% 25.1 246.4));
+    opacity: 0.7;
+  }
+  .shared-lock :global(svg) {
+    width: 0.85rem;
+    height: 0.85rem;
   }
 </style>

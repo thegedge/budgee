@@ -6,12 +6,14 @@ export class Account {
   readonly name: string;
   readonly type?: AccountType;
   readonly alias?: string;
+  readonly _owner?: string;
 
   constructor(data: AccountRecord) {
     this.id = data.id;
     this.name = data.name;
     this.type = data.type;
     this.alias = data.alias || undefined;
+    this._owner = data._owner;
   }
 
   static async subscribe(callback: () => void) {
