@@ -9,7 +9,7 @@ const commitSha =
   process.env.COMMIT_SHA?.slice(0, 7) ?? execSync("git rev-parse --short HEAD").toString().trim();
 const commitDate = process.env.COMMIT_DATE ?? execSync("git log -1 --format=%cI").toString().trim();
 const commitMessage =
-  process.env.COMMIT_SUBJECT ?? execSync("git log -1 --format=%B").toString().trim();
+  process.env.COMMIT_SUBJECT ?? execSync("git log -1 --format=%s").toString().trim();
 
 function baseUrlPlugin(): Plugin {
   return {
