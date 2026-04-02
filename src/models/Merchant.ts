@@ -4,10 +4,12 @@ import type { MerchantRecord } from "../database/types";
 export class Merchant {
   readonly id: string;
   readonly name: string;
+  readonly _owner?: string;
 
   constructor(data: MerchantRecord) {
     this.id = data.id;
     this.name = data.name;
+    this._owner = data._owner;
   }
 
   static async subscribe(callback: () => void) {
