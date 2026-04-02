@@ -35,7 +35,7 @@ export class SchemaVersionError extends Error {
 const ID_FIELD = { type: "string" as const, maxLength: 100 };
 
 const transactionSchema: RxJsonSchema<TransactionRecord> = {
-  version: 1,
+  version: 2,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -47,13 +47,14 @@ const transactionSchema: RxJsonSchema<TransactionRecord> = {
     merchantId: { type: "string", maxLength: 100 },
     accountId: { type: "string", maxLength: 100 },
     tagIds: { type: "array", items: { type: "string" } },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "date", "amount", "description", "tagIds"],
   indexes: ["date"],
 };
 
 const tagSchema: RxJsonSchema<TagRecord> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -61,25 +62,27 @@ const tagSchema: RxJsonSchema<TagRecord> = {
     name: { type: "string", maxLength: 200 },
     icon: { type: "string" },
     color: { type: "string" },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "name"],
   indexes: ["name"],
 };
 
 const merchantSchema: RxJsonSchema<MerchantRecord> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
     id: ID_FIELD,
     name: { type: "string", maxLength: 200 },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "name"],
   indexes: ["name"],
 };
 
 const accountSchema: RxJsonSchema<AccountRecord> = {
-  version: 1,
+  version: 2,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -87,12 +90,13 @@ const accountSchema: RxJsonSchema<AccountRecord> = {
     name: { type: "string" },
     type: { type: "string" },
     alias: { type: "string" },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "name"],
 };
 
 const merchantRuleSchema: RxJsonSchema<MerchantRuleRecord> = {
-  version: 1,
+  version: 2,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -112,12 +116,13 @@ const merchantRuleSchema: RxJsonSchema<MerchantRuleRecord> = {
     merchantId: { type: "string" },
     accountId: { type: "string" },
     tagIds: { type: "array", items: { type: "string" } },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "logic", "conditions", "tagIds"],
 };
 
 const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
-  version: 1,
+  version: 2,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -142,12 +147,13 @@ const dashboardChartSchema: RxJsonSchema<DashboardChartRecord> = {
         },
       },
     },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "title", "chartType", "granularity", "position"],
 };
 
 const dashboardTableSchema: RxJsonSchema<DashboardTableRecord> = {
-  version: 0,
+  version: 1,
   primaryKey: "id",
   type: "object",
   properties: {
@@ -158,6 +164,7 @@ const dashboardTableSchema: RxJsonSchema<DashboardTableRecord> = {
     position: { type: "number" },
     colSpan: { type: "number" },
     rowSpan: { type: "number" },
+    _owner: { type: "string", maxLength: 256 },
   },
   required: ["id", "title", "model", "columns", "position"],
 };
@@ -373,21 +380,33 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
             delete doc.originalDescription;
             return doc;
           },
+          2: (doc: TransactionRecord) => doc,
         },
       },
-      tags: { schema: tagSchema },
-      merchants: { schema: merchantSchema },
+      tags: {
+        schema: tagSchema,
+        migrationStrategies: {
+          1: (doc: TagRecord) => doc,
+        },
+      },
+      merchants: {
+        schema: merchantSchema,
+        migrationStrategies: {
+          1: (doc: MerchantRecord) => doc,
+        },
+      },
       accounts: {
         schema: accountSchema,
         migrationStrategies: {
           1: (doc: AccountRecord) => doc,
+          2: (doc: AccountRecord) => doc,
         },
       },
       merchant_rules: {
         schema: merchantRuleSchema,
         migrationStrategies: {
-          // accountId field was added; no data migration needed
           1: (doc: MerchantRuleRecord) => doc,
+          2: (doc: MerchantRuleRecord) => doc,
         },
       },
       dashboard_charts: {
@@ -428,9 +447,15 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
             doc.filters = filters.length > 0 ? filters : undefined;
             return doc;
           },
+          2: (doc: DashboardChartRecord) => doc,
         },
       },
-      dashboard_tables: { schema: dashboardTableSchema },
+      dashboard_tables: {
+        schema: dashboardTableSchema,
+        migrationStrategies: {
+          1: (doc: DashboardTableRecord) => doc,
+        },
+      },
       meta: { schema: metaSchema },
       backups: { schema: backupSchema },
     });
