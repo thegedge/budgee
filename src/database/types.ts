@@ -7,6 +7,7 @@ export interface TransactionRecord {
   merchantId?: string;
   accountId?: string;
   tagIds: string[];
+  _owner?: string;
 }
 
 export interface TagRecord {
@@ -14,11 +15,13 @@ export interface TagRecord {
   name: string;
   icon?: string;
   color?: string;
+  _owner?: string;
 }
 
 export interface MerchantRecord {
   id: string;
   name: string;
+  _owner?: string;
 }
 
 export const ACCOUNT_TYPES = ["chequing", "savings", "credit_card", "investment"] as const;
@@ -40,6 +43,7 @@ export interface AccountRecord {
   name: string;
   type?: AccountType;
   alias?: string;
+  _owner?: string;
 }
 
 export type RuleOperator = "contains" | "startsWith" | "equals" | "regex" | "oneOf";
@@ -57,6 +61,7 @@ export interface MerchantRuleRecord {
   merchantId?: string;
   accountId?: string;
   tagIds: string[];
+  _owner?: string;
 }
 
 export type ChartFilterField = "tag" | "merchant" | "amount" | "description";
@@ -88,6 +93,7 @@ export interface DashboardChartRecord {
   rowSpan?: number;
   legendPosition?: "top" | "bottom" | "left" | "right" | "hidden";
   filters?: ChartFilterCondition[];
+  _owner?: string;
 }
 
 export type DashboardTableModel = "transactions" | "merchants" | "tags";
@@ -106,4 +112,5 @@ export interface DashboardTableRecord {
   position: number;
   colSpan?: number;
   rowSpan?: number;
+  _owner?: string;
 }

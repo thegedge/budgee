@@ -4,6 +4,7 @@ export type User = {
   login: string;
   name: string;
   profilePic?: string;
+  did?: string;
 };
 
 export function getCachedIdentity(): User | null {
@@ -14,6 +15,10 @@ export function getCachedIdentity(): User | null {
   } catch {
     return null;
   }
+}
+
+export function cachedDid(): string | null {
+  return getCachedIdentity()?.did ?? null;
 }
 
 export async function fetchIdentity(): Promise<User | null> {
