@@ -37,6 +37,14 @@ export function initRouter(routeConfigs: RouteConfig[]) {
     pattern: new URLPattern({ pathname: config.path }),
   }));
   currentPath = stripBasePath(window.location.pathname);
+
+  for (const route of routes) {
+    const result = route.pattern.exec({ pathname: currentPath });
+    if (result && route.config.enter) {
+      route.config.enter(result.pathname.groups);
+      break;
+    }
+  }
 }
 
 function onNavigate(event: NavigateEvent) {
