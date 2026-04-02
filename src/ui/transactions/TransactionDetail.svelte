@@ -4,6 +4,9 @@
   import { Tag } from "../../models/Tag";
   import { Merchant } from "../../models/Merchant";
   import { formatAmount } from "../../formatAmount";
+  import { cachedDid } from "../../identity";
+  import ShareModal from "../shared/ShareModal.svelte";
+  import SharedBadge from "../shared/SharedBadge.svelte";
   import { movingMedian } from "../../charting/movingMedian";
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
@@ -28,6 +31,7 @@
   let merchant = $state<Merchant | undefined>(undefined);
   let relatedTransactions = $state<Transaction[]>([]);
   let monthlySpend = $state<MonthlySpend[]>([]);
+  let showShareModal = $state(false);
 
   const { busy, withBusy } = useBusy();
 
@@ -168,22 +172,43 @@
         {formatAmount(tx.amount)}
       </div>
       <div class="meta">
-        {tx.date}{#if merchant} &middot; {merchant.name}{/if}
+        {tx.date}{#if merchant} &middot; {merchant.name}{:else if tx.merchantId} &middot; <span class="unknown-merchant">Unknown merchant</span>{/if}
       </div>
+      {#if !tx._owner}
+        <button class="share-btn" onclick={() => { showShareModal = true; }}>Share</button>
+      {/if}
     </div>
+
+    {#if tx._owner}
+      <div class="shared-badge-row">
+        <SharedBadge ownerDid={tx._owner} />
+      </div>
+    {/if}
 
     <div class="section">
       <h3>Tags</h3>
-      <TagAutocomplete
-        {tags}
-        selectedTagIds={tx.tagIds}
-        onTagSelected={onTagSelected}
-        onTagCreated={onTagCreated}
-        onTagRemoved={(tagId) => removeTag(tagId)}
-      />
+      {#if tx._owner}
+        <div class="readonly-overlay">
+          <TagAutocomplete
+            {tags}
+            selectedTagIds={tx.tagIds}
+            onTagSelected={onTagSelected}
+            onTagCreated={onTagCreated}
+            onTagRemoved={(tagId) => removeTag(tagId)}
+          />
+        </div>
+      {:else}
+        <TagAutocomplete
+          {tags}
+          selectedTagIds={tx.tagIds}
+          onTagSelected={onTagSelected}
+          onTagCreated={onTagCreated}
+          onTagRemoved={(tagId) => removeTag(tagId)}
+        />
+      {/if}
     </div>
 
-    {#if !tx.merchantId}
+    {#if !tx.merchantId && !tx._owner}
       <button class="create-rule" onclick={() => createRule(tx)}>
         Create Merchant Rule
       </button>
@@ -191,7 +216,7 @@
 
     <div class="section">
       <h3>Notes</h3>
-      <textarea value={tx.memo ?? ""} onblur={onMemoBlur} placeholder="Add notes..."></textarea>
+      <textarea value={tx.memo ?? ""} onblur={onMemoBlur} placeholder="Add notes..." disabled={!!tx._owner}></textarea>
     </div>
 
     {#if relatedTransactions.length > 0}
@@ -243,6 +268,13 @@
           </tbody>
         </table>
       </div>
+    {/if}
+
+    {#if showShareModal}
+      <ShareModal
+        objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}"
+        onClose={() => { showShareModal = false; }}
+      />
     {/if}
   {/if}
 </div>
@@ -308,5 +340,23 @@
     font-size: 0.9rem;
     margin-bottom: 1rem;
     display: inline-block;
+  }
+  .share-btn {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    align-self: flex-start;
+  }
+  .shared-badge-row {
+    margin-bottom: 0.75rem;
+  }
+  .unknown-merchant {
+    color: var(--budgee-text-muted);
+    font-style: italic;
+  }
+  .readonly-overlay {
+    pointer-events: none;
+    opacity: 0.6;
   }
 </style>

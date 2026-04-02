@@ -7,8 +7,11 @@
   import { navigate } from "../navigate";
   import { useSubscription } from "../../lib/subscribe.svelte";
   import { barChartData } from "../charts/barChartData";
+  import { cachedDid } from "../../identity";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
+  import ShareModal from "../shared/ShareModal.svelte";
+  import SharedBadge from "../shared/SharedBadge.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TimeRangePicker from "../shared/TimeRangePicker.svelte";
   import type { TimeRange } from "../shared/TimeRangePicker.svelte";
@@ -22,6 +25,7 @@
   let editingName = $state(false);
   let draftName = $state("");
   let nameInput = $state<HTMLInputElement | null>(null);
+  let showShareModal = $state(false);
 
   useSubscription([Merchant.subscribe, Transaction.subscribe], () => load());
 
@@ -113,10 +117,28 @@
         />
       {:else}
         {merchant.name}
-        <button class="edit-name-btn" onclick={startEditingName}>✎</button>
+        {#if !merchant._owner}
+          <button class="edit-name-btn" onclick={startEditingName}>✎</button>
+        {/if}
       {/if}
     </h2>
+    {#if !merchant._owner}
+      <button class="share-btn" onclick={() => { showShareModal = true; }}>Share</button>
+    {/if}
   </div>
+
+  {#if merchant._owner}
+    <div class="shared-badge-row">
+      <SharedBadge ownerDid={merchant._owner} />
+    </div>
+  {/if}
+
+  {#if showShareModal}
+    <ShareModal
+      objectUri="at://{cachedDid()}/io.mygard.finance.merchant/{merchantId}"
+      onClose={() => { showShareModal = false; }}
+    />
+  {/if}
 
   <div class="section">
     <h3>
@@ -218,5 +240,14 @@
     padding: 0 0.25em;
     width: 100%;
     box-sizing: border-box;
+  }
+  .share-btn {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .shared-badge-row {
+    margin-bottom: 0.75rem;
   }
 </style>
