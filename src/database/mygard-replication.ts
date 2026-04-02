@@ -140,7 +140,7 @@ export async function startMygardReplication(opts: {
           const stripped = filtered.map((d) => {
             const { collection: _, ...rest } = d;
             if (rest._owner) {
-              rest.id = `${rest._owner}/${rest.id}`;
+              rest.id = `${rest._owner}~${rest.id}`;
             }
             return rest;
           });
@@ -410,7 +410,7 @@ export async function startMygardReplication(opts: {
             const documents = result.documents.map((d) => {
               const { collection: _, ...rest } = d;
               if (rest._owner) {
-                rest.id = `${rest._owner}/${rest.id}`;
+                rest.id = `${rest._owner}~${rest.id}`;
               }
               return rest;
             });
