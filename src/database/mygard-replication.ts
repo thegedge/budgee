@@ -15,6 +15,11 @@ const COLLECTION_TO_NSID: Record<string, string> = {
   dashboard_tables: "io.mygard.finance.dashboardTable",
 };
 
+// Reverse map: Lexicon NSID → RxDB collection name
+const NSID_TO_COLLECTION: Record<string, keyof DatabaseCollections> = Object.fromEntries(
+  Object.entries(COLLECTION_TO_NSID).map(([k, v]) => [v, k as keyof DatabaseCollections]),
+) as Record<string, keyof DatabaseCollections>;
+
 const SYNCABLE_COLLECTIONS: (keyof DatabaseCollections)[] = [
   "transactions",
   "tags",
@@ -126,6 +131,21 @@ export async function startMygardReplication(opts: {
       reconcileEpochChange(newEpoch).catch((err) =>
         console.error("[mygard] epoch_reset reconciliation failed:", err),
       );
+      return;
+    }
+
+    // capability_revoked event from server
+    if (msg.id === "stream" && msg.type === "capability_revoked") {
+      const event = msg as unknown as {
+        capability: { subject: string; object: string };
+        remainingGrants: { object: string }[];
+      };
+      console.log("[mygard] capability revoked:", event.capability.object);
+      removeRevokedDocs(
+        event.capability.subject,
+        event.capability.object,
+        event.remainingGrants,
+      ).catch((err) => console.error("[mygard] revocation cleanup failed:", err));
       return;
     }
 
@@ -370,6 +390,80 @@ export async function startMygardReplication(opts: {
       console.log(`[mygard] epoch reconciliation complete, now on epoch=${newEpoch}`);
     } finally {
       reconciling = false;
+    }
+  }
+
+  /**
+   * Remove local docs that are no longer accessible after a capability revocation.
+   *
+   * Shared docs are stored with id `${ownerDid}~${rkey}`. When a capability is
+   * revoked, we remove docs from the affected collection unless they're still
+   * covered by a remaining grant.
+   */
+  async function removeRevokedDocs(
+    ownerDid: string,
+    revokedObject: string,
+    remainingGrants: { object: string }[],
+  ): Promise<void> {
+    // Build set of still-covered objects (NSIDs and at:// URIs)
+    const stillCovered = new Set(remainingGrants.map((g) => g.object));
+
+    // Parse the revoked object to determine affected collection(s)
+    let revokedNsid: string;
+    let revokedRkey: string | undefined;
+
+    if (revokedObject.startsWith("at://")) {
+      // at://did:web:.../io.mygard.finance.transaction/rec1
+      const parts = revokedObject.slice(5).split("/");
+      revokedNsid = parts.slice(1, -1).join("/");
+      revokedRkey = parts[parts.length - 1]!;
+    } else {
+      revokedNsid = revokedObject;
+    }
+
+    // If a collection-wide grant still covers this NSID, nothing to remove
+    if (stillCovered.has(revokedNsid)) return;
+
+    const collectionName = NSID_TO_COLLECTION[revokedNsid];
+    if (!collectionName) return;
+
+    const collection: RxCollection = rxdb[collectionName];
+    const prefix = `${ownerDid}~`;
+
+    if (revokedRkey) {
+      // Record-specific revocation — only remove that one doc
+      const docId = `${prefix}${revokedRkey}`;
+      // But only if it's not still covered by a record-specific remaining grant
+      const recordUri = `at://${ownerDid}/${revokedNsid}/${revokedRkey}`;
+      if (stillCovered.has(recordUri)) return;
+
+      const doc = await collection.findOne(docId).exec();
+      if (doc) {
+        await doc.remove();
+        console.log(`[mygard] removed revoked doc ${docId} from ${collectionName}`);
+      }
+    } else {
+      // Collection-wide revocation — remove all docs from this owner
+      // that aren't still covered by record-specific remaining grants
+      const allDocs = await collection.find().exec();
+      const toRemove: string[] = [];
+
+      for (const doc of allDocs) {
+        const id = doc.primary as string;
+        if (!id.startsWith(prefix)) continue;
+
+        // Check if this specific record is still covered by a remaining grant
+        const rkey = id.slice(prefix.length);
+        const recordUri = `at://${ownerDid}/${revokedNsid}/${rkey}`;
+        if (stillCovered.has(recordUri)) continue;
+
+        toRemove.push(id);
+      }
+
+      if (toRemove.length > 0) {
+        await collection.bulkRemove(toRemove);
+        console.log(`[mygard] removed ${toRemove.length} revoked doc(s) from ${collectionName}`);
+      }
     }
   }
 
