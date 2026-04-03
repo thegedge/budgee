@@ -20,6 +20,7 @@
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TimeRangePicker from "../shared/TimeRangePicker.svelte";
   import type { TimeRange } from "../shared/TimeRangePicker.svelte";
+  import shareIcon from "lucide-static/icons/share-2.svg?raw";
   import "../styles/table.css";
 
   let { accountId = "" }: { accountId?: string } = $props();
@@ -156,17 +157,17 @@
             {/each}
           </select>
         </div>
-        <button class="share-btn" onclick={() => { showShareModal = true; }}>Share</button>
       {/if}
     </div>
 
-    {#if account._owner}
-      <div class="shared-badge-row">
+    <div class="sharing-row">
+      {#if account._owner}
         <SharedBadge ownerDid={account._owner} />
-      </div>
-    {:else}
-      <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" />
-    {/if}
+      {:else}
+        <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" />
+        <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon}</button>
+      {/if}
+    </div>
 
     {#if showShareModal}
       <ShareModal
@@ -262,14 +263,30 @@
     background: var(--budgee-surface);
     color: var(--budgee-text);
   }
-  .share-btn {
-    margin-top: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-  }
-  .shared-badge-row {
+  .sharing-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     margin-bottom: 0.75rem;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: 1px solid var(--budgee-border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--budgee-text-muted);
+  }
+  .share-btn:hover {
+    color: var(--budgee-text);
+    border-color: var(--budgee-text-muted);
+  }
+  .share-btn :global(svg) {
+    width: 1rem;
+    height: 1rem;
   }
   .section-chart {
     border: 1px solid var(--budgee-border);

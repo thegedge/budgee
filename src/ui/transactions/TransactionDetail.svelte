@@ -17,6 +17,7 @@
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TagAutocomplete from "../tags/TagAutocomplete.svelte";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
+  import shareIcon from "lucide-static/icons/share-2.svg?raw";
   import "../styles/button.css";
   import "../styles/table.css";
 
@@ -175,18 +176,16 @@
       <div class="meta">
         {tx.date}{#if merchant} &middot; {merchant.name}{:else if tx.merchantId} &middot; <span class="unknown-merchant">Unknown merchant</span>{/if}
       </div>
-      {#if !tx._owner}
-        <button class="share-btn" onclick={() => { showShareModal = true; }}>Share</button>
-      {/if}
     </div>
 
-    {#if tx._owner}
-      <div class="shared-badge-row">
+    <div class="sharing-row">
+      {#if tx._owner}
         <SharedBadge ownerDid={tx._owner} />
-      </div>
-    {:else}
-      <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" />
-    {/if}
+      {:else}
+        <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" />
+        <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon}</button>
+      {/if}
+    </div>
 
     <div class="section">
       <h3>Tags</h3>
@@ -344,15 +343,30 @@
     margin-bottom: 1rem;
     display: inline-block;
   }
-  .share-btn {
-    margin-top: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    align-self: flex-start;
-  }
-  .shared-badge-row {
+  .sharing-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     margin-bottom: 0.75rem;
+  }
+  .share-btn {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: 1px solid var(--budgee-border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--budgee-text-muted);
+  }
+  .share-btn:hover {
+    color: var(--budgee-text);
+    border-color: var(--budgee-text-muted);
+  }
+  .share-btn :global(svg) {
+    width: 1rem;
+    height: 1rem;
   }
   .unknown-merchant {
     color: var(--budgee-text-muted);
