@@ -2,6 +2,7 @@ import { Subject } from "rxjs";
 import type { RxCollection, RxDatabase } from "rxdb/plugins/core";
 import { replicateRxCollection, type RxReplicationState } from "rxdb/plugins/replication";
 import type { DatabaseCollections } from "./Db";
+import { setKnownDids } from "../knownDids.svelte";
 
 // Map RxDB collection names to Lexicon NSIDs
 const COLLECTION_TO_NSID: Record<string, string> = {
@@ -493,6 +494,13 @@ export async function startMygardReplication(opts: {
         for (const rep of replications) {
           rep.reSync();
         }
+      }
+
+      try {
+        const dids = (await sendRpc("list_dids", [])) as string[];
+        setKnownDids(dids);
+      } catch {
+        // Non-critical — share modal will still work with manual DID entry
       }
     } catch (err) {
       console.error("[mygard] subscribe failed:", err);
