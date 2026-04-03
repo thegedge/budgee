@@ -7,6 +7,7 @@ export class Account {
   readonly type?: AccountType;
   readonly alias?: string;
   readonly _owner?: string;
+  readonly _permission?: string;
 
   constructor(data: AccountRecord) {
     this.id = data.id;
@@ -14,6 +15,7 @@ export class Account {
     this.type = data.type;
     this.alias = data.alias || undefined;
     this._owner = data._owner;
+    this._permission = data._permission;
   }
 
   static async subscribe(callback: () => void) {

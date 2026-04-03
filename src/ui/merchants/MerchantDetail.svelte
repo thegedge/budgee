@@ -8,6 +8,7 @@
   import { useSubscription } from "../../lib/subscribe.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
+  import { isReadOnly, isShared } from "../shared/permissions";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
   import ShareModal from "../shared/ShareModal.svelte";
@@ -119,7 +120,7 @@
         />
       {:else}
         {merchant.name}
-        {#if !merchant._owner}
+        {#if !isReadOnly(merchant)}
           <button class="edit-name-btn" onclick={startEditingName}>✎</button>
         {/if}
       {/if}
@@ -129,8 +130,8 @@
   <div class="sharing-card">
     <h3>Sharing</h3>
     <div class="sharing-row">
-      {#if merchant._owner}
-        <SharedBadge ownerDid={merchant._owner} />
+      {#if isShared(merchant)}
+        <SharedBadge ownerDid={merchant._owner!} />
       {:else}
         <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.merchant/{merchantId}" />
         <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>

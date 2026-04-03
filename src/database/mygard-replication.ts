@@ -3,6 +3,7 @@ import type { RxCollection, RxDatabase } from "rxdb/plugins/core";
 import { replicateRxCollection, type RxReplicationState } from "rxdb/plugins/replication";
 import type { DatabaseCollections } from "./Db";
 import { setKnownDids } from "../knownDids.svelte";
+import { showToast } from "../ui/shared/toast";
 
 // Map RxDB collection names to Lexicon NSIDs
 const COLLECTION_TO_NSID: Record<string, string> = {
@@ -138,7 +139,7 @@ export async function startMygardReplication(opts: {
     if (msg.id === "stream" && msg.type === "capability_revoked") {
       const event = msg as unknown as {
         capability: { subject: string; object: string };
-        remainingGrants: { object: string }[];
+        remainingGrants: { object: string; permission: string }[];
       };
       console.log("[mygard] capability revoked:", event.capability.object);
       removeRevokedDocs(
@@ -400,29 +401,38 @@ export async function startMygardReplication(opts: {
    * revoked, we remove docs from the affected collection unless they're still
    * covered by a remaining grant.
    */
+  function effectivePermission(
+    remainingGrants: { object: string; permission: string }[],
+    nsid: string,
+    ownerDid: string,
+    rkey: string,
+  ): string | null {
+    const RANK: Record<string, number> = { read: 0, write: 1, admin: 2 };
+    let best: string | null = null;
+    const recordUri = `at://${ownerDid}/${nsid}/${rkey}`;
+    for (const g of remainingGrants) {
+      if (g.object !== nsid && g.object !== recordUri) continue;
+      if (!best || (RANK[g.permission] ?? 0) > (RANK[best] ?? 0)) best = g.permission;
+    }
+    return best;
+  }
+
   async function removeRevokedDocs(
     ownerDid: string,
     revokedObject: string,
-    remainingGrants: { object: string }[],
+    remainingGrants: { object: string; permission: string }[],
   ): Promise<void> {
-    // Build set of still-covered objects (NSIDs and at:// URIs)
-    const stillCovered = new Set(remainingGrants.map((g) => g.object));
-
     // Parse the revoked object to determine affected collection(s)
     let revokedNsid: string;
     let revokedRkey: string | undefined;
 
     if (revokedObject.startsWith("at://")) {
-      // at://did:web:.../io.mygard.finance.transaction/rec1
       const parts = revokedObject.slice(5).split("/");
       revokedNsid = parts.slice(1, -1).join("/");
       revokedRkey = parts[parts.length - 1]!;
     } else {
       revokedNsid = revokedObject;
     }
-
-    // If a collection-wide grant still covers this NSID, nothing to remove
-    if (stillCovered.has(revokedNsid)) return;
 
     const collectionName = NSID_TO_COLLECTION[revokedNsid];
     if (!collectionName) return;
@@ -431,20 +441,36 @@ export async function startMygardReplication(opts: {
     const prefix = `${ownerDid}~`;
 
     if (revokedRkey) {
-      // Record-specific revocation — only remove that one doc
+      // Record-specific revocation — only affects that one doc
       const docId = `${prefix}${revokedRkey}`;
-      // But only if it's not still covered by a record-specific remaining grant
-      const recordUri = `at://${ownerDid}/${revokedNsid}/${revokedRkey}`;
-      if (stillCovered.has(recordUri)) return;
+      const newPerm = effectivePermission(remainingGrants, revokedNsid, ownerDid, revokedRkey);
 
-      const doc = await collection.findOne(docId).exec();
-      if (doc) {
-        await doc.remove();
-        console.log(`[mygard] removed revoked doc ${docId} from ${collectionName}`);
+      if (newPerm === null) {
+        const doc = await collection.findOne(docId).exec();
+        if (doc) {
+          await doc.remove();
+          console.log(`[mygard] removed revoked doc ${docId} from ${collectionName}`);
+        }
+      } else {
+        const doc = await collection.findOne(docId).exec();
+        if (doc) {
+          const current = (doc.toJSON(true) as Record<string, unknown>)._permission as
+            | string
+            | undefined;
+          if (current !== newPerm) {
+            await doc.incrementalPatch({ _permission: newPerm } as never);
+            const RANK: Record<string, number> = { read: 0, write: 1, admin: 2 };
+            if ((RANK[current ?? ""] ?? 0) > (RANK[newPerm] ?? 0)) {
+              showToast({
+                message: "Edit access revoked \u2014 record is now read-only",
+                type: "info",
+              });
+            }
+          }
+        }
       }
     } else {
-      // Collection-wide revocation — remove all docs from this owner
-      // that aren't still covered by record-specific remaining grants
+      // Collection-wide revocation — check each doc from this owner
       const allDocs = await collection.find().exec();
       const toRemove: string[] = [];
 
@@ -452,17 +478,39 @@ export async function startMygardReplication(opts: {
         const id = doc.primary as string;
         if (!id.startsWith(prefix)) continue;
 
-        // Check if this specific record is still covered by a remaining grant
         const rkey = id.slice(prefix.length);
-        const recordUri = `at://${ownerDid}/${revokedNsid}/${rkey}`;
-        if (stillCovered.has(recordUri)) continue;
+        const newPerm = effectivePermission(remainingGrants, revokedNsid, ownerDid, rkey);
 
-        toRemove.push(id);
+        if (newPerm === null) {
+          toRemove.push(id);
+        } else {
+          const current = (doc.toJSON(true) as Record<string, unknown>)._permission as
+            | string
+            | undefined;
+          if (current !== newPerm) {
+            await doc.incrementalPatch({ _permission: newPerm } as never);
+          }
+        }
       }
 
       if (toRemove.length > 0) {
         await collection.bulkRemove(toRemove);
         console.log(`[mygard] removed ${toRemove.length} revoked doc(s) from ${collectionName}`);
+      }
+
+      // Check if any docs were downgraded (not removed) and show a single toast
+      const remainingDocs = await collection.find().exec();
+      const downgraded = remainingDocs.some((doc) => {
+        const id = doc.primary as string;
+        if (!id.startsWith(prefix)) return false;
+        const perm = (doc.toJSON(true) as Record<string, unknown>)._permission;
+        return perm === "read";
+      });
+      if (downgraded && toRemove.length === 0) {
+        showToast({
+          message: "Edit access revoked \u2014 record is now read-only",
+          type: "info",
+        });
       }
     }
   }

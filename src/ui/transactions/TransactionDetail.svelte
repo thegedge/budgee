@@ -12,6 +12,7 @@
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
   import { cssVar } from "../cssVar";
+  import { isReadOnly, isShared } from "../shared/permissions";
   import { useBusy } from "../../lib/busy.svelte";
   import { useSubscription } from "../../lib/subscribe.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
@@ -181,8 +182,8 @@
     <div class="sharing-card">
       <h3>Sharing</h3>
       <div class="sharing-row">
-        {#if tx._owner}
-          <SharedBadge ownerDid={tx._owner} />
+        {#if isShared(tx)}
+          <SharedBadge ownerDid={tx._owner!} />
         {:else}
           <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" />
           <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>
@@ -192,7 +193,7 @@
 
     <div class="section">
       <h3>Tags</h3>
-      {#if tx._owner}
+      {#if isReadOnly(tx)}
         <div class="readonly-overlay">
           <TagAutocomplete
             {tags}
@@ -213,7 +214,7 @@
       {/if}
     </div>
 
-    {#if !tx.merchantId && !tx._owner}
+    {#if !tx.merchantId && !isReadOnly(tx)}
       <button class="create-rule" onclick={() => createRule(tx)}>
         Create Merchant Rule
       </button>
@@ -221,7 +222,7 @@
 
     <div class="section">
       <h3>Notes</h3>
-      <textarea value={tx.memo ?? ""} onblur={onMemoBlur} placeholder="Add notes..." disabled={!!tx._owner}></textarea>
+      <textarea value={tx.memo ?? ""} onblur={onMemoBlur} placeholder="Add notes..." disabled={isReadOnly(tx)}></textarea>
     </div>
 
     {#if relatedTransactions.length > 0}

@@ -8,6 +8,10 @@ exports[`schema snapshots > accounts schema should match snapshot 1`] = `
       "maxLength": 256,
       "type": "string",
     },
+    "_permission": {
+      "maxLength": 10,
+      "type": "string",
+    },
     "alias": {
       "type": "string",
     },
@@ -26,7 +30,7 @@ exports[`schema snapshots > accounts schema should match snapshot 1`] = `
     "id",
     "name",
   ],
-  "version": 2,
+  "version": 3,
 }
 `;
 
@@ -55,6 +59,10 @@ exports[`schema snapshots > dashboard_charts schema should match snapshot 1`] = 
   "properties": {
     "_owner": {
       "maxLength": 256,
+      "type": "string",
+    },
+    "_permission": {
+      "maxLength": 10,
       "type": "string",
     },
     "chartType": {
@@ -113,7 +121,7 @@ exports[`schema snapshots > dashboard_charts schema should match snapshot 1`] = 
     "granularity",
     "position",
   ],
-  "version": 2,
+  "version": 3,
 }
 `;
 
@@ -123,6 +131,10 @@ exports[`schema snapshots > dashboard_tables schema should match snapshot 1`] = 
   "properties": {
     "_owner": {
       "maxLength": 256,
+      "type": "string",
+    },
+    "_permission": {
+      "maxLength": 10,
       "type": "string",
     },
     "colSpan": {
@@ -158,7 +170,7 @@ exports[`schema snapshots > dashboard_tables schema should match snapshot 1`] = 
     "columns",
     "position",
   ],
-  "version": 1,
+  "version": 2,
 }
 `;
 
@@ -168,6 +180,10 @@ exports[`schema snapshots > merchant_rules schema should match snapshot 1`] = `
   "properties": {
     "_owner": {
       "maxLength": 256,
+      "type": "string",
+    },
+    "_permission": {
+      "maxLength": 10,
       "type": "string",
     },
     "accountId": {
@@ -213,7 +229,7 @@ exports[`schema snapshots > merchant_rules schema should match snapshot 1`] = `
     "conditions",
     "tagIds",
   ],
-  "version": 2,
+  "version": 3,
 }
 `;
 
@@ -225,6 +241,10 @@ exports[`schema snapshots > merchants schema should match snapshot 1`] = `
   "properties": {
     "_owner": {
       "maxLength": 256,
+      "type": "string",
+    },
+    "_permission": {
+      "maxLength": 10,
       "type": "string",
     },
     "id": {
@@ -240,7 +260,7 @@ exports[`schema snapshots > merchants schema should match snapshot 1`] = `
     "id",
     "name",
   ],
-  "version": 1,
+  "version": 2,
 }
 `;
 
@@ -274,6 +294,10 @@ exports[`schema snapshots > tags schema should match snapshot 1`] = `
       "maxLength": 256,
       "type": "string",
     },
+    "_permission": {
+      "maxLength": 10,
+      "type": "string",
+    },
     "color": {
       "type": "string",
     },
@@ -293,7 +317,7 @@ exports[`schema snapshots > tags schema should match snapshot 1`] = `
     "id",
     "name",
   ],
-  "version": 1,
+  "version": 2,
 }
 `;
 
@@ -305,6 +329,10 @@ exports[`schema snapshots > transactions schema should match snapshot 1`] = `
   "properties": {
     "_owner": {
       "maxLength": 256,
+      "type": "string",
+    },
+    "_permission": {
+      "maxLength": 10,
       "type": "string",
     },
     "accountId": {
@@ -346,6 +374,6 @@ exports[`schema snapshots > transactions schema should match snapshot 1`] = `
     "description",
     "tagIds",
   ],
-  "version": 2,
+  "version": 3,
 }
 `;

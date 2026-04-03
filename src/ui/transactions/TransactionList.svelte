@@ -6,6 +6,7 @@
   import { importTransactions, type ImportMode } from "../../import/importTransactions";
   import type { ColumnMapping } from "../../import/parseCsv";
   import { showToast } from "../shared/toast";
+  import { isReadOnly, isShared } from "../shared/permissions";
   import { navigate } from "../navigate";
   import { useBusy } from "../../lib/busy.svelte";
   import { useSubscription } from "../../lib/subscribe.svelte";
@@ -368,7 +369,7 @@
               type="checkbox"
               checked={selectedIds.has(t.id)}
               onchange={() => toggleSelection(t.id)}
-              disabled={!!t._owner}
+              disabled={isReadOnly(t)}
             />
           </td>
           <td class="col-date">{humanizeDate(t.date)}</td>
@@ -388,7 +389,7 @@
           </td>
           <td class="col-grow">
             {t.description}
-            {#if t._owner}
+            {#if isShared(t)}
               <span class="shared-lock" aria-label="Shared record">{@html lockIcon}</span>
             {/if}
           </td>

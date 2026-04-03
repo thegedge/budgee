@@ -13,6 +13,7 @@ export class Transaction {
   readonly accountId?: string;
   readonly tagIds: string[];
   readonly _owner?: string;
+  readonly _permission?: string;
 
   constructor(data: TransactionRecord) {
     this.id = data.id;
@@ -24,6 +25,7 @@ export class Transaction {
     this.accountId = data.accountId;
     this.tagIds = data.tagIds;
     this._owner = data._owner;
+    this._permission = data._permission;
   }
 
   static async subscribe(callback: () => void) {

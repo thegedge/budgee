@@ -5,11 +5,13 @@ export class Merchant {
   readonly id: string;
   readonly name: string;
   readonly _owner?: string;
+  readonly _permission?: string;
 
   constructor(data: MerchantRecord) {
     this.id = data.id;
     this.name = data.name;
     this._owner = data._owner;
+    this._permission = data._permission;
   }
 
   static async subscribe(callback: () => void) {

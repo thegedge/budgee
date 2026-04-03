@@ -11,6 +11,7 @@
   import { useBusy } from "../../lib/busy.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
+  import { isReadOnly, isShared } from "../shared/permissions";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import AccountName from "../shared/AccountName.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
@@ -131,7 +132,7 @@
 
     <div class="header">
       <h2>
-        {#if !account._owner && editingName}
+        {#if !isReadOnly(account) && editingName}
           <input
             class="edit-input"
             bind:this={editInput}
@@ -139,7 +140,7 @@
             onkeydown={saveName}
             onblur={onNameBlur}
           />
-        {:else if !account._owner}
+        {:else if !isReadOnly(account)}
           <span class="editable" role="button" tabindex="0" onclick={startEditing} onkeydown={(e) => e.key === "Enter" && startEditing()}>
             <AccountName name={account.name} alias={account.alias} />
           </span>
@@ -147,7 +148,7 @@
           <AccountName name={account.name} alias={account.alias} />
         {/if}
       </h2>
-      {#if !account._owner}
+      {#if !isReadOnly(account)}
         <div class="meta">
           Type:
           <select onchange={onTypeChange}>
@@ -163,8 +164,8 @@
     <div class="sharing-card">
       <h3>Sharing</h3>
       <div class="sharing-row">
-        {#if account._owner}
-          <SharedBadge ownerDid={account._owner} />
+        {#if isShared(account)}
+          <SharedBadge ownerDid={account._owner!} />
         {:else}
           <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" />
           <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>
