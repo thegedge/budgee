@@ -67,7 +67,6 @@
 
 <style>
   .grantee {
-    font-family: monospace;
     font-size: 0.85em;
   }
   .permission {

@@ -126,13 +126,16 @@
     </h2>
   </div>
 
-  <div class="sharing-row">
-    {#if merchant._owner}
-      <SharedBadge ownerDid={merchant._owner} />
-    {:else}
-      <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.merchant/{merchantId}" />
-      <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon}</button>
-    {/if}
+  <div class="sharing-card">
+    <h3>Sharing</h3>
+    <div class="sharing-row">
+      {#if merchant._owner}
+        <SharedBadge ownerDid={merchant._owner} />
+      {:else}
+        <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.merchant/{merchantId}" />
+        <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>
+      {/if}
+    </div>
   </div>
 
   {#if showShareModal}
@@ -243,26 +246,38 @@
     width: 100%;
     box-sizing: border-box;
   }
+  .sharing-card {
+    border: 1px solid var(--budgee-border);
+    padding: 1rem;
+    border-radius: 4px;
+    background: var(--budgee-surface);
+    margin-bottom: 1rem;
+
+    & h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+  }
   .sharing-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
-    margin-bottom: 0.75rem;
   }
   .share-btn {
     display: inline-flex;
     align-items: center;
-    background: none;
-    border: 1px solid var(--budgee-border);
+    gap: 0.35rem;
+    background: var(--budgee-primary, lch(72.1% 25.1 246.4));
+    border: none;
     border-radius: 4px;
     cursor: pointer;
-    padding: 4px;
-    color: var(--budgee-text-muted);
+    padding: 4px 10px;
+    color: white;
+    font-size: 0.85rem;
   }
   .share-btn:hover {
-    color: var(--budgee-text);
-    border-color: var(--budgee-text-muted);
+    filter: brightness(0.9);
   }
   .share-btn :global(svg) {
     width: 1rem;
