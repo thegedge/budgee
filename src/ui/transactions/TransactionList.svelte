@@ -22,6 +22,7 @@
   import "../styles/button.css";
   import "../styles/input.css";
   import lockIcon from "lucide-static/icons/lock.svg?raw";
+  import { resolveMerchant } from "./resolveMerchant";
 
   type ImportDetail = {
     data: Record<string, string>[];
@@ -75,9 +76,9 @@
     return tagMap.get(tagId)?.name ?? `#${tagId.replace(/^tag-/, "")}`;
   }
 
-  function merchantName(merchantId: string | undefined): string {
+  function merchantName(merchantId: string | undefined, owner?: string): string {
     if (!merchantId) return "";
-    return merchants.get(merchantId) ?? "Unknown merchant";
+    return resolveMerchant(merchants, merchantId, owner)?.name ?? "Unknown merchant";
   }
 
   function humanizeDate(dateStr: string): string {
@@ -215,7 +216,7 @@
   const comparators = {
     date: (a: Transaction, b: Transaction) => a.date.localeCompare(b.date),
     merchant: (a: Transaction, b: Transaction) =>
-      merchantName(a.merchantId).localeCompare(merchantName(b.merchantId)),
+      merchantName(a.merchantId, a._owner).localeCompare(merchantName(b.merchantId, b._owner)),
     description: (a: Transaction, b: Transaction) => a.description.localeCompare(b.description),
     amount: (a: Transaction, b: Transaction) => a.amount - b.amount,
     tags: (a: Transaction, b: Transaction) => {
@@ -232,7 +233,7 @@
     const lower = filter.toLowerCase();
     if (t.description.toLowerCase().includes(lower)) return true;
     if (t.tagIds.some((id) => tagName(id).toLowerCase().includes(lower))) return true;
-    if (t.merchantId && merchants.get(t.merchantId)?.toLowerCase().includes(lower)) return true;
+    if (t.merchantId && resolveMerchant(merchants, t.merchantId, t._owner)?.name.toLowerCase().includes(lower)) return true;
     if (t.date.includes(lower)) return true;
     if (t.amount.toFixed(2).includes(lower)) return true;
     return false;
@@ -372,14 +373,17 @@
           </td>
           <td class="col-date">{humanizeDate(t.date)}</td>
           <td>
-            {#if t.merchantId && merchants.has(t.merchantId)}
-              <a
-                class="entity-link"
-                href="/merchants/{t.merchantId}"
-                onclick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/merchants/${t.merchantId}`); }}
-              >{merchants.get(t.merchantId!)}</a>
-            {:else if t.merchantId}
-              <span class="unknown-merchant">Unknown merchant</span>
+            {#if t.merchantId}
+              {@const resolved = resolveMerchant(merchants, t.merchantId, t._owner)}
+              {#if resolved}
+                <a
+                  class="entity-link"
+                  href="/merchants/{resolved.id}"
+                  onclick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/merchants/${resolved.id}`); }}
+                >{resolved.name}</a>
+              {:else}
+                <span class="unknown-merchant">Unknown merchant</span>
+              {/if}
             {/if}
           </td>
           <td class="col-grow">
