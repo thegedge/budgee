@@ -16,6 +16,7 @@
   import PaginatedTable from "../shared/PaginatedTable.svelte";
   import ShareModal from "../shared/ShareModal.svelte";
   import SharedBadge from "../shared/SharedBadge.svelte";
+  import SharedWithList from "../shared/SharedWithList.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TimeRangePicker from "../shared/TimeRangePicker.svelte";
   import type { TimeRange } from "../shared/TimeRangePicker.svelte";
@@ -163,6 +164,8 @@
       <div class="shared-badge-row">
         <SharedBadge ownerDid={account._owner} />
       </div>
+    {:else}
+      <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" />
     {/if}
 
     {#if showShareModal}

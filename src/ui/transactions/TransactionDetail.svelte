@@ -7,6 +7,7 @@
   import { cachedDid } from "../../identity";
   import ShareModal from "../shared/ShareModal.svelte";
   import SharedBadge from "../shared/SharedBadge.svelte";
+  import SharedWithList from "../shared/SharedWithList.svelte";
   import { movingMedian } from "../../charting/movingMedian";
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
@@ -183,6 +184,8 @@
       <div class="shared-badge-row">
         <SharedBadge ownerDid={tx._owner} />
       </div>
+    {:else}
+      <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" />
     {/if}
 
     <div class="section">
