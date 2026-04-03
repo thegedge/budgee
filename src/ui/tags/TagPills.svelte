@@ -8,7 +8,7 @@
 
   function tagInfo(tagId: string): { name: string; svg: string | null; bg: string; fg: string } {
     const tag = tags.find((t) => t.id === tagId);
-    if (!tag) return { name: `#${tagId}`, svg: null, bg: "var(--budgee-primary)", fg: "white" };
+    if (!tag) return { name: `#${tagId.replace(/^tag-/, "")}`, svg: null, bg: "var(--budgee-primary)", fg: "white" };
     const adapted = tag.color ? adaptTagColor(tag.color) : null;
     const bg = adapted ?? "var(--budgee-primary)";
     const fg = adapted ? contrastTextColor(adapted) : "white";

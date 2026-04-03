@@ -197,7 +197,7 @@
   }
 
   function tagName(tagId: string): string {
-    return tags.find((t) => t.id === tagId)?.name ?? `#${tagId}`;
+    return tags.find((t) => t.id === tagId)?.name ?? `#${tagId.replace(/^tag-/, "")}`;
   }
 
   function merchantName(merchantId: string | undefined): string {

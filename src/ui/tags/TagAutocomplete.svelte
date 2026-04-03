@@ -42,7 +42,7 @@
 
   function tagLabel(tagId: string): { name: string; svg: string | null } {
     const tag = tags.find((t) => t.id === tagId);
-    if (!tag) return { name: `#${tagId}`, svg: null };
+    if (!tag) return { name: `#${tagId.replace(/^tag-/, "")}`, svg: null };
     return { name: tag.name, svg: tag.icon ? ICON_MAP[tag.icon] ?? null : null };
   }
 

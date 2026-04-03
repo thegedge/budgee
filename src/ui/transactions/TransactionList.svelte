@@ -72,7 +72,7 @@
   }
 
   function tagName(tagId: string): string {
-    return tagMap.get(tagId)?.name ?? `#${tagId}`;
+    return tagMap.get(tagId)?.name ?? `#${tagId.replace(/^tag-/, "")}`;
   }
 
   function merchantName(merchantId: string | undefined): string {
