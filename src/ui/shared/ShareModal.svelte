@@ -1,5 +1,6 @@
 <script lang="ts">
   import Modal from "./Modal.svelte";
+  import { knownDids } from "../../knownDids.svelte";
 
   let { objectUri, onClose }: { objectUri: string; onClose: () => void } = $props();
 
@@ -9,6 +10,8 @@
   let grants = $state<{ id: string; grantee: string; permission: string }[]>([]);
   let loadError = $state("");
   let submitError = $state("");
+
+  let suggestions = $derived(knownDids().filter((did) => !grants.some((g) => g.grantee === did)));
 
   function serverUrl(): string {
     return localStorage.getItem("budgee-sync-url") ?? "";
@@ -88,7 +91,13 @@
           placeholder="did:web:example.com:users:alice"
           bind:value={grantee}
           disabled={submitting}
+          list="known-dids"
         />
+        <datalist id="known-dids">
+          {#each suggestions as did}
+            <option value={did}></option>
+          {/each}
+        </datalist>
       </div>
       <div class="field">
         <label for="permission">Permission</label>
