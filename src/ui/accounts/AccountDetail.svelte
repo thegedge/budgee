@@ -11,7 +11,8 @@
   import { useBusy } from "../../lib/busy.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
-  import { isReadOnly } from "../shared/permissions";
+  import { isReadOnly, isShared } from "../shared/permissions";
+  import { showToast } from "../shared/toast";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import AccountName from "../shared/AccountName.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
@@ -33,7 +34,13 @@
 
   useSubscription([Account.subscribe, Transaction.subscribe], async () => {
     if (!accountId) return;
+    const prev = account;
     account = await Account.get(accountId);
+    if (!account && prev && isShared(prev)) {
+      showToast({ message: "Shared account is no longer available", type: "info" });
+      navigate("/accounts");
+      return;
+    }
     await loadTransactions();
   });
 

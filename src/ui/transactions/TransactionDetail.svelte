@@ -8,7 +8,8 @@
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
   import { cssVar } from "../cssVar";
-  import { isReadOnly } from "../shared/permissions";
+  import { isReadOnly, isShared } from "../shared/permissions";
+  import { showToast } from "../shared/toast";
   import { useBusy } from "../../lib/busy.svelte";
   import { useSubscription } from "../../lib/subscribe.svelte";
   import SharingCard from "../shared/SharingCard.svelte";
@@ -39,8 +40,15 @@
   async function load() {
     if (!transactionId) return;
 
+    const prev = transaction;
     transaction = await Transaction.get(transactionId);
     tags = await Tag.all();
+
+    if (!transaction && prev && isShared(prev)) {
+      showToast({ message: "Shared transaction is no longer available", type: "info" });
+      navigate("/transactions");
+      return;
+    }
 
     if (transaction?.merchantId) {
       merchant = await Merchant.get(transaction.merchantId);

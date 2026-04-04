@@ -8,7 +8,8 @@
   import { useSubscription } from "../../lib/subscribe.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
-  import { isReadOnly } from "../shared/permissions";
+  import { isReadOnly, isShared } from "../shared/permissions";
+  import { showToast } from "../shared/toast";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
   import SharingCard from "../shared/SharingCard.svelte";
@@ -42,10 +43,16 @@
 
   async function load() {
     if (!merchantId) return;
+    const prev = merchant;
     const [m, txs] = await Promise.all([
       Merchant.get(merchantId),
       Transaction.forMerchant(merchantId),
     ]);
+    if (!m && prev && isShared(prev)) {
+      showToast({ message: "Shared merchant is no longer available", type: "info" });
+      navigate("/merchants");
+      return;
+    }
     merchant = m;
     transactions = txs;
   }
