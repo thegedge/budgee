@@ -4,21 +4,18 @@
   import { Tag } from "../../models/Tag";
   import { Merchant } from "../../models/Merchant";
   import { formatAmount } from "../../formatAmount";
-  import { cachedDid } from "../../identity";
-  import ShareModal from "../shared/ShareModal.svelte";
-  import SharedBadge from "../shared/SharedBadge.svelte";
-  import SharedWithList from "../shared/SharedWithList.svelte";
   import { movingMedian } from "../../charting/movingMedian";
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
   import { cssVar } from "../cssVar";
-  import { isReadOnly, isShared } from "../shared/permissions";
+  import { isReadOnly } from "../shared/permissions";
   import { useBusy } from "../../lib/busy.svelte";
   import { useSubscription } from "../../lib/subscribe.svelte";
+  import SharingCard from "../shared/SharingCard.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TagAutocomplete from "../tags/TagAutocomplete.svelte";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
-  import shareIcon from "lucide-static/icons/share-2.svg?raw";
+  import { cachedDid } from "../../identity";
   import "../styles/button.css";
   import "../styles/table.css";
 
@@ -34,7 +31,6 @@
   let merchant = $state<Merchant | undefined>(undefined);
   let relatedTransactions = $state<Transaction[]>([]);
   let monthlySpend = $state<MonthlySpend[]>([]);
-  let showShareModal = $state(false);
 
   const { busy, withBusy } = useBusy();
 
@@ -179,17 +175,7 @@
       </div>
     </div>
 
-    <div class="sharing-card">
-      <h3>Sharing</h3>
-      <div class="sharing-row">
-        {#if isShared(tx)}
-          <SharedBadge ownerDid={tx._owner!} />
-        {:else}
-          <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" />
-          <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>
-        {/if}
-      </div>
-    </div>
+    <SharingCard objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}" ownerDid={tx._owner} />
 
     <div class="section">
       <h3>Tags</h3>
@@ -276,12 +262,6 @@
       </div>
     {/if}
 
-    {#if showShareModal}
-      <ShareModal
-        objectUri="at://{cachedDid()}/io.mygard.finance.transaction/{transactionId}"
-        onClose={() => { showShareModal = false; }}
-      />
-    {/if}
   {/if}
 </div>
 
@@ -346,43 +326,6 @@
     font-size: 0.9rem;
     margin-bottom: 1rem;
     display: inline-block;
-  }
-  .sharing-card {
-    border: 1px solid var(--budgee-border);
-    padding: 1rem;
-    border-radius: 4px;
-    background: var(--budgee-surface);
-    margin-bottom: 1rem;
-
-    & h3 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-    }
-  }
-  .sharing-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .share-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: var(--budgee-primary, lch(72.1% 25.1 246.4));
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 4px 10px;
-    color: white;
-    font-size: 0.85rem;
-  }
-  .share-btn:hover {
-    filter: brightness(0.9);
-  }
-  .share-btn :global(svg) {
-    width: 1rem;
-    height: 1rem;
   }
   .unknown-merchant {
     color: var(--budgee-text-muted);

@@ -11,17 +11,14 @@
   import { useBusy } from "../../lib/busy.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
-  import { isReadOnly, isShared } from "../shared/permissions";
+  import { isReadOnly } from "../shared/permissions";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
   import AccountName from "../shared/AccountName.svelte";
   import PaginatedTable from "../shared/PaginatedTable.svelte";
-  import ShareModal from "../shared/ShareModal.svelte";
-  import SharedBadge from "../shared/SharedBadge.svelte";
-  import SharedWithList from "../shared/SharedWithList.svelte";
+  import SharingCard from "../shared/SharingCard.svelte";
   import SkeletonLoader from "../shared/SkeletonLoader.svelte";
   import TimeRangePicker from "../shared/TimeRangePicker.svelte";
   import type { TimeRange } from "../shared/TimeRangePicker.svelte";
-  import shareIcon from "lucide-static/icons/share-2.svg?raw";
   import "../styles/table.css";
 
   let { accountId = "" }: { accountId?: string } = $props();
@@ -31,7 +28,6 @@
   let editingName = $state(false);
   let timeRange = $state<TimeRange>(null);
   let editInput = $state<HTMLInputElement | null>(null);
-  let showShareModal = $state(false);
 
   const { busy, withBusy } = useBusy();
 
@@ -161,24 +157,7 @@
       {/if}
     </div>
 
-    <div class="sharing-card">
-      <h3>Sharing</h3>
-      <div class="sharing-row">
-        {#if isShared(account)}
-          <SharedBadge ownerDid={account._owner!} />
-        {:else}
-          <SharedWithList objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" />
-          <button class="share-btn" onclick={() => { showShareModal = true; }}>{@html shareIcon} Share</button>
-        {/if}
-      </div>
-    </div>
-
-    {#if showShareModal}
-      <ShareModal
-        objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}"
-        onClose={() => { showShareModal = false; }}
-      />
-    {/if}
+    <SharingCard objectUri="at://{cachedDid()}/io.mygard.finance.account/{accountId}" ownerDid={account._owner} />
 
     {#if filteredTransactions === null}
       <SkeletonLoader variant="card" rows={3} />
@@ -266,43 +245,6 @@
     border-radius: 4px;
     background: var(--budgee-surface);
     color: var(--budgee-text);
-  }
-  .sharing-card {
-    border: 1px solid var(--budgee-border);
-    padding: 1rem;
-    border-radius: 4px;
-    background: var(--budgee-surface);
-    margin-bottom: 1rem;
-
-    & h3 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-    }
-  }
-  .sharing-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .share-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: var(--budgee-primary, lch(72.1% 25.1 246.4));
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 4px 10px;
-    color: white;
-    font-size: 0.85rem;
-  }
-  .share-btn:hover {
-    filter: brightness(0.9);
-  }
-  .share-btn :global(svg) {
-    width: 1rem;
-    height: 1rem;
   }
   .section-chart {
     border: 1px solid var(--budgee-border);
