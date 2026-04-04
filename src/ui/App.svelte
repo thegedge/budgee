@@ -245,9 +245,8 @@
       <a href={navHref("/tags")} class:active={isActive("/tags")}>{@html tagIcon} Tags</a>
       <a href={navHref("/rules")} class:active={isActive("/rules")}>{@html listFilterIcon} Rules</a>
       <a href={navHref("/settings")} class:active={isActive("/settings")}>{@html adjustmentsHorizontalIcon} Settings</a>
-      <div style="flex:1"></div>
-      <SyncStatusIndicator />
     </nav>
+    <SyncStatusIndicator />
   </div>
 
   <main>

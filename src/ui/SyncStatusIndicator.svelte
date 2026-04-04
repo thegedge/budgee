@@ -53,12 +53,12 @@
 
 <div class="sync-status">
   {#if identityLogin}
-    {@html userIcon} <span>{identityLogin}</span>
+    <span class="item">{@html userIcon} {identityLogin}</span>
   {/if}
   <a href="{GITHUB_REPO}/commit/{commitSha}" target="_blank" rel="noopener" title={commitMessage}>{@html githubIcon} <span>{commitSha}</span></a>
-  {@html clockIcon} <span class="published">published {timeAgo(commitDate)}</span>
+  <span class="item published">{@html clockIcon} published {timeAgo(commitDate)}</span>
   {#if status !== "not-configured"}
-    <span class="dot {status}"></span> {LABELS[status]}
+    <span class="item"><span class="dot {status}"></span> {LABELS[status]}</span>
   {/if}
 </div>
 
@@ -83,10 +83,18 @@
   .dot.syncing { background: var(--budgee-warning, orange); animation: pulse 1s infinite; }
   .dot.synced { background: var(--budgee-positive, green); }
   .dot.error { background: var(--budgee-negative, red); }
-  a { display: contents; color: inherit; text-decoration: none; }
+  .item, a { display: contents; color: inherit; text-decoration: none; }
   a:hover { color: var(--budgee-text); }
   .sync-status :global(svg) { width: 0.85rem; height: 0.85rem; }
   .published { font-style: italic; }
+  @media (max-width: 1024px) {
+    .sync-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.75rem;
+    }
+    .item, a { display: inline-flex; align-items: center; gap: 0.25rem; }
+  }
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
