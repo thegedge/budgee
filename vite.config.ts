@@ -37,6 +37,7 @@ const basePath = process.env.VITE_BASE_URL ? new URL(process.env.VITE_BASE_URL).
 
 export default defineConfig({
   base: basePath,
+  build: { sourcemap: true },
   plugins: [baseUrlPlugin(), svelte()],
   define: {
     __COMMIT_SHA__: JSON.stringify(commitSha),
