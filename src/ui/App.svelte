@@ -412,6 +412,7 @@
         "sidebar"
         "main";
       grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
     }
     .sidebar {
       flex-direction: row;
