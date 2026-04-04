@@ -8,6 +8,7 @@
   import { movingWindowSize } from "../../charting/movingWindowSize";
   import { navigate } from "../navigate";
   import { cssVar } from "../cssVar";
+  import { untrack } from "svelte";
   import { isReadOnly, isShared } from "../shared/permissions";
   import { showToast } from "../shared/toast";
   import { useBusy } from "../../lib/busy.svelte";
@@ -40,7 +41,7 @@
   async function load() {
     if (!transactionId) return;
 
-    const prev = transaction;
+    const prev = untrack(() => transaction);
     transaction = await Transaction.get(transactionId);
     tags = await Tag.all();
 
