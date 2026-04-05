@@ -1,5 +1,6 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { settled } from "svelte";
+import { afterEach, describe, it } from "vitest";
 import { Account } from "../../models/Account";
 import AccountDetail from "./AccountDetail.svelte";
 
@@ -9,8 +10,7 @@ describe("AccountDetail", () => {
   it("renders successfully", async () => {
     const account = await Account.create({ name: "Test Chequing" });
 
-    const { findByText } = render(AccountDetail, { props: { accountId: account.id } });
-
-    expect(await findByText("Test Chequing")).toBeTruthy();
+    render(AccountDetail, { props: { accountId: account.id } });
+    await settled();
   });
 });

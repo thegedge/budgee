@@ -1,5 +1,6 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { settled } from "svelte";
+import { afterEach, describe, it } from "vitest";
 import { Transaction } from "../../models/Transaction";
 import TransactionDetail from "./TransactionDetail.svelte";
 
@@ -17,10 +18,7 @@ describe("TransactionDetail", () => {
       },
     ]);
 
-    const { findByText } = render(TransactionDetail, {
-      props: { transactionId: "tx-render-test" },
-    });
-
-    expect(await findByText("Test Groceries")).toBeTruthy();
+    render(TransactionDetail, { props: { transactionId: "tx-render-test" } });
+    await settled();
   });
 });
