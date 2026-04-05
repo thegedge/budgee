@@ -11,6 +11,7 @@
   import { useBusy } from "../../lib/busy.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
+  import { untrack } from "svelte";
   import { isReadOnly, isShared } from "../shared/permissions";
   import { showToast } from "../shared/toast";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
@@ -34,7 +35,7 @@
 
   useSubscription([Account.subscribe, Transaction.subscribe], async () => {
     if (!accountId) return;
-    const prev = account;
+    const prev = untrack(() => account);
     account = await Account.get(accountId);
     if (!account && prev && isShared(prev)) {
       showToast({ message: "Shared account is no longer available", type: "info" });

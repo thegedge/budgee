@@ -8,6 +8,7 @@
   import { useSubscription } from "../../lib/subscribe.svelte";
   import { barChartData } from "../charts/barChartData";
   import { cachedDid } from "../../identity";
+  import { untrack } from "svelte";
   import { isReadOnly, isShared } from "../shared/permissions";
   import { showToast } from "../shared/toast";
   import ChartWrapper from "../charts/ChartWrapper.svelte";
@@ -43,7 +44,7 @@
 
   async function load() {
     if (!merchantId) return;
-    const prev = merchant;
+    const prev = untrack(() => merchant);
     const [m, txs] = await Promise.all([
       Merchant.get(merchantId),
       Transaction.forMerchant(merchantId),
