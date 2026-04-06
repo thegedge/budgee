@@ -184,9 +184,8 @@
     setupGlobalErrorHandler();
 
     void (async () => {
-      console.log("[idb-debug] db() starting");
-      db().then(() => console.log("[idb-debug] db() ready")).catch((error: unknown) => {
-        console.error("[idb-debug] db() FAILED:", error);
+      db().catch((error: unknown) => {
+        console.error(error);
         const message = error instanceof Error ? error.message : String(error);
         showErrorOverlay(message, { isDatabaseError: true });
       });
@@ -195,7 +194,6 @@
       if (user) console.info("Identified as:", user.login);
 
       if (!isDemoMode) {
-        console.log("[idb-debug] starting replication");
         connectReplication();
         syncSub = syncStatus$.subscribe((status) => {
           if (status === "error" && !reconnectTimer) {

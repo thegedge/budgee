@@ -11,23 +11,10 @@ function isIDBError(error: unknown): boolean {
   return false;
 }
 
-function logIDBErrorDetails(label: string, error: unknown): void {
-  console.group(`[idb-debug] ${label}`);
-  console.error("error:", error);
-  if (error && typeof error === "object") {
-    const e = error as Record<string, unknown>;
-    if (e.inner) console.error("inner:", e.inner);
-    if (e.stack) console.error("stack:", e.stack);
-    if (e.name) console.error("name:", e.name);
-  }
-  console.groupEnd();
-}
-
 export function setupGlobalErrorHandler() {
   window.addEventListener("error", (event) => {
     const message = event.message || "An unknown error occurred.";
     if (event.error && isIDBError(event.error)) {
-      logIDBErrorDetails("window.error", event.error);
       showErrorOverlay(message, { isDatabaseError: true });
       return;
     }
@@ -46,7 +33,6 @@ export function setupGlobalErrorHandler() {
     // replication teardown (e.g. epoch transitions). Suppress these.
     if (message.includes("is closed")) return;
     if (isIDBError(reason)) {
-      logIDBErrorDetails("unhandledrejection", reason);
       showErrorOverlay(message, { isDatabaseError: true });
       return;
     }

@@ -364,7 +364,6 @@ async function legacyDbExists(): Promise<boolean> {
 }
 
 export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): Promise<Databases> {
-  console.log(`[idb-debug] createRxDatabase "${name}" starting`);
   const rxdb = await createRxDatabase<DatabaseCollections>({
     name,
     storage: storage as Parameters<typeof createRxDatabase>[0]["storage"],
@@ -377,7 +376,6 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
       waitForLeadership: true,
     },
   });
-  console.log(`[idb-debug] createRxDatabase "${name}" done`);
 
   // Add collections one at a time.  RxDB's addCollections opens a separate
   // Dexie/IDB database per collection in parallel.  Firefox's IDB chokes on
@@ -487,7 +485,6 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
       await rxdb.addCollections({ [name]: config });
     }
   } catch (error: unknown) {
-    console.error("[idb-debug] addCollections FAILED:", error);
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("DB6")) {
       throw new SchemaVersionError("Database schema version mismatch (DB6)", error);
@@ -601,13 +598,9 @@ export function db(): Promise<Databases> {
     cachedDb = (async () => {
       const { fetchIdentity } = await import("../identity");
       const user = await fetchIdentity();
-      console.log("[idb-debug] createDefaultDatabase starting");
       const dbs = await createDefaultDatabase(user?.login ?? null);
-      console.log("[idb-debug] createDefaultDatabase done");
       const { migrateDatabase } = await import("./migrations");
-      console.log("[idb-debug] migrateDatabase starting");
       await migrateDatabase(dbs);
-      console.log("[idb-debug] migrateDatabase done");
       if (isDemoMode) {
         const { seedDemoData } = await import("./demo");
         await seedDemoData(dbs);

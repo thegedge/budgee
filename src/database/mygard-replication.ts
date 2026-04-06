@@ -154,7 +154,6 @@ export async function startMygardReplication(opts: {
     if (msg.id === "stream" && !("ok" in ((msg.result as Record<string, unknown>) ?? {}))) {
       const result = msg.result as PullResult | undefined;
       if (!result) return;
-      console.log(`[idb-debug] stream event: ${result.documents.length} docs`);
       const serverCheckpoint = result.checkpoint;
       const ownCheckpoint = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
       for (const [nsid, subject] of streamSubjects) {
@@ -386,7 +385,7 @@ export async function startMygardReplication(opts: {
       saveSyncState({ epoch: newEpoch, lastSyncedAt: Date.now() });
 
       // 4. Create new RxDB replications with the new epoch
-      await createReplications(newEpoch);
+      createReplications(newEpoch);
       onReplications?.(replications);
 
       console.log(`[mygard] epoch reconciliation complete, now on epoch=${newEpoch}`);
@@ -516,11 +515,7 @@ export async function startMygardReplication(opts: {
     }
   }
 
-  async function createReplications(epoch: string): Promise<void> {
-    // Create replications one at a time and wait for each initial pull to
-    // complete before starting the next.  Running all 7 in parallel causes
-    // concurrent IDB write transactions that can auto-commit in Firefox
-    // before Dexie's bulkPut finishes.
+  function createReplications(epoch: string): void {
     for (const collectionName of SYNCABLE_COLLECTIONS) {
       const nsid = COLLECTION_TO_NSID[collectionName];
       const collection: RxCollection = rxdb[collectionName];
@@ -542,7 +537,6 @@ export async function startMygardReplication(opts: {
             checkpoint: OwnerCheckpoint | undefined,
             batchSize: number,
           ): Promise<{ documents: Record<string, unknown>[]; checkpoint: OwnerCheckpoint }> {
-            console.log(`[idb-debug] pull START ${collectionName}`);
             const ownCheckpoint = checkpoint ?? { seq: 0, epoch };
             const compound: MygardCheckpoint = { own: ownCheckpoint, shared: sharedCheckpoints };
             const result = (await sendRpc("pull", [compound, batchSize, nsid])) as PullResult;
@@ -567,7 +561,6 @@ export async function startMygardReplication(opts: {
             const hasSharedDocs = documents.some((d) => d._owner);
             const prevV = ownCheckpoint.v ?? 0;
 
-            console.log(`[idb-debug] pull END ${collectionName} (${documents.length} docs)`);
             return {
               documents,
               checkpoint: {
@@ -586,25 +579,19 @@ export async function startMygardReplication(opts: {
               assumedMasterState?: Record<string, unknown>;
             }[],
           ): Promise<Record<string, unknown>[]> {
-            console.log(`[idb-debug] push START ${collectionName} (${docs.length} docs)`);
             const ownDocs = docs.filter((d) => !d.newDocumentState._owner);
             const enriched = ownDocs.map((d) => ({
               ...d.newDocumentState,
               collection: nsid,
             }));
-            if (enriched.length === 0) {
-              console.log(`[idb-debug] push END ${collectionName} (0 own docs, skipped)`);
-              return [];
-            }
+            if (enriched.length === 0) return [];
             const conflicts = (await sendRpc("push", [enriched])) as Record<string, unknown>[];
-            console.log(`[idb-debug] push END ${collectionName} (${conflicts.length} conflicts)`);
             return conflicts;
           },
         },
       });
 
       replications.push(replication);
-      await replication.awaitInitialReplication();
     }
   }
 
@@ -640,7 +627,7 @@ export async function startMygardReplication(opts: {
             await teardownReplications();
           }
           currentEpoch = epoch;
-          await createReplications(epoch);
+          createReplications(epoch);
           onReplications?.(replications);
           saveSyncState({ epoch, lastSyncedAt: Date.now() });
         }
