@@ -379,104 +379,113 @@ export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): 
   });
   console.log(`[idb-debug] createRxDatabase "${name}" done`);
 
+  // Add collections one at a time.  RxDB's addCollections opens a separate
+  // Dexie/IDB database per collection in parallel.  Firefox's IDB chokes on
+  // many concurrent version-change transactions, producing
+  // "IDBTransaction.objectStore: Transaction is already committing or done."
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const collections: Record<
+    string,
+    { schema: RxJsonSchema<any>; migrationStrategies?: Record<number, (doc: any) => any> }
+  > = {
+    transactions: {
+      schema: transactionSchema,
+      migrationStrategies: {
+        1: (doc: Record<string, unknown>) => {
+          doc.description = doc.originalDescription;
+          delete doc.originalDescription;
+          return doc;
+        },
+        2: (doc: TransactionRecord) => doc,
+        3: (doc: TransactionRecord) => doc,
+      },
+    },
+    tags: {
+      schema: tagSchema,
+      migrationStrategies: {
+        1: (doc: TagRecord) => doc,
+        2: (doc: TagRecord) => doc,
+      },
+    },
+    merchants: {
+      schema: merchantSchema,
+      migrationStrategies: {
+        1: (doc: MerchantRecord) => doc,
+        2: (doc: MerchantRecord) => doc,
+      },
+    },
+    accounts: {
+      schema: accountSchema,
+      migrationStrategies: {
+        1: (doc: AccountRecord) => doc,
+        2: (doc: AccountRecord) => doc,
+        3: (doc: AccountRecord) => doc,
+      },
+    },
+    merchant_rules: {
+      schema: merchantRuleSchema,
+      migrationStrategies: {
+        1: (doc: MerchantRuleRecord) => doc,
+        2: (doc: MerchantRuleRecord) => doc,
+        3: (doc: MerchantRuleRecord) => doc,
+      },
+    },
+    dashboard_charts: {
+      schema: dashboardChartSchema,
+      migrationStrategies: {
+        1: (doc: Record<string, unknown>) => {
+          const filters: { field: string; operator: string; value: string }[] = [
+            ...((doc.filters as { field: string; operator: string; value: string }[]) ?? []),
+          ];
+          if (doc.tagId) filters.push({ field: "tag", operator: "is", value: doc.tagId as string });
+          if (doc.merchantId)
+            filters.push({ field: "merchant", operator: "is", value: doc.merchantId as string });
+          if (doc.direction === "debit")
+            filters.push({ field: "amount", operator: "lt", value: "0" });
+          else if (doc.direction === "credit")
+            filters.push({ field: "amount", operator: "gt", value: "0" });
+          if (doc.descriptionFilter) {
+            filters.push({
+              field: "description",
+              operator: doc.descriptionFilterMode === "include" ? "contains" : "excludes",
+              value: doc.descriptionFilter as string,
+            });
+          }
+          for (const id of (doc.excludedTagIds as string[]) ?? []) {
+            filters.push({ field: "tag", operator: "isNot", value: id });
+          }
+          for (const id of (doc.excludedMerchantIds as string[]) ?? []) {
+            filters.push({ field: "merchant", operator: "isNot", value: id });
+          }
+          delete doc.tagId;
+          delete doc.merchantId;
+          delete doc.direction;
+          delete doc.descriptionFilter;
+          delete doc.descriptionFilterMode;
+          delete doc.excludedTagIds;
+          delete doc.excludedMerchantIds;
+          doc.filters = filters.length > 0 ? filters : undefined;
+          return doc;
+        },
+        2: (doc: DashboardChartRecord) => doc,
+        3: (doc: DashboardChartRecord) => doc,
+      },
+    },
+    dashboard_tables: {
+      schema: dashboardTableSchema,
+      migrationStrategies: {
+        1: (doc: DashboardTableRecord) => doc,
+        2: (doc: DashboardTableRecord) => doc,
+      },
+    },
+    meta: { schema: metaSchema },
+    backups: { schema: backupSchema },
+  };
+
   try {
-    console.log("[idb-debug] addCollections starting");
-    await rxdb.addCollections({
-      transactions: {
-        schema: transactionSchema,
-        migrationStrategies: {
-          1: (doc: Record<string, unknown>) => {
-            doc.description = doc.originalDescription;
-            delete doc.originalDescription;
-            return doc;
-          },
-          2: (doc: TransactionRecord) => doc,
-          3: (doc: TransactionRecord) => doc,
-        },
-      },
-      tags: {
-        schema: tagSchema,
-        migrationStrategies: {
-          1: (doc: TagRecord) => doc,
-          2: (doc: TagRecord) => doc,
-        },
-      },
-      merchants: {
-        schema: merchantSchema,
-        migrationStrategies: {
-          1: (doc: MerchantRecord) => doc,
-          2: (doc: MerchantRecord) => doc,
-        },
-      },
-      accounts: {
-        schema: accountSchema,
-        migrationStrategies: {
-          1: (doc: AccountRecord) => doc,
-          2: (doc: AccountRecord) => doc,
-          3: (doc: AccountRecord) => doc,
-        },
-      },
-      merchant_rules: {
-        schema: merchantRuleSchema,
-        migrationStrategies: {
-          1: (doc: MerchantRuleRecord) => doc,
-          2: (doc: MerchantRuleRecord) => doc,
-          3: (doc: MerchantRuleRecord) => doc,
-        },
-      },
-      dashboard_charts: {
-        schema: dashboardChartSchema,
-        migrationStrategies: {
-          1: (doc: Record<string, unknown>) => {
-            const filters: { field: string; operator: string; value: string }[] = [
-              ...((doc.filters as { field: string; operator: string; value: string }[]) ?? []),
-            ];
-            if (doc.tagId)
-              filters.push({ field: "tag", operator: "is", value: doc.tagId as string });
-            if (doc.merchantId)
-              filters.push({ field: "merchant", operator: "is", value: doc.merchantId as string });
-            if (doc.direction === "debit")
-              filters.push({ field: "amount", operator: "lt", value: "0" });
-            else if (doc.direction === "credit")
-              filters.push({ field: "amount", operator: "gt", value: "0" });
-            if (doc.descriptionFilter) {
-              filters.push({
-                field: "description",
-                operator: doc.descriptionFilterMode === "include" ? "contains" : "excludes",
-                value: doc.descriptionFilter as string,
-              });
-            }
-            for (const id of (doc.excludedTagIds as string[]) ?? []) {
-              filters.push({ field: "tag", operator: "isNot", value: id });
-            }
-            for (const id of (doc.excludedMerchantIds as string[]) ?? []) {
-              filters.push({ field: "merchant", operator: "isNot", value: id });
-            }
-            delete doc.tagId;
-            delete doc.merchantId;
-            delete doc.direction;
-            delete doc.descriptionFilter;
-            delete doc.descriptionFilterMode;
-            delete doc.excludedTagIds;
-            delete doc.excludedMerchantIds;
-            doc.filters = filters.length > 0 ? filters : undefined;
-            return doc;
-          },
-          2: (doc: DashboardChartRecord) => doc,
-          3: (doc: DashboardChartRecord) => doc,
-        },
-      },
-      dashboard_tables: {
-        schema: dashboardTableSchema,
-        migrationStrategies: {
-          1: (doc: DashboardTableRecord) => doc,
-          2: (doc: DashboardTableRecord) => doc,
-        },
-      },
-      meta: { schema: metaSchema },
-      backups: { schema: backupSchema },
-    });
-    console.log("[idb-debug] addCollections done");
+    for (const [name, config] of Object.entries(collections)) {
+      await rxdb.addCollections({ [name]: config });
+    }
   } catch (error: unknown) {
     console.error("[idb-debug] addCollections FAILED:", error);
     const message = error instanceof Error ? error.message : String(error);
