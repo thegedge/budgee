@@ -116,16 +116,16 @@
     color: white;
   }
   .card {
-    background: #1e1e2e;
-    color: white;
-    border: 1px solid #444;
+    background: white;
+    color: #1a1a1a;
+    border: 1px solid #ddd;
     border-radius: 12px;
     padding: 2rem;
     max-width: 480px;
     text-align: center;
   }
   h2 { margin: 0 0 1rem; font-size: 1.4rem; }
-  p { color: var(--budgee-text-muted, #aaa); line-height: 1.5; margin: 0 0 1.5rem; }
+  p { color: #666; line-height: 1.5; margin: 0 0 1.5rem; }
   .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
   button {
     padding: 0.6rem 1.2rem;
