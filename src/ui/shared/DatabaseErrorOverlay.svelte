@@ -40,17 +40,14 @@
     try {
       const allDbs = await indexedDB.databases();
       const budgeeDbs = allDbs.filter((db) => db.name?.startsWith("budgee"));
-      await Promise.all(
-        budgeeDbs.map(
-          (db) =>
-            new Promise<void>((resolve, reject) => {
-              const req = indexedDB.deleteDatabase(db.name!);
-              req.onsuccess = () => resolve();
-              req.onerror = () => reject(req.error);
-            }),
-        ),
-      );
-      window.location.reload();
+      for (const dbInfo of budgeeDbs) {
+        const req = indexedDB.deleteDatabase(dbInfo.name!);
+        // Open RxDB connections block deletion until they close.
+        // Fire the reload immediately — the browser closes connections
+        // on navigation, allowing the pending delete to complete.
+        req.onblocked = () => window.location.reload();
+        req.onsuccess = () => window.location.reload();
+      }
     } catch (e) {
       console.error("Delete failed:", e);
       alert("Delete failed. Check the browser console for details.");
