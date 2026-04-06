@@ -3,7 +3,7 @@
   import { db, isDemoMode } from "../database/Db";
   import { importDatabase } from "../database/importDb";
   import { startReplication, syncStatus$ } from "../database/replication";
-  import { SchemaVersionError } from "../database/Db";
+
   import { fetchIdentity, type User } from "../identity";
   import { showConfirmDialog } from "./shared/confirmDialog";
   import { showErrorOverlay } from "./shared/errorOverlay.svelte";
@@ -186,11 +186,8 @@
     void (async () => {
       db().catch((error: unknown) => {
         console.error(error);
-        const isDatabaseError = error instanceof SchemaVersionError;
-        const message = isDatabaseError
-          ? "The database schema is incompatible with this version of the app and can't be opened. You can export the raw data for safekeeping, then delete the database to get unstuck."
-          : error instanceof Error ? error.message : String(error);
-        showErrorOverlay(message, { isDatabaseError });
+        const message = error instanceof Error ? error.message : String(error);
+        showErrorOverlay(message, { isDatabaseError: true });
       });
       const user = await fetchIdentity();
       identity = user;

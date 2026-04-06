@@ -116,8 +116,9 @@
     color: white;
   }
   .card {
-    background: var(--budgee-surface, #1e1e2e);
-    border: 1px solid var(--budgee-border, #444);
+    background: #1e1e2e;
+    color: white;
+    border: 1px solid #444;
     border-radius: 12px;
     padding: 2rem;
     max-width: 480px;
