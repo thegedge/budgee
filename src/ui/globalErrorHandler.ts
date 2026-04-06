@@ -1,4 +1,4 @@
-import { showErrorOverlay } from "./shared/errorOverlay";
+import { showErrorOverlay } from "./shared/errorOverlay.svelte";
 import { showToast } from "./shared/toast";
 
 function isIDBError(error: unknown): boolean {

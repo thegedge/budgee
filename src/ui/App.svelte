@@ -6,7 +6,7 @@
   import { SchemaVersionError } from "../database/Db";
   import { fetchIdentity, type User } from "../identity";
   import { showConfirmDialog } from "./shared/confirmDialog";
-  import { showErrorOverlay } from "./shared/errorOverlay";
+  import { showErrorOverlay } from "./shared/errorOverlay.svelte";
   import { setupGlobalErrorHandler } from "./globalErrorHandler";
   import { showLoadingOverlay, hideLoadingOverlay } from "./shared/loadingOverlay";
   import GlobalSearch from "./shared/GlobalSearch.svelte";
