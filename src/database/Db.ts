@@ -553,7 +553,7 @@ export async function deleteAllDatabases(): Promise<void> {
   // Delete any remaining budgee databases via raw IDB API
   if (typeof indexedDB !== "undefined" && typeof indexedDB.databases === "function") {
     const allDbs = await indexedDB.databases();
-    const budgeeDbs = allDbs.filter((d) => d.name?.startsWith("budgee"));
+    const budgeeDbs = allDbs.filter((d) => d.name?.includes("budgee"));
     await Promise.all(
       budgeeDbs.map(
         (d) =>

@@ -50,7 +50,7 @@
 
   async function exportAllIndexedDBData(): Promise<Record<string, Record<string, unknown[]>>> {
     const allDbs = await indexedDB.databases();
-    const budgeeDbs = allDbs.filter((db) => db.name?.startsWith("budgee"));
+    const budgeeDbs = allDbs.filter((db) => db.name?.includes("budgee"));
     const result: Record<string, Record<string, unknown[]>> = {};
 
     for (const dbInfo of budgeeDbs) {
