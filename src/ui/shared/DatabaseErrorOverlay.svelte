@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { deleteAllDatabases } from "../../database/Db";
   import { showConfirmDialog } from "./confirmDialog";
 
   let { error = "An unexpected error occurred.", isDatabaseError = false }: {
@@ -38,16 +39,8 @@
     if (!confirmed) return;
     deleting = true;
     try {
-      const allDbs = await indexedDB.databases();
-      const budgeeDbs = allDbs.filter((db) => db.name?.startsWith("budgee"));
-      for (const dbInfo of budgeeDbs) {
-        const req = indexedDB.deleteDatabase(dbInfo.name!);
-        // Open RxDB connections block deletion until they close.
-        // Fire the reload immediately — the browser closes connections
-        // on navigation, allowing the pending delete to complete.
-        req.onblocked = () => window.location.reload();
-        req.onsuccess = () => window.location.reload();
-      }
+      await deleteAllDatabases();
+      window.location.reload();
     } catch (e) {
       console.error("Delete failed:", e);
       alert("Delete failed. Check the browser console for details.");

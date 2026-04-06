@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { settled } from "svelte";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import * as DbModule from "../../database/Db";
 import DatabaseErrorOverlay from "./DatabaseErrorOverlay.svelte";
 
 vi.mock("./confirmDialog", () => ({
@@ -28,49 +29,24 @@ describe("DatabaseErrorOverlay", () => {
     expect(queryByText("Reload")).toBeNull();
   });
 
-  describe("delete and reload", () => {
-    let mockDeleteDatabase: ReturnType<typeof vi.fn>;
-    let reloadSpy: ReturnType<typeof vi.fn>;
-    let capturedReq: { onblocked?: () => void; onsuccess?: () => void };
-
-    beforeEach(() => {
-      capturedReq = {};
-      mockDeleteDatabase = vi.fn(() => capturedReq);
-      vi.stubGlobal("indexedDB", {
-        databases: vi.fn().mockResolvedValue([{ name: "budgee_test" }]),
-        deleteDatabase: mockDeleteDatabase,
-      });
-      reloadSpy = vi.fn();
-      Object.defineProperty(window, "location", {
-        value: { ...window.location, reload: reloadSpy },
-        writable: true,
-      });
+  it("deletes all databases and reloads on confirm", async () => {
+    const deleteSpy = vi.spyOn(DbModule, "deleteAllDatabases").mockResolvedValue(undefined);
+    const reloadSpy = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, reload: reloadSpy },
+      writable: true,
     });
 
-    it("calls deleteDatabase and reloads on success", async () => {
-      const { getByText } = render(DatabaseErrorOverlay, {
-        props: { error: "IDB error", isDatabaseError: true },
-      });
-
-      await fireEvent.click(getByText("Delete database and reload"));
-      await settled();
-
-      expect(mockDeleteDatabase).toHaveBeenCalledWith("budgee_test");
-
-      capturedReq.onsuccess?.();
-      expect(reloadSpy).toHaveBeenCalled();
+    const { getByText } = render(DatabaseErrorOverlay, {
+      props: { error: "IDB error", isDatabaseError: true },
     });
 
-    it("reloads when deleteDatabase is blocked by open connections", async () => {
-      const { getByText } = render(DatabaseErrorOverlay, {
-        props: { error: "IDB error", isDatabaseError: true },
-      });
+    await fireEvent.click(getByText("Delete database and reload"));
+    await settled();
 
-      await fireEvent.click(getByText("Delete database and reload"));
-      await settled();
+    expect(deleteSpy).toHaveBeenCalled();
+    expect(reloadSpy).toHaveBeenCalled();
 
-      capturedReq.onblocked?.();
-      expect(reloadSpy).toHaveBeenCalled();
-    });
+    deleteSpy.mockRestore();
   });
 });

@@ -519,6 +519,41 @@ export async function destroyAll(dbs: Databases) {
   await removeRxDatabase(name, storage);
 }
 
+/**
+ * Destroy the cached RxDB instance (closing IDB connections), then delete
+ * all budgee IndexedDB databases. Designed to be called from error recovery
+ * UI where the database may be in a broken state.
+ */
+export async function deleteAllDatabases(): Promise<void> {
+  // Destroy the RxDB instance to release IDB connections
+  if (cachedDb) {
+    try {
+      const dbs = await cachedDb;
+      await destroyAll(dbs);
+    } catch {
+      // Database may already be broken — ignore destroy errors
+    }
+    cachedDb = undefined;
+  }
+
+  // Delete any remaining budgee databases via raw IDB API
+  if (typeof indexedDB !== "undefined" && typeof indexedDB.databases === "function") {
+    const allDbs = await indexedDB.databases();
+    const budgeeDbs = allDbs.filter((d) => d.name?.startsWith("budgee"));
+    await Promise.all(
+      budgeeDbs.map(
+        (d) =>
+          new Promise<void>((resolve) => {
+            const req = indexedDB.deleteDatabase(d.name!);
+            req.onsuccess = () => resolve();
+            req.onerror = () => resolve();
+            req.onblocked = () => resolve();
+          }),
+      ),
+    );
+  }
+}
+
 export const isDemoMode =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1";
 
