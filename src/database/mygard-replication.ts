@@ -154,6 +154,7 @@ export async function startMygardReplication(opts: {
     if (msg.id === "stream" && !("ok" in ((msg.result as Record<string, unknown>) ?? {}))) {
       const result = msg.result as PullResult | undefined;
       if (!result) return;
+      console.log(`[idb-debug] stream event: ${result.documents.length} docs`);
       const serverCheckpoint = result.checkpoint;
       const ownCheckpoint = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
       for (const [nsid, subject] of streamSubjects) {
@@ -541,6 +542,7 @@ export async function startMygardReplication(opts: {
             checkpoint: OwnerCheckpoint | undefined,
             batchSize: number,
           ): Promise<{ documents: Record<string, unknown>[]; checkpoint: OwnerCheckpoint }> {
+            console.log(`[idb-debug] pull START ${collectionName}`);
             const ownCheckpoint = checkpoint ?? { seq: 0, epoch };
             const compound: MygardCheckpoint = { own: ownCheckpoint, shared: sharedCheckpoints };
             const result = (await sendRpc("pull", [compound, batchSize, nsid])) as PullResult;
@@ -565,6 +567,7 @@ export async function startMygardReplication(opts: {
             const hasSharedDocs = documents.some((d) => d._owner);
             const prevV = ownCheckpoint.v ?? 0;
 
+            console.log(`[idb-debug] pull END ${collectionName} (${documents.length} docs)`);
             return {
               documents,
               checkpoint: {
@@ -583,13 +586,18 @@ export async function startMygardReplication(opts: {
               assumedMasterState?: Record<string, unknown>;
             }[],
           ): Promise<Record<string, unknown>[]> {
+            console.log(`[idb-debug] push START ${collectionName} (${docs.length} docs)`);
             const ownDocs = docs.filter((d) => !d.newDocumentState._owner);
             const enriched = ownDocs.map((d) => ({
               ...d.newDocumentState,
               collection: nsid,
             }));
-            if (enriched.length === 0) return [];
+            if (enriched.length === 0) {
+              console.log(`[idb-debug] push END ${collectionName} (0 own docs, skipped)`);
+              return [];
+            }
             const conflicts = (await sendRpc("push", [enriched])) as Record<string, unknown>[];
+            console.log(`[idb-debug] push END ${collectionName} (${conflicts.length} conflicts)`);
             return conflicts;
           },
         },
