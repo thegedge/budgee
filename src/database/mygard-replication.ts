@@ -385,7 +385,7 @@ export async function startMygardReplication(opts: {
       saveSyncState({ epoch: newEpoch, lastSyncedAt: Date.now() });
 
       // 4. Create new RxDB replications with the new epoch
-      createReplications(newEpoch);
+      await createReplications(newEpoch);
       onReplications?.(replications);
 
       console.log(`[mygard] epoch reconciliation complete, now on epoch=${newEpoch}`);
@@ -515,7 +515,11 @@ export async function startMygardReplication(opts: {
     }
   }
 
-  function createReplications(epoch: string): void {
+  async function createReplications(epoch: string): Promise<void> {
+    // Create replications one at a time and wait for each initial pull to
+    // complete before starting the next.  Running all 7 in parallel causes
+    // concurrent IDB write transactions that can auto-commit in Firefox
+    // before Dexie's bulkPut finishes.
     for (const collectionName of SYNCABLE_COLLECTIONS) {
       const nsid = COLLECTION_TO_NSID[collectionName];
       const collection: RxCollection = rxdb[collectionName];
@@ -592,6 +596,7 @@ export async function startMygardReplication(opts: {
       });
 
       replications.push(replication);
+      await replication.awaitInitialReplication();
     }
   }
 
@@ -627,7 +632,7 @@ export async function startMygardReplication(opts: {
             await teardownReplications();
           }
           currentEpoch = epoch;
-          createReplications(epoch);
+          await createReplications(epoch);
           onReplications?.(replications);
           saveSyncState({ epoch, lastSyncedAt: Date.now() });
         }
