@@ -35,7 +35,7 @@ const COLLECTION_KEYS: readonly (keyof DatabaseExport)[] = [
  * Validates that the parsed JSON has the expected shape for a database export.
  * Throws a descriptive error if validation fails.
  */
-function validateExportShape(data: unknown): asserts data is DatabaseExport {
+export function validateExportShape(data: unknown): asserts data is DatabaseExport {
   if (data == null || typeof data !== "object" || Array.isArray(data)) {
     throw new Error("Invalid import file: expected a JSON object at the top level.");
   }
@@ -112,7 +112,7 @@ export async function saveBackup(
  * Ensures every document has a string `id`. Returns the documents and a mapping
  * from old id to new id for any documents that needed a generated id.
  */
-function ensureIds<T extends { id: string }>(
+export function ensureIds<T extends { id: string }>(
   docs: T[] | undefined,
 ): { docs: T[]; idMap: Map<string, string> } {
   if (!docs) return { docs: [], idMap: new Map() };
@@ -128,12 +128,15 @@ function ensureIds<T extends { id: string }>(
   return { docs: result, idMap };
 }
 
-function remapId(idMap: Map<string, string>, id: string | undefined): string | undefined {
+export function remapId(idMap: Map<string, string>, id: string | undefined): string | undefined {
   if (!id) return id;
   return idMap.get(id) ?? id;
 }
 
-function remapIds(idMap: Map<string, string>, ids: string[] | undefined): string[] | undefined {
+export function remapIds(
+  idMap: Map<string, string>,
+  ids: string[] | undefined,
+): string[] | undefined {
   if (!ids) return ids;
   return ids.map((id) => idMap.get(id) ?? id);
 }

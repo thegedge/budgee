@@ -177,3 +177,179 @@ describe("shared pull checkpoint advancement", () => {
     expect(cp2.v).toBe(2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// effectivePermission — mirrors the closure in startMygardReplication
+// ---------------------------------------------------------------------------
+
+function effectivePermission(
+  remainingGrants: { object: string; permission: string }[],
+  nsid: string,
+  ownerDid: string,
+  rkey: string,
+): string | null {
+  const RANK: Record<string, number> = { read: 0, write: 1, admin: 2 };
+  let best: string | null = null;
+  const recordUri = `at://${ownerDid}/${nsid}/${rkey}`;
+  for (const g of remainingGrants) {
+    if (g.object !== nsid && g.object !== recordUri) continue;
+    if (!best || (RANK[g.permission] ?? 0) > (RANK[best] ?? 0)) best = g.permission;
+  }
+  return best;
+}
+
+describe("effectivePermission", () => {
+  const nsid = "io.mygard.finance.transaction";
+  const owner = "did:web:alice";
+  const rkey = "tx1";
+
+  it("returns null when no remaining grants", () => {
+    expect(effectivePermission([], nsid, owner, rkey)).toBeNull();
+  });
+
+  it("returns null when grants don't match nsid or record URI", () => {
+    const grants = [{ object: "io.mygard.finance.tag", permission: "read" }];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBeNull();
+  });
+
+  it("matches collection-wide grant by nsid", () => {
+    const grants = [{ object: nsid, permission: "read" }];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("read");
+  });
+
+  it("matches record-specific grant by URI", () => {
+    const uri = `at://${owner}/${nsid}/${rkey}`;
+    const grants = [{ object: uri, permission: "write" }];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("write");
+  });
+
+  it("picks highest permission from multiple grants", () => {
+    const grants = [
+      { object: nsid, permission: "read" },
+      { object: nsid, permission: "admin" },
+      { object: nsid, permission: "write" },
+    ];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("admin");
+  });
+
+  it("picks highest between collection and record grants", () => {
+    const uri = `at://${owner}/${nsid}/${rkey}`;
+    const grants = [
+      { object: nsid, permission: "read" },
+      { object: uri, permission: "write" },
+    ];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("write");
+  });
+
+  it("handles unknown permission values gracefully", () => {
+    const grants = [
+      { object: nsid, permission: "unknown" },
+      { object: nsid, permission: "read" },
+    ];
+    // "unknown" has rank 0 (via ??), "read" also rank 0 — first seen wins
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("unknown");
+  });
+
+  it("known permission beats unknown", () => {
+    const grants = [
+      { object: nsid, permission: "unknown" },
+      { object: nsid, permission: "write" },
+    ];
+    expect(effectivePermission(grants, nsid, owner, rkey)).toBe("write");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// onMessage stream filtering — mirrors the NSID filtering logic
+// ---------------------------------------------------------------------------
+
+function filterStreamDocs(
+  documents: { collection: string; _owner?: string; id: string; _rev?: string }[],
+  nsid: string,
+): Record<string, unknown>[] {
+  return documents
+    .filter((d) => d.collection === nsid)
+    .map((d) => {
+      const { collection: _, _rev: __, ...rest } = d;
+      if (rest._owner) {
+        rest.id = `${rest._owner}~${rest.id}`;
+      }
+      return rest;
+    });
+}
+
+describe("stream NSID filtering", () => {
+  it("filters documents by collection NSID", () => {
+    const docs = [
+      { id: "1", collection: "io.mygard.finance.transaction", amount: -10 },
+      { id: "2", collection: "io.mygard.finance.tag", name: "food" },
+      { id: "3", collection: "io.mygard.finance.transaction", amount: -20 },
+    ];
+    const filtered = filterStreamDocs(docs, "io.mygard.finance.transaction");
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].id).toBe("1");
+    expect(filtered[1].id).toBe("3");
+  });
+
+  it("returns empty array when no docs match", () => {
+    const docs = [{ id: "1", collection: "io.mygard.finance.tag", name: "food" }];
+    const filtered = filterStreamDocs(docs, "io.mygard.finance.transaction");
+    expect(filtered).toHaveLength(0);
+  });
+
+  it("strips collection and _rev from filtered docs", () => {
+    const docs = [
+      { id: "1", collection: "io.mygard.finance.transaction", _rev: "abc", amount: -10 },
+    ];
+    const filtered = filterStreamDocs(docs, "io.mygard.finance.transaction");
+    expect(filtered[0]).not.toHaveProperty("collection");
+    expect(filtered[0]).not.toHaveProperty("_rev");
+    expect(filtered[0].amount).toBe(-10);
+  });
+
+  it("prefixes shared doc ids with owner", () => {
+    const docs = [
+      {
+        id: "tx1",
+        collection: "io.mygard.finance.transaction",
+        _owner: "did:web:alice",
+        _permission: "read",
+      },
+    ];
+    const filtered = filterStreamDocs(docs, "io.mygard.finance.transaction");
+    expect(filtered[0].id).toBe("did:web:alice~tx1");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Push handler filtering — shared docs should not be pushed
+// ---------------------------------------------------------------------------
+
+describe("push handler shared doc filtering", () => {
+  function filterPushDocs(
+    docs: { newDocumentState: Record<string, unknown> }[],
+  ): Record<string, unknown>[] {
+    return docs
+      .filter((d) => !d.newDocumentState._owner)
+      .map((d) => ({ ...d.newDocumentState, collection: "nsid" }));
+  }
+
+  it("includes own documents", () => {
+    const docs = [{ newDocumentState: { id: "1", amount: -10 } }];
+    expect(filterPushDocs(docs)).toHaveLength(1);
+  });
+
+  it("excludes shared documents", () => {
+    const docs = [
+      { newDocumentState: { id: "1", amount: -10 } },
+      { newDocumentState: { id: "did:web:alice~2", _owner: "did:web:alice", amount: -20 } },
+    ];
+    expect(filterPushDocs(docs)).toHaveLength(1);
+    expect(filterPushDocs(docs)[0].id).toBe("1");
+  });
+
+  it("returns empty when all docs are shared", () => {
+    const docs = [{ newDocumentState: { id: "1", _owner: "did:web:alice" } }];
+    expect(filterPushDocs(docs)).toHaveLength(0);
+  });
+});
