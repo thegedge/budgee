@@ -108,6 +108,7 @@ export async function startMygardReplication(opts: {
   >();
 
   let sharedCheckpoints: Record<string, OwnerCheckpoint> = {};
+  const lastPullCheckpoints = new Map<string, OwnerCheckpoint>();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let replications: RxReplicationState<any, any>[] = [];
@@ -160,15 +161,21 @@ export async function startMygardReplication(opts: {
         const filtered = result.documents.filter((d) => d.collection === nsid);
         if (filtered.length > 0) {
           const stripped = filtered.map((d) => {
-            const { collection: _, ...rest } = d;
+            const { collection: _, _rev: __, ...rest } = d;
             if (rest._owner) {
               rest.id = `${rest._owner}~${rest.id}`;
             }
             return rest;
           });
           const hasSharedDocs = stripped.some((d) => d._owner);
+          // For shared doc events the server checkpoint is the owner's seq, not
+          // ours.  Use the last pull checkpoint (per-collection) so we don't
+          // corrupt our own seq — only bump `v` to signal new data to RxDB.
+          const base = hasSharedDocs
+            ? (lastPullCheckpoints.get(nsid) ?? { seq: 0, epoch: currentEpoch ?? "unknown" })
+            : ownCheckpoint;
           const checkpoint: OwnerCheckpoint = hasSharedDocs
-            ? { ...ownCheckpoint, v: (ownCheckpoint.v ?? 0) + 1 }
+            ? { ...base, v: (base.v ?? 0) + 1 }
             : ownCheckpoint;
           subject.next({ documents: stripped, checkpoint });
         }
@@ -227,7 +234,7 @@ export async function startMygardReplication(opts: {
       const result = (await sendRpc("pull", [checkpoint, batchSize, nsid])) as PullResult;
       for (const doc of result.documents) {
         if (doc._deleted) continue;
-        const { collection: _, ...rest } = doc;
+        const { collection: _, _rev: __, ...rest } = doc;
         allDocs.push(rest);
       }
       if (result.documents.length < batchSize) break;
@@ -551,7 +558,7 @@ export async function startMygardReplication(opts: {
             const ownResult = "own" in serverCheckpoint ? serverCheckpoint.own : serverCheckpoint;
 
             const documents = result.documents.map((d) => {
-              const { collection: _, ...rest } = d;
+              const { collection: _, _rev: __, ...rest } = d;
               if (rest._owner) {
                 rest.id = `${rest._owner}~${rest.id}`;
               }
@@ -561,14 +568,14 @@ export async function startMygardReplication(opts: {
             const hasSharedDocs = documents.some((d) => d._owner);
             const prevV = ownCheckpoint.v ?? 0;
 
-            return {
-              documents,
-              checkpoint: {
-                ...ownResult,
-                epoch: result.epoch ?? epoch,
-                v: hasSharedDocs ? prevV + 1 : prevV,
-              },
+            const pullCheckpoint: OwnerCheckpoint = {
+              ...ownResult,
+              epoch: result.epoch ?? epoch,
+              v: hasSharedDocs ? prevV + 1 : prevV,
             };
+            lastPullCheckpoints.set(nsid, pullCheckpoint);
+
+            return { documents, checkpoint: pullCheckpoint };
           },
         },
         push: {

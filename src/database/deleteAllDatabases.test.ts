@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { deleteAllDatabases } from "./Db";
+import * as DbModule from "./Db";
 
 const realIndexedDB = globalThis.indexedDB;
 
@@ -20,6 +20,10 @@ describe("deleteAllDatabases", () => {
   });
 
   it("deletes databases with rxdb-dexie- prefix", async () => {
+    // Prevent destroyAll from tearing down the shared test RxDB instance —
+    // this test only verifies the IndexedDB deletion filter logic.
+    const destroySpy = vi.spyOn(DbModule, "destroyAll").mockResolvedValue(undefined);
+
     vi.stubGlobal("indexedDB", {
       databases: vi
         .fn()
@@ -32,12 +36,14 @@ describe("deleteAllDatabases", () => {
       deleteDatabase: mockDeleteDatabase,
     });
 
-    await deleteAllDatabases();
+    await DbModule.deleteAllDatabases();
 
     const deleted = mockDeleteDatabase.mock.calls.map((c: string[]) => c[0]);
     expect(deleted).toContain("rxdb-dexie-budgee-bob--1--transactions");
     expect(deleted).toContain("rxdb-dexie-budgee-bob--0--_rxdb_internal");
     expect(deleted).toContain("rxdb-dexie-budgee-alice--1--tags");
     expect(deleted).not.toContain("unrelated-database");
+
+    destroySpy.mockRestore();
   });
 });

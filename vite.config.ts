@@ -53,7 +53,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./scripts/test-setup.ts"],
     pool: "threads",
-    isolate: false,
     exclude: ["**/node_modules/**", "**/.claude/worktrees/**"],
   },
 });
