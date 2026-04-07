@@ -27,22 +27,19 @@ function stripServerDoc(d: ServerDoc): Record<string, unknown> {
 /** Checkpoint advancement logic from the pull handler. */
 function advanceCheckpoint(
   ownResult: { seq: number },
-  prevCheckpoint: { seq: number; epoch?: string; v?: number },
+  prevCheckpoint: { seq: number; v?: number },
   documents: { _owner?: string }[],
-  epoch: string,
-): { seq: number; epoch: string; v: number } {
+): { seq: number; v: number } {
   const hasSharedDocs = documents.some((d) => d._owner);
   const prevV = prevCheckpoint.v ?? 0;
   return {
     ...ownResult,
-    epoch,
     v: hasSharedDocs ? prevV + 1 : prevV,
   };
 }
 
 interface OwnerCheckpoint {
   seq: number;
-  epoch?: string;
   v?: number;
 }
 
@@ -50,12 +47,9 @@ interface OwnerCheckpoint {
 function streamCheckpoint(
   ownCheckpoint: OwnerCheckpoint,
   lastPullCheckpoint: OwnerCheckpoint | undefined,
-  currentEpoch: string,
   hasSharedDocs: boolean,
 ): OwnerCheckpoint {
-  const base = hasSharedDocs
-    ? (lastPullCheckpoint ?? { seq: 0, epoch: currentEpoch })
-    : ownCheckpoint;
+  const base = hasSharedDocs ? (lastPullCheckpoint ?? { seq: 0 }) : ownCheckpoint;
   return hasSharedDocs ? { ...base, v: (base.v ?? 0) + 1 } : ownCheckpoint;
 }
 
@@ -119,31 +113,29 @@ describe("_rev stripping from server documents", () => {
 describe("stream checkpoint for shared docs", () => {
   it("uses last pull checkpoint instead of server checkpoint for shared docs", () => {
     const serverOwnerCheckpoint: OwnerCheckpoint = { seq: 999 }; // Alice's seq
-    const lastPull: OwnerCheckpoint = { seq: 10, epoch: "e1", v: 3 };
+    const lastPull: OwnerCheckpoint = { seq: 10, v: 3 };
 
-    const cp = streamCheckpoint(serverOwnerCheckpoint, lastPull, "e1", true);
+    const cp = streamCheckpoint(serverOwnerCheckpoint, lastPull, true);
 
     // Must use our own seq (10), not Alice's (999)
     expect(cp.seq).toBe(10);
-    expect(cp.epoch).toBe("e1");
     expect(cp.v).toBe(4);
   });
 
   it("falls back to seq 0 when no prior pull checkpoint exists", () => {
     const serverOwnerCheckpoint: OwnerCheckpoint = { seq: 42 };
 
-    const cp = streamCheckpoint(serverOwnerCheckpoint, undefined, "e1", true);
+    const cp = streamCheckpoint(serverOwnerCheckpoint, undefined, true);
 
     expect(cp.seq).toBe(0);
-    expect(cp.epoch).toBe("e1");
     expect(cp.v).toBe(1);
   });
 
   it("uses server checkpoint directly for own doc events", () => {
     const serverCheckpoint: OwnerCheckpoint = { seq: 15 };
-    const lastPull: OwnerCheckpoint = { seq: 10, epoch: "e1", v: 3 };
+    const lastPull: OwnerCheckpoint = { seq: 10, v: 3 };
 
-    const cp = streamCheckpoint(serverCheckpoint, lastPull, "e1", false);
+    const cp = streamCheckpoint(serverCheckpoint, lastPull, false);
 
     expect(cp.seq).toBe(15);
     expect(cp).toBe(serverCheckpoint); // exact same object, no transformation
@@ -152,52 +144,36 @@ describe("stream checkpoint for shared docs", () => {
 
 describe("shared pull checkpoint advancement", () => {
   it("increments v when shared documents are present", () => {
-    const cp = advanceCheckpoint(
-      { seq: 0 },
-      { seq: 0, epoch: "e1", v: 0 },
-      [{ _owner: "did:web:example:users:alice" }],
-      "e1",
-    );
+    const cp = advanceCheckpoint({ seq: 0 }, { seq: 0, v: 0 }, [
+      { _owner: "did:web:example:users:alice" },
+    ]);
     expect(cp.v).toBe(1);
     expect(cp.seq).toBe(0);
   });
 
   it("does not increment v when only own documents are present", () => {
-    const cp = advanceCheckpoint(
-      { seq: 5 },
-      { seq: 3, epoch: "e1", v: 2 },
-      [{ _owner: undefined }],
-      "e1",
-    );
+    const cp = advanceCheckpoint({ seq: 5 }, { seq: 3, v: 2 }, [{ _owner: undefined }]);
     expect(cp.v).toBe(2);
     expect(cp.seq).toBe(5);
   });
 
   it("increments v from undefined when first shared docs arrive", () => {
-    const cp = advanceCheckpoint(
-      { seq: 0 },
-      { seq: 0, epoch: "e1" },
-      [{ _owner: "did:web:example:users:alice" }],
-      "e1",
-    );
+    const cp = advanceCheckpoint({ seq: 0 }, { seq: 0 }, [
+      { _owner: "did:web:example:users:alice" },
+    ]);
     expect(cp.v).toBe(1);
   });
 
   it("keeps v at 0 when no documents are returned", () => {
-    const cp = advanceCheckpoint({ seq: 5 }, { seq: 5, epoch: "e1", v: 0 }, [], "e1");
+    const cp = advanceCheckpoint({ seq: 5 }, { seq: 5, v: 0 }, []);
     expect(cp.v).toBe(0);
   });
 
   it("increments v on each pull with shared docs", () => {
-    const cp1 = advanceCheckpoint(
-      { seq: 0 },
-      { seq: 0, epoch: "e1", v: 0 },
-      [{ _owner: "alice" }],
-      "e1",
-    );
+    const cp1 = advanceCheckpoint({ seq: 0 }, { seq: 0, v: 0 }, [{ _owner: "alice" }]);
     expect(cp1.v).toBe(1);
 
-    const cp2 = advanceCheckpoint({ seq: 0 }, cp1, [{ _owner: "alice" }], "e1");
+    const cp2 = advanceCheckpoint({ seq: 0 }, cp1, [{ _owner: "alice" }]);
     expect(cp2.v).toBe(2);
   });
 });
