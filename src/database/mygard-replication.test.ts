@@ -1,10 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-/**
- * Replicate the checkpoint advancement logic from the pull handler.
- * When shared documents are present but own seq doesn't change,
- * the `v` counter must increment so RxDB sees checkpoint progress.
- */
+// ---------------------------------------------------------------------------
+// Helpers that mirror the logic in mygard-replication.ts so we can unit-test
+// the transformations without standing up a full WebSocket + RxDB stack.
+// ---------------------------------------------------------------------------
+
+interface ServerDoc {
+  id: string;
+  collection: string;
+  _rev?: string;
+  _owner?: string;
+  _permission?: string;
+  _deleted?: boolean;
+  [key: string]: unknown;
+}
+
+/** Strip server fields before handing docs to RxDB (pull & stream paths). */
+function stripServerDoc(d: ServerDoc): Record<string, unknown> {
+  const { collection: _, _rev: __, ...rest } = d;
+  if (rest._owner) {
+    rest.id = `${rest._owner}~${rest.id}`;
+  }
+  return rest;
+}
+
+/** Checkpoint advancement logic from the pull handler. */
 function advanceCheckpoint(
   ownResult: { seq: number },
   prevCheckpoint: { seq: number; epoch?: string; v?: number },
@@ -19,6 +39,116 @@ function advanceCheckpoint(
     v: hasSharedDocs ? prevV + 1 : prevV,
   };
 }
+
+interface OwnerCheckpoint {
+  seq: number;
+  epoch?: string;
+  v?: number;
+}
+
+/** Stream checkpoint logic: use last pull checkpoint for shared docs. */
+function streamCheckpoint(
+  ownCheckpoint: OwnerCheckpoint,
+  lastPullCheckpoint: OwnerCheckpoint | undefined,
+  currentEpoch: string,
+  hasSharedDocs: boolean,
+): OwnerCheckpoint {
+  const base = hasSharedDocs
+    ? (lastPullCheckpoint ?? { seq: 0, epoch: currentEpoch })
+    : ownCheckpoint;
+  return hasSharedDocs ? { ...base, v: (base.v ?? 0) + 1 } : ownCheckpoint;
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe("_rev stripping from server documents", () => {
+  it("removes _rev from own documents", () => {
+    const doc: ServerDoc = {
+      id: "tx1",
+      collection: "io.mygard.finance.transaction",
+      _rev: "bafyabc",
+      _deleted: false,
+      date: "2025-01-01",
+      amount: -42,
+    };
+    const result = stripServerDoc(doc);
+    expect(result).not.toHaveProperty("_rev");
+    expect(result).not.toHaveProperty("collection");
+    expect(result.id).toBe("tx1");
+    expect(result.date).toBe("2025-01-01");
+  });
+
+  it("removes _rev from shared documents and prefixes id", () => {
+    const doc: ServerDoc = {
+      id: "tx1",
+      collection: "io.mygard.finance.transaction",
+      _rev: "",
+      _owner: "did:web:alice",
+      _permission: "read",
+      _deleted: false,
+      amount: -10,
+    };
+    const result = stripServerDoc(doc);
+    expect(result).not.toHaveProperty("_rev");
+    expect(result.id).toBe("did:web:alice~tx1");
+    expect(result._owner).toBe("did:web:alice");
+  });
+
+  it("removes _rev even when it is an empty string", () => {
+    const doc: ServerDoc = {
+      id: "tx1",
+      collection: "col",
+      _rev: "",
+      _owner: "did:web:alice",
+    };
+    const result = stripServerDoc(doc);
+    expect(result).not.toHaveProperty("_rev");
+  });
+
+  it("works when _rev is undefined", () => {
+    const doc: ServerDoc = { id: "tx1", collection: "col" };
+    const result = stripServerDoc(doc);
+    expect(result).not.toHaveProperty("_rev");
+    expect(result).not.toHaveProperty("collection");
+    expect(result.id).toBe("tx1");
+  });
+});
+
+describe("stream checkpoint for shared docs", () => {
+  it("uses last pull checkpoint instead of server checkpoint for shared docs", () => {
+    const serverOwnerCheckpoint: OwnerCheckpoint = { seq: 999 }; // Alice's seq
+    const lastPull: OwnerCheckpoint = { seq: 10, epoch: "e1", v: 3 };
+
+    const cp = streamCheckpoint(serverOwnerCheckpoint, lastPull, "e1", true);
+
+    // Must use our own seq (10), not Alice's (999)
+    expect(cp.seq).toBe(10);
+    expect(cp.epoch).toBe("e1");
+    expect(cp.v).toBe(4);
+  });
+
+  it("falls back to seq 0 when no prior pull checkpoint exists", () => {
+    const serverOwnerCheckpoint: OwnerCheckpoint = { seq: 42 };
+
+    const cp = streamCheckpoint(serverOwnerCheckpoint, undefined, "e1", true);
+
+    expect(cp.seq).toBe(0);
+    expect(cp.epoch).toBe("e1");
+    expect(cp.v).toBe(1);
+  });
+
+  it("uses server checkpoint directly for own doc events", () => {
+    const serverCheckpoint: OwnerCheckpoint = { seq: 15 };
+    const lastPull: OwnerCheckpoint = { seq: 10, epoch: "e1", v: 3 };
+
+    const cp = streamCheckpoint(serverCheckpoint, lastPull, "e1", false);
+
+    expect(cp.seq).toBe(15);
+    expect(cp).toBe(serverCheckpoint); // exact same object, no transformation
+  });
+});
 
 describe("shared pull checkpoint advancement", () => {
   it("increments v when shared documents are present", () => {
