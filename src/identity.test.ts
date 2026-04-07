@@ -40,56 +40,88 @@ afterEach(() => {
 });
 
 describe("fetchIdentity", () => {
-  it("returns user and caches on successful response", async () => {
-    mockFetchOk();
+  describe("without server URL", () => {
+    it("returns cached identity without fetching", async () => {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(mockUser));
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
 
-    const user = await fetchIdentity();
+      const user = await fetchIdentity();
 
-    expect(user).toEqual(mockUser);
-    expect(JSON.parse(localStorage.getItem(CACHE_KEY)!)).toEqual(mockUser);
+      expect(user).toEqual(mockUser);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it("returns null without fetching when no cache", async () => {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
+
+      const user = await fetchIdentity();
+
+      expect(user).toBeNull();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
   });
 
-  it("calls /whoami relative URL", async () => {
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(mockUser) });
-    vi.stubGlobal("fetch", fetchSpy);
+  describe("with server URL", () => {
+    beforeEach(() => {
+      localStorage.setItem("budgee-sync-url", "http://localhost:9999");
+    });
 
-    await fetchIdentity();
+    it("returns user and caches on successful response", async () => {
+      mockFetchOk();
 
-    expect(fetchSpy).toHaveBeenCalledWith("/whoami", { headers: {} });
-  });
+      const user = await fetchIdentity();
 
-  it("returns cached identity on 401 response", async () => {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(mockUser));
-    mockFetchStatus(401);
+      expect(user).toEqual(mockUser);
+      expect(JSON.parse(localStorage.getItem(CACHE_KEY)!)).toEqual(mockUser);
+    });
 
-    const user = await fetchIdentity();
+    it("calls /whoami on the configured server URL", async () => {
+      localStorage.setItem("budgee-sync-url", "http://myserver:8080");
+      const fetchSpy = vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: () => Promise.resolve(mockUser) });
+      vi.stubGlobal("fetch", fetchSpy);
 
-    expect(user).toEqual(mockUser);
-  });
+      await fetchIdentity();
 
-  it("returns null on 401 when no cache exists", async () => {
-    mockFetchStatus(401);
+      expect(fetchSpy).toHaveBeenCalledWith("http://myserver:8080/whoami", { headers: {} });
+    });
 
-    const user = await fetchIdentity();
+    it("returns cached identity on 401 response", async () => {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(mockUser));
+      mockFetchStatus(401);
 
-    expect(user).toBeNull();
-  });
+      const user = await fetchIdentity();
 
-  it("returns cached identity on network error", async () => {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(mockUser));
-    mockFetchError();
+      expect(user).toEqual(mockUser);
+    });
 
-    const user = await fetchIdentity();
+    it("returns null on 401 when no cache exists", async () => {
+      mockFetchStatus(401);
 
-    expect(user).toEqual(mockUser);
-  });
+      const user = await fetchIdentity();
 
-  it("returns null on network error when no cache exists", async () => {
-    mockFetchError();
+      expect(user).toBeNull();
+    });
 
-    const user = await fetchIdentity();
+    it("returns cached identity on network error", async () => {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(mockUser));
+      mockFetchError();
 
-    expect(user).toBeNull();
+      const user = await fetchIdentity();
+
+      expect(user).toEqual(mockUser);
+    });
+
+    it("returns null on network error when no cache exists", async () => {
+      mockFetchError();
+
+      const user = await fetchIdentity();
+
+      expect(user).toBeNull();
+    });
   });
 });
 

@@ -28,9 +28,9 @@ export async function fetchIdentity(): Promise<User | null> {
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const serverUrl = localStorage.getItem("budgee-sync-url");
-    const base = serverUrl ?? "";
+    if (!serverUrl) return getCachedIdentity();
 
-    const response = await fetch(`${base}/whoami`, { headers });
+    const response = await fetch(`${serverUrl}/whoami`, { headers });
     if (response.ok) {
       const user = (await response.json()) as User;
       try {
