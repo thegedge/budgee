@@ -351,7 +351,7 @@ export function dbNameForLogin(login?: string | null): string {
  * Check whether the legacy `budgee` database exists in IndexedDB.
  * Returns false when the `indexedDB.databases()` API is unavailable.
  */
-async function legacyDbExists(): Promise<boolean> {
+export async function legacyDbExists(): Promise<boolean> {
   if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") {
     return false;
   }
@@ -361,6 +361,40 @@ async function legacyDbExists(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Find any existing `budgee-*` database (from the per-user scheme).
+ * Returns the first match, or null if none found.
+ */
+export async function findExistingBudgeeDb(): Promise<string | null> {
+  if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") {
+    return null;
+  }
+  try {
+    const dbs = await indexedDB.databases();
+    const match = dbs.find(
+      (entry) => entry.name?.startsWith(`${LEGACY_DB_NAME}-`) && entry.name !== LEGACY_DB_NAME,
+    );
+    return match?.name ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the database name purely from local IndexedDB state, with no network calls.
+ *
+ * Priority:
+ * 1. Legacy "budgee" DB → keep using it
+ * 2. Any existing "budgee-*" DB (from previous per-user scheme) → keep using it
+ * 3. New install → use "budgee-local"
+ */
+export async function resolveDbName(): Promise<string> {
+  if (await legacyDbExists()) return LEGACY_DB_NAME;
+  const existing = await findExistingBudgeeDb();
+  if (existing) return existing;
+  return "budgee-local";
 }
 
 export async function createDatabases(storage: unknown, name = LEGACY_DB_NAME): Promise<Databases> {
@@ -568,7 +602,7 @@ export async function deleteAllDatabases(): Promise<void> {
 export const isDemoMode =
   typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "1";
 
-async function createDefaultDatabase(login?: string | null): Promise<Databases> {
+async function createDefaultDatabase(): Promise<Databases> {
   if (import.meta.env?.MODE === "test") {
     const { getRxStorageMemory } = await import("rxdb/plugins/storage-memory");
     return createDatabases(getRxStorageMemory(), "budgee_test");
@@ -580,14 +614,7 @@ async function createDefaultDatabase(login?: string | null): Promise<Databases> 
   }
 
   const { getRxStorageDexie } = await import("rxdb/plugins/storage-dexie");
-  const name = dbNameForLogin(login);
-
-  if (login && name !== LEGACY_DB_NAME && (await legacyDbExists())) {
-    console.warn(
-      `Legacy database '${LEGACY_DB_NAME}' detected. Data will be synced from the server into your new user-specific database.`,
-    );
-  }
-
+  const name = await resolveDbName();
   return createDatabases(getRxStorageDexie(), name);
 }
 
@@ -596,9 +623,7 @@ let cachedDb: Promise<Databases> | undefined;
 export function db(): Promise<Databases> {
   if (!cachedDb) {
     cachedDb = (async () => {
-      const { fetchIdentity } = await import("../identity");
-      const user = await fetchIdentity();
-      const dbs = await createDefaultDatabase(user?.login ?? null);
+      const dbs = await createDefaultDatabase();
       const { migrateDatabase } = await import("./migrations");
       await migrateDatabase(dbs);
       if (isDemoMode) {
