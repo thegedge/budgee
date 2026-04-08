@@ -4,7 +4,8 @@
   import { importDatabase } from "../database/importDb";
   import { startReplication, syncStatus$ } from "../database/replication";
 
-  import { fetchIdentity, type User } from "../identity";
+  import { fetchIdentity } from "../identity";
+  import { initAuth, getAuth } from "../auth.svelte";
   import { showConfirmDialog } from "./shared/confirmDialog";
   import { showErrorOverlay } from "./shared/errorOverlay.svelte";
   import { setupGlobalErrorHandler } from "./globalErrorHandler";
@@ -13,6 +14,7 @@
   import ToastManager from "./shared/ToastManager.svelte";
   import Modal from "./shared/Modal.svelte";
   import SyncStatusIndicator from "./SyncStatusIndicator.svelte";
+  import BackupNudge from "./shared/BackupNudge.svelte";
   import { navigate, withBasePath } from "./navigate";
   import { initRouter, startRouter, matchedRoute, currentRoute } from "../lib/router.svelte";
 
@@ -27,7 +29,6 @@
 
   let dragOver = $state(false);
   let showShortcuts = $state(false);
-  let identity: User | null = null;
   let dragCounter = 0;
   let cancelReplication: (() => void) | undefined;
   let syncSub: Subscription | undefined;
@@ -44,6 +45,7 @@
   let TagManager = $state<typeof import("./tags/TagManager.svelte").default>();
   let RuleManager = $state<typeof import("./rules/RuleManager.svelte").default>();
   let Settings = $state<typeof import("./settings/Settings.svelte").default>();
+  let SetupWizard = $state<typeof import("./setup/SetupWizard.svelte").default>();
 
   // Eagerly load main pages
   import("./dashboard/Dashboard.svelte").then((m) => { Dashboard = m.default; });
@@ -53,6 +55,7 @@
   import("./tags/TagManager.svelte").then((m) => { TagManager = m.default; });
   import("./rules/RuleManager.svelte").then((m) => { RuleManager = m.default; });
   import("./settings/Settings.svelte").then((m) => { Settings = m.default; });
+  import("./setup/SetupWizard.svelte").then((m) => { SetupWizard = m.default; });
 
   initRouter([
     { path: "/" },
@@ -86,6 +89,14 @@
     { path: "/tags" },
     { path: "/rules" },
     { path: "/settings" },
+    {
+      path: "/setup",
+      enter: async () => {
+        const m = await import("./setup/SetupWizard.svelte");
+        SetupWizard = m.default;
+        return true;
+      },
+    },
   ]);
 
   let route = $derived(matchedRoute());
@@ -95,14 +106,12 @@
     const cancel = cancelReplication;
     cancelReplication = undefined;
     await cancel?.();
-    let url: string | null;
-    try { url = localStorage.getItem("budgee-sync-url"); } catch { return; }
-    if (url) {
-      try {
-        cancelReplication = await startReplication(url, identity?.login ?? null);
-      } catch (e) {
-        console.error("Failed to start replication:", e);
-      }
+    const auth = getAuth();
+    if (auth.status !== "authenticated") return;
+    try {
+      cancelReplication = await startReplication(auth.serverUrl, auth.user.login);
+    } catch (e) {
+      console.error("Failed to start replication:", e);
     }
   }
 
@@ -189,9 +198,16 @@
         const message = error instanceof Error ? error.message : String(error);
         showErrorOverlay(message, { isDatabaseError: true });
       });
-      const user = await fetchIdentity();
-      identity = user;
-      if (user) console.info("Identified as:", user.login);
+
+      await initAuth();
+
+      const auth = getAuth();
+      if (auth.status === "authenticated") {
+        console.info("Identified as:", auth.user.login);
+      } else {
+        const user = await fetchIdentity();
+        if (user) console.info("Identified as:", user.login);
+      }
 
       if (!isDemoMode) {
         connectReplication();
@@ -231,6 +247,10 @@
     <div class="demo-banner">Demo Mode — changes won't be saved <a href={demoExitHref()} onclick={onDemoExit}>Exit demo</a></div>
   {/if}
 
+  <div class="nudge-area">
+    <BackupNudge />
+  </div>
+
   <div class="sidebar">
     <h1 class="app-name">{@html birdIcon} Budgee</h1>
 
@@ -268,6 +288,8 @@
         <RuleManager />
       {:else if route.config.path === "/settings" && Settings}
         <Settings />
+      {:else if route.config.path === "/setup" && SetupWizard}
+        <SetupWizard />
       {/if}
     {/if}
   </main>
@@ -299,12 +321,17 @@
     min-height: 100vh;
     display: grid;
     grid-template-areas:
+      "nudge nudge"
       "sidebar main";
     grid-template-columns: auto 1fr;
-    grid-template-rows: 1fr;
+    grid-template-rows: auto 1fr;
     gap: 0;
     color: var(--budgee-text);
     font-family: sans-serif;
+  }
+
+  .nudge-area {
+    grid-area: nudge;
   }
 
   .app :global(svg.lucide) {
@@ -406,10 +433,11 @@
   @media (max-width: 1024px) {
     .app {
       grid-template-areas:
+        "nudge"
         "sidebar"
         "main";
       grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto 1fr;
     }
     .sidebar {
       flex-direction: row;

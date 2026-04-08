@@ -71,6 +71,7 @@ export function buildTopic(collectionName: string, userLogin?: string | null): s
 async function detectMygardServer(serverUrl: string): Promise<boolean> {
   try {
     const response = await fetch(`${serverUrl}/.well-known/mygard-server`, {
+      credentials: "include",
       signal: AbortSignal.timeout(5000),
     });
     if (response.ok) {
@@ -124,6 +125,7 @@ export async function startReplication(
       try {
         const response = await fetch(`${serverUrl}/databases`, {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ topic: unNamespacedTopic, schema: collection.schema.jsonSchema }),
         });

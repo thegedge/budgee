@@ -143,6 +143,19 @@ export async function checkCookieAuth(serverUrl: string): Promise<User | null> {
 }
 
 /**
+ * Set auth state to authenticated with cookie-only auth (no token).
+ * Used after a successful probe that detected an existing session.
+ */
+export function acceptCookieAuth(serverUrl: string, user: User): void {
+  try {
+    localStorage.setItem(SYNC_URL_KEY, serverUrl);
+  } catch {
+    // localStorage unavailable
+  }
+  setAuth({ status: "authenticated", serverUrl, user });
+}
+
+/**
  * Clear auth state and remove stored credentials from localStorage.
  */
 export function logout(): void {

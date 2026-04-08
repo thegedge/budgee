@@ -1,24 +1,15 @@
 <script lang="ts">
   import { exportDatabase } from "../../database/exportDb";
   import { importDatabase } from "../../database/importDb";
-  import { testConnection } from "../../database/replication";
   import { showConfirmDialog } from "../shared/confirmDialog";
   import { showLoadingOverlay, hideLoadingOverlay } from "../shared/loadingOverlay";
-  import { showToast } from "../shared/toast";
   import { isDemoMode } from "../../database/Db";
+  import { getAuth, logout } from "../../auth.svelte";
   import "../styles/button.css";
 
-  // No props needed — save triggers a full page reload to reset the database singleton.
-
-  let url = $state("");
-  let token = $state("");
-  let saving = $state(false);
-  let saveError = $state("");
   let theme = $state<"system" | "light" | "dark">("system");
 
   $effect(() => {
-    url = localStorage.getItem("budgee-sync-url") ?? "";
-    token = localStorage.getItem("budgee-sync-token") ?? "";
     const stored = localStorage.getItem("budgee-theme");
     theme = stored === "light" || stored === "dark" ? stored : "system";
   });
@@ -35,44 +26,8 @@
     }
   }
 
-  function onUrlChange(e: Event) {
-    url = (e.target as HTMLInputElement).value;
-    saveError = "";
-  }
-
-  function onTokenChange(e: Event) {
-    token = (e.target as HTMLInputElement).value;
-    saveError = "";
-  }
-
-  let canSave = $derived(
-    url !== (localStorage.getItem("budgee-sync-url") ?? "") ||
-    token !== (localStorage.getItem("budgee-sync-token") ?? ""),
-  );
-
-  async function onSave() {
-    if (url) {
-      saving = true;
-      saveError = "";
-      try {
-        await testConnection(url);
-      } catch (e) {
-        saving = false;
-        saveError = e instanceof Error ? e.message : String(e);
-        showToast({ message: "Connection failed", type: "error" });
-        return;
-      }
-      saving = false;
-    }
-
-    localStorage.setItem("budgee-sync-url", url);
-    if (token) {
-      localStorage.setItem("budgee-sync-token", token);
-    } else {
-      localStorage.removeItem("budgee-sync-token");
-    }
-    localStorage.removeItem("budgee-ice-server");
-    localStorage.removeItem("budgee-turn-server");
+  function onDisconnect() {
+    logout();
     window.location.reload();
   }
 
@@ -127,25 +82,22 @@
 {:else}
   <section>
     <h2>Sync</h2>
-    <p class="hint">Sync your data across devices using a sync server. Save a valid URL to enable sync; clear it to disable.</p>
-    <div class="field">
-      <label for="sync-url">Server URL</label>
-      <input type="url" id="sync-url" value={url} oninput={onUrlChange} placeholder="http://your-server:3001" />
-      <p class="hint">The URL of your sync server. Clear to disable sync.</p>
-    </div>
-    <div class="field">
-      <label for="sync-token">Token</label>
-      <input type="password" id="sync-token" value={token} oninput={onTokenChange} placeholder="Paste your auth token" />
-      <p class="hint">From <code>cli register</code> or <code>cli pair-redeem</code>. Leave blank for Tailscale auth.</p>
-    </div>
-    {#if saveError}
-      <p class="test-result error">Connection failed: {saveError}</p>
+    {#if getAuth().status === "authenticated"}
+      {@const auth = getAuth()}
+      {#if auth.status === "authenticated"}
+        <div class="field">
+          <span class="field-label">Server</span>
+          <span class="field-value">{auth.serverUrl}</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Account</span>
+          <span class="field-value">{auth.user.name} ({auth.user.login})</span>
+        </div>
+        <button class="danger" onclick={onDisconnect}>Disconnect</button>
+      {/if}
+    {:else}
+      <p class="hint">Not connected. <a href="/setup">Set up backup</a> to sync your data across devices.</p>
     {/if}
-    <div class="field">
-      <button disabled={!canSave || saving} onclick={onSave}>
-        {saving ? "Connecting..." : "Save"}
-      </button>
-    </div>
   </section>
 {/if}
 
@@ -168,18 +120,9 @@
     color: var(--budgee-text);
     font-size: 0.9rem;
   }
-  input[type="url"], input[type="password"] {
-    width: 100%;
-    max-width: 400px;
-    padding: 0.4rem 0.6rem;
-    border: 1px solid var(--budgee-border);
-    border-radius: 4px;
-    background: var(--budgee-surface);
-    color: var(--budgee-text);
-    font-size: 0.9rem;
-  }
   .hint { font-size: 0.8rem; color: var(--budgee-text-muted); margin-top: 0.25rem; }
+  .hint a { color: var(--budgee-primary); }
   button { padding: 0.5rem 1rem; }
-  .test-result { font-size: 0.85rem; margin-top: 0.25rem; }
-  .test-result.error { color: var(--budgee-negative, red); }
+  .field-label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--budgee-text-muted); }
+  .field-value { font-size: 0.9rem; }
 </style>
