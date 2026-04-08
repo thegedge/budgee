@@ -1,6 +1,15 @@
-import { render, cleanup, screen, fireEvent } from "@testing-library/svelte";
+import { render, cleanup, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../database/Db", async () => {
+  const actual = await vi.importActual<typeof import("../../database/Db")>("../../database/Db");
+  return {
+    ...actual,
+    deleteAllDatabases: vi.fn(() => Promise.resolve()),
+  };
+});
+
 import { logout, getAuth } from "../../auth.svelte";
 import Settings from "./Settings.svelte";
 
@@ -71,7 +80,7 @@ describe("Settings sync section", () => {
     flushSync();
 
     expect(getAuth().status).toBe("local");
-    expect(reloadSpy).toHaveBeenCalled();
+    await waitFor(() => expect(reloadSpy).toHaveBeenCalled());
   });
 });
 

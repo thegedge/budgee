@@ -5,7 +5,7 @@
   import { startReplication, syncStatus$ } from "../database/replication";
 
   import { fetchIdentity } from "../identity";
-  import { initAuth, getAuth } from "../auth.svelte";
+  import { initAuth, getAuth, enforceDbOwnership } from "../auth.svelte";
   import { showConfirmDialog } from "./shared/confirmDialog";
   import { showErrorOverlay } from "./shared/errorOverlay.svelte";
   import { setupGlobalErrorHandler } from "./globalErrorHandler";
@@ -193,13 +193,18 @@
     setupGlobalErrorHandler();
 
     void (async () => {
+      await initAuth();
+
+      // Must run before db() opens IndexedDB — a mismatched owner wipes
+      // and reloads, and we don't want an open connection in the way.
+      const ownership = await enforceDbOwnership();
+      if (ownership === "wiped") return;
+
       db().catch((error: unknown) => {
         console.error(error);
         const message = error instanceof Error ? error.message : String(error);
         showErrorOverlay(message, { isDatabaseError: true });
       });
-
-      await initAuth();
 
       const auth = getAuth();
       if (auth.status === "authenticated") {

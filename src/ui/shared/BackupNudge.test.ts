@@ -1,6 +1,12 @@
 import { render, cleanup, screen, fireEvent } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../database/Db", async () => {
+  const actual = await vi.importActual<typeof import("../../database/Db")>("../../database/Db");
+  return { ...actual, deleteAllDatabases: vi.fn(() => Promise.resolve()) };
+});
+
 import { logout } from "../../auth.svelte";
 import { db } from "../../database/Db";
 import BackupNudge from "./BackupNudge.svelte";

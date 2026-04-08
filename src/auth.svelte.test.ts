@@ -1,15 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { deleteAllDatabasesMock } = vi.hoisted(() => ({
+  deleteAllDatabasesMock: vi.fn(() => Promise.resolve()),
+}));
+vi.mock("./database/Db", () => ({
+  deleteAllDatabases: deleteAllDatabasesMock,
+}));
+
 import {
+  acceptCookieAuth,
   checkCookieAuth,
+  clearOwner,
+  enforceDbOwnership,
   getAuth,
   initAuth,
   login,
   logout,
   probeServer,
+  readOwner,
   register,
+  writeOwner,
 } from "./auth.svelte";
 
-const mockUser = { login: "alice@example.com", name: "Alice Smith" };
+const mockUser = { login: "alice@example.com", name: "Alice Smith", did: "did:plc:alice" };
+const mockUserNoDid = { login: "alice@example.com", name: "Alice Smith" };
 const SERVER_URL = "https://sync.example.com";
 
 function mockFetch(responses: Array<{ ok: boolean; status?: number; body?: unknown } | Error>) {
@@ -30,10 +44,11 @@ function mockFetch(responses: Array<{ ok: boolean; status?: number; body?: unkno
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   localStorage.clear();
   // Reset auth state to local before each test
-  logout();
+  await logout();
+  deleteAllDatabasesMock.mockClear();
 });
 
 afterEach(() => {
@@ -202,6 +217,169 @@ describe("logout", () => {
 
     expect(localStorage.getItem("budgee-sync-url")).toBeNull();
     expect(localStorage.getItem("budgee-sync-token")).toBeNull();
+  });
+
+  it("wipes local databases", async () => {
+    mockFetch([{ ok: true, body: { user: mockUser, token: "tok" } }]);
+    await login(SERVER_URL, "alice@example.com", "pass");
+    deleteAllDatabasesMock.mockClear();
+
+    await logout();
+
+    expect(deleteAllDatabasesMock).toHaveBeenCalledOnce();
+  });
+
+  it("clears owner stamp", async () => {
+    writeOwner({ did: "did:plc:alice", login: "alice", serverUrl: SERVER_URL });
+
+    await logout();
+
+    expect(readOwner()).toBeNull();
+  });
+});
+
+describe("owner stamping", () => {
+  it("login writes an owner stamp", async () => {
+    mockFetch([{ ok: true, body: { user: mockUser, token: "tok" } }]);
+
+    await login(SERVER_URL, "alice@example.com", "pass");
+
+    expect(readOwner()).toEqual({
+      did: "did:plc:alice",
+      login: "alice@example.com",
+      serverUrl: SERVER_URL,
+    });
+  });
+
+  it("register writes an owner stamp", async () => {
+    mockFetch([{ ok: true, body: { user: mockUser } }]);
+
+    await register(SERVER_URL, "alice@example.com", "pass");
+
+    expect(readOwner()?.did).toBe("did:plc:alice");
+  });
+
+  it("acceptCookieAuth writes an owner stamp", () => {
+    acceptCookieAuth(SERVER_URL, mockUser);
+
+    expect(readOwner()?.did).toBe("did:plc:alice");
+  });
+
+  it("initAuth (token path) writes an owner stamp", async () => {
+    localStorage.setItem("budgee-sync-url", SERVER_URL);
+    localStorage.setItem("budgee-sync-token", "tok");
+    mockFetch([{ ok: true, body: mockUser }]);
+
+    await initAuth();
+
+    expect(readOwner()?.did).toBe("did:plc:alice");
+  });
+
+  it("initAuth (cookie path) writes an owner stamp", async () => {
+    localStorage.setItem("budgee-sync-url", SERVER_URL);
+    mockFetch([{ ok: true, body: mockUser }]);
+
+    await initAuth();
+
+    expect(readOwner()?.did).toBe("did:plc:alice");
+  });
+
+  it("falls back to null did when user has none", () => {
+    acceptCookieAuth(SERVER_URL, mockUserNoDid);
+
+    expect(readOwner()).toEqual({
+      did: null,
+      login: "alice@example.com",
+      serverUrl: SERVER_URL,
+    });
+  });
+
+  it("readOwner returns null for malformed JSON", () => {
+    localStorage.setItem("budgee-db-owner", "not json");
+    expect(readOwner()).toBeNull();
+  });
+});
+
+describe("enforceDbOwnership", () => {
+  it("returns ok and does nothing when auth is local", async () => {
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("ok");
+    expect(deleteAllDatabasesMock).not.toHaveBeenCalled();
+    expect(readOwner()).toBeNull();
+  });
+
+  it("returns ok when stamp matches authenticated user (by DID)", async () => {
+    acceptCookieAuth(SERVER_URL, mockUser);
+    deleteAllDatabasesMock.mockClear();
+
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("ok");
+    expect(deleteAllDatabasesMock).not.toHaveBeenCalled();
+  });
+
+  it("writes a stamp when none exists and auth is valid (first-time claim)", async () => {
+    // Simulate an authenticated state with no pre-existing stamp
+    acceptCookieAuth(SERVER_URL, mockUser);
+    clearOwner();
+    deleteAllDatabasesMock.mockClear();
+
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("ok");
+    expect(readOwner()?.did).toBe("did:plc:alice");
+    expect(deleteAllDatabasesMock).not.toHaveBeenCalled();
+  });
+
+  it("wipes and reloads when stamp belongs to a different user", async () => {
+    const reloadSpy = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { reload: reloadSpy },
+      writable: true,
+    });
+
+    writeOwner({ did: "did:plc:bob", login: "bob", serverUrl: SERVER_URL });
+    acceptCookieAuth(SERVER_URL, mockUser);
+    // acceptCookieAuth overwrote the stamp — re-plant Bob's stamp to simulate
+    // a startup where the stamp pre-dates the new authentication.
+    writeOwner({ did: "did:plc:bob", login: "bob", serverUrl: SERVER_URL });
+    deleteAllDatabasesMock.mockClear();
+
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("wiped");
+    expect(deleteAllDatabasesMock).toHaveBeenCalledOnce();
+    expect(reloadSpy).toHaveBeenCalled();
+    expect(readOwner()?.did).toBe("did:plc:alice");
+  });
+
+  it("treats missing-did vs present-did as a mismatch", async () => {
+    const reloadSpy = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { reload: reloadSpy },
+      writable: true,
+    });
+
+    acceptCookieAuth(SERVER_URL, mockUser);
+    // Plant a stamp with no DID (legacy user) while current user has DID
+    writeOwner({ did: null, login: "alice@example.com", serverUrl: SERVER_URL });
+    deleteAllDatabasesMock.mockClear();
+
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("wiped");
+    expect(deleteAllDatabasesMock).toHaveBeenCalledOnce();
+  });
+
+  it("matches composite key when both sides lack a DID", async () => {
+    acceptCookieAuth(SERVER_URL, mockUserNoDid);
+    deleteAllDatabasesMock.mockClear();
+
+    const result = await enforceDbOwnership();
+
+    expect(result).toBe("ok");
+    expect(deleteAllDatabasesMock).not.toHaveBeenCalled();
   });
 });
 

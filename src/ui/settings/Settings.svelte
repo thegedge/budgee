@@ -26,8 +26,8 @@
     }
   }
 
-  function onDisconnect() {
-    logout();
+  async function onDisconnect() {
+    await logout();
     window.location.reload();
   }
 
