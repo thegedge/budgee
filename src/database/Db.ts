@@ -565,6 +565,23 @@ export async function destroyAll(dbs: Databases) {
 }
 
 /**
+ * Strict predicate for identifying Budgee-owned IndexedDB databases.
+ *
+ * Previously this used `.includes("budgee")`, which could match unrelated
+ * databases from other apps on the same origin (e.g. `budgeeshop-inventory`,
+ * `my-budgee-fork-data`, or another RxDB app with a substring collision).
+ * The new check uses explicit exact-match and prefix rules keyed to the
+ * known naming conventions:
+ *   - `budgee` (legacy single-user)
+ *   - `budgee-{login}` (multi-user)
+ *   - `rxdb-dexie-budgee-...` (RxDB Dexie storage; the `--` delimiter
+ *     between dbname and version means a `budgee-` prefix still matches).
+ */
+export function isBudgeeDatabase(name: string): boolean {
+  return name === "budgee" || name.startsWith("budgee-") || name.startsWith("rxdb-dexie-budgee-");
+}
+
+/**
  * Destroy the cached RxDB instance (closing IDB connections), then delete
  * all budgee IndexedDB databases. Designed to be called from error recovery
  * UI where the database may be in a broken state.
@@ -584,7 +601,7 @@ export async function deleteAllDatabases(): Promise<void> {
   // Delete any remaining budgee databases via raw IDB API
   if (typeof indexedDB !== "undefined" && typeof indexedDB.databases === "function") {
     const allDbs = await indexedDB.databases();
-    const budgeeDbs = allDbs.filter((d) => d.name?.includes("budgee"));
+    const budgeeDbs = allDbs.filter((d) => (d.name ? isBudgeeDatabase(d.name) : false));
     await Promise.all(
       budgeeDbs.map(
         (d) =>
