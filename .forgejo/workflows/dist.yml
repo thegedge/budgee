@@ -19,13 +19,13 @@ jobs:
       - name: Upload dist tarball (by SHA)
         run: |
           tar -czf dist.tar.gz -C dist .
-          curl -f -H "Authorization: token ${{ secrets.GITEA_TOKEN }}" \
+          curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
             --upload-file dist.tar.gz \
             "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/${DIST_SHA}/dist.tar.gz"
 
       - name: Upload dist tarball (latest)
         if: github.ref == 'refs/heads/main'
         run: |
-          curl -f -H "Authorization: token ${{ secrets.GITEA_TOKEN }}" \
+          curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
             --upload-file dist.tar.gz \
             "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/latest/dist.tar.gz"
