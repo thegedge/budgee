@@ -1,0 +1,31 @@
+name: Build and publish dist
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    env:
+      # For PRs, use the PR head SHA (not the ephemeral merge commit SHA).
+      DIST_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: npm ci
+      - run: VITE_BASE_URL=/ npm run build
+
+      - name: Upload dist tarball (by SHA)
+        run: |
+          tar -czf dist.tar.gz -C dist .
+          curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
+            --upload-file dist.tar.gz \
+            "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/${DIST_SHA}/dist.tar.gz"
+
+      - name: Upload dist tarball (latest)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
+            --upload-file dist.tar.gz \
+            "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/latest/dist.tar.gz"

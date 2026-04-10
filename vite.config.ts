@@ -34,7 +34,16 @@ function baseUrlPlugin(): Plugin {
   };
 }
 
-const basePath = process.env.VITE_BASE_URL ? new URL(process.env.VITE_BASE_URL).pathname : "/";
+function parseBasePath(url: string | undefined): string {
+  if (!url) return "/";
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url;
+  }
+}
+
+const basePath = parseBasePath(process.env.VITE_BASE_URL);
 
 export default defineConfig({
   base: basePath,
