@@ -11,6 +11,9 @@ jobs:
       # For PRs, use the PR head SHA (not the ephemeral merge commit SHA).
       DIST_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
+      - name: Clean workspace
+        run: rm -rf ${{ github.workspace }}/*
+
       - uses: actions/checkout@v4
 
       - run: npm ci

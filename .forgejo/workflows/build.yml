@@ -7,6 +7,9 @@ jobs:
   build:
     runs-on: kaniko
     steps:
+      - name: Clean workspace
+        run: rm -rf ${{ github.workspace }}/*
+
       - uses: actions/checkout@v4
 
       - name: Build and push image
