@@ -44,3 +44,14 @@ jobs:
           curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
             --upload-file dist.tar.gz \
             "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/latest/dist.tar.gz"
+
+  build:
+    needs: [lint, test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: kaniko
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push image
+        run: >-
+          /data/docker-build --build-arg=COMMIT_SHA=${{ github.sha }} --build-arg=COMMIT_DATE=${{
+          github.event.head_commit.timestamp }}
