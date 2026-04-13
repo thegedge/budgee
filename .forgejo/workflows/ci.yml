@@ -34,6 +34,8 @@ jobs:
       - name: Upload dist tarball (by SHA)
         run: |
           tar -czf dist.tar.gz -C dist .
+          curl -s -H "Authorization: token ${{ secrets.PKG_TOKEN }}" -X DELETE \
+            "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/${DIST_SHA}/dist.tar.gz" || true
           curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
             --upload-file dist.tar.gz \
             "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/${DIST_SHA}/dist.tar.gz"
@@ -41,6 +43,8 @@ jobs:
       - name: Upload dist tarball (latest)
         if: github.ref == 'refs/heads/main'
         run: |
+          curl -s -H "Authorization: token ${{ secrets.PKG_TOKEN }}" -X DELETE \
+            "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/latest/dist.tar.gz" || true
           curl -f -H "Authorization: token ${{ secrets.PKG_TOKEN }}" \
             --upload-file dist.tar.gz \
             "${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/budgee/latest/dist.tar.gz"
