@@ -1,19 +1,31 @@
-name: Build and publish dist
+name: CI
 on:
   push:
     branches: [main]
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run tc
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run test
+
   dist:
+    needs: [lint, test]
     runs-on: ubuntu-latest
     env:
-      # For PRs, use the PR head SHA (not the ephemeral merge commit SHA).
       DIST_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Clean workspace
-        run: rm -rf ${{ github.workspace }}/*
-
       - uses: actions/checkout@v4
 
       - run: npm ci
